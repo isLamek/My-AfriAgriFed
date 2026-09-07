@@ -201,6 +201,7 @@ export default function InstitutionDashboard() {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
+      theme={isAdminUser ? "admin" : "institution"}
     >
       <section className="farmer-problems aaf-card">
         <h2>Farmer Problems Awaiting Research</h2>

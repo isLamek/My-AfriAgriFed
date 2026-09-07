@@ -51,8 +51,7 @@ service cloud.firestore {
     // ---- bootstrap flag ----
     match /system/bootstrap {
       allow get: if true;
-      allow create: if false;
-      allow update: if signedIn()
+      allow create, update: if signedIn()
         && founderSeatUnclaimed()
         && request.resource.data.founderClaimed == true
         && request.resource.data.claimedBy == myEmail();

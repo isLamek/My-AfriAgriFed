@@ -220,6 +220,7 @@ const addComment = async (postId) => {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
+      theme={role === "farmer" ? "farmer" : "consumer"}
     >
 
       {/* CREATE POST */}

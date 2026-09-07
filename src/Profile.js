@@ -163,6 +163,7 @@ export default function Profile() {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
+      theme={userType}
     >
       <div className="profile-hero aaf-card">
         <div className="profile-identity">

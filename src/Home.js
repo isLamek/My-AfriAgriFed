@@ -7,7 +7,7 @@ import { Mail, Phone, MapPin, Clock } from "lucide-react";
 import { FacebookIcon, XIcon, InstagramIcon, LinkedinIcon } from "./SocialIcons";
 
 import fullLogo from "./images/full-logo.png";
-import brandBanner from "./images/brand-banner-transparent.png";
+import footerLogo from "./images/footer-logo.png";
 import farmingImg from "./images/farming-data.jpg";
 import statisticsImg from "./images/statistics.jpg";
 import promotionImg from "./images/promotion.jpg";
@@ -462,9 +462,8 @@ export default function Home() {
 
       {/* FOOTER BANNER */}
       <footer className="footer-banner">
-        <img src={brandBanner} alt="AfriAgriFed - Digitizing Africa's food security from African soil" className="footer-brand-banner" loading="lazy" />
-
         <div className="footer-content">
+          <img src={footerLogo} alt="AfriAgriFed - Digitalizing Africa's food security from African soil" className="footer-brand-banner" loading="lazy" />
           <p className="footer-tagline">Digitizing Namibia's Agricultural Landscape</p>
 
           <div className="footer-social">

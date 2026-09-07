@@ -32,6 +32,9 @@
   --aaf-text-muted: var(--aaf-slate);
   --aaf-primary: var(--aaf-baobab);
   --aaf-accent: var(--aaf-shoot);
+  /* Text color that reads well on top of --aaf-shoot. Dashboard theme scopes
+     below swap both together so accent-colored surfaces stay legible. */
+  --aaf-accent-contrast: var(--aaf-canopy);
 
   /* Typography */
   --aaf-font: "Poppins", "Calibri", "Arial", sans-serif;
@@ -45,6 +48,32 @@
   --aaf-shadow-lg: 0 20px 50px rgba(2, 47, 31, 0.16);
 
   --aaf-sidebar-width: 248px;
+}
+
+/*
+  Per-role accent theming. The consumer dashboard keeps the default brand
+  green above untouched; other dashboards get their own accent so it's
+  obvious at a glance which workspace you're in. Scoped to a class on the
+  AppShell root (`theme` prop) so it only retints the accent/highlight
+  tokens - not the whole brand palette (sidebar bg, primary buttons stay
+  the same everywhere for cohesion).
+*/
+.aaf-theme-farmer {
+  --aaf-shoot: var(--aaf-laterite);
+  --aaf-shoot-dark: #9c4c22;
+  --aaf-accent-contrast: var(--aaf-white);
+}
+
+.aaf-theme-institution {
+  --aaf-shoot: #2f6fb0;
+  --aaf-shoot-dark: #204f80;
+  --aaf-accent-contrast: var(--aaf-white);
+}
+
+.aaf-theme-admin {
+  --aaf-shoot: #7c4fd1;
+  --aaf-shoot-dark: #5c37a8;
+  --aaf-accent-contrast: var(--aaf-white);
 }
 
 * {
@@ -89,7 +118,7 @@ body {
 
 .aaf-btn-accent {
   background: var(--aaf-shoot);
-  color: var(--aaf-canopy);
+  color: var(--aaf-accent-contrast);
 }
 
 .aaf-btn-accent:hover {

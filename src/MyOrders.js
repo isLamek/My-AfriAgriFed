@@ -56,6 +56,7 @@ export default function MyOrders() {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
+      theme={isAdminUser ? "admin" : userType}
     >
       <section className="aaf-card">
         {orders.length === 0 ? (

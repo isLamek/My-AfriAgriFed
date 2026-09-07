@@ -200,6 +200,7 @@ export default function MyListings() {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
+      theme={isAdminUser ? "admin" : "farmer"}
     >
       {subaccountId === null && (
         <section className="aaf-card payout-card">

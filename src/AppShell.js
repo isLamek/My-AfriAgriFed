@@ -18,6 +18,7 @@ export default function AppShell({
   navSections = [],
   headerRight,
   onLogout,
+  theme,
   children,
 }) {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ export default function AppShell({
   };
 
   return (
-    <div className="aaf-shell">
+    <div className={`aaf-shell ${theme ? `aaf-theme-${theme}` : ""}`}>
       <button
         className="aaf-mobile-toggle"
         onClick={() => setMobileOpen((prev) => !prev)}

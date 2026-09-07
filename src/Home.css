@@ -620,9 +620,9 @@ body {
 .footer-brand-banner {
   display: block;
   width: 100%;
+  max-width: 320px;
   height: auto;
-  max-height: 220px;
-  object-fit: cover;
+  margin: 0 auto;
 }
 
 .footer-content {
@@ -814,7 +814,7 @@ body {
   }
 
   .footer-brand-banner {
-    max-height: 140px;
+    max-width: 240px;
   }
 }
 

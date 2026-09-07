@@ -283,6 +283,7 @@ export default function AdminDashboard() {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
+      theme="admin"
     >
       <section className="jump-to-dashboards">
         <p className="aaf-eyebrow">Jump to a dashboard</p>
