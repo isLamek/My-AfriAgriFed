@@ -18,6 +18,7 @@ import InstitutionDashboard from "./InstitutionDashboard";
 import Prices from "./Prices";
 import Profile from "./Profile";
 import MyOrders from "./MyOrders";
+import DemandBoard from "./DemandBoard";
 import Research from "./Research";
 import TrainingPrograms from "./TrainingPrograms";
 import Internships from "./Internships";
@@ -242,6 +243,15 @@ function App() {
         element={
           <ProtectedRoute>
             <MyOrders />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/demand-board"
+        element={
+          <ProtectedRoute>
+            <DemandBoard />
           </ProtectedRoute>
         }
       />

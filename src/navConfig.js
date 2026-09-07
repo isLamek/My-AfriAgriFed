@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   Tags,
   Receipt,
+  MessageSquare,
 } from "lucide-react";
 
 const iconProps = { size: 18, strokeWidth: 2 };
@@ -35,6 +36,8 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
     mainItems.push({ label: "Community Feed", icon: <Newspaper {...iconProps} />, path: "/dashboard", onClick: onFeedClick });
     mainItems.push({ label: "Marketplace", icon: <ShoppingCart {...iconProps} />, path: "/dashboard", onClick: onMarketplaceClick });
   }
+
+  mainItems.push({ label: "Demand Board", icon: <MessageSquare {...iconProps} />, path: "/demand-board" });
 
   if (userType === "farmer") {
     mainItems.push({ label: "My Listings", icon: <Tags {...iconProps} />, path: "/my-listings" });

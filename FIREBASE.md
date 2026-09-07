@@ -31,6 +31,9 @@ print the real, live version once you give it a service account key - see
 | `notifications` | auto | notifications.js | **New.** `{ userId, title, body, link, read }` - the bell icon reads this |
 | `telemetry` | auto | telemetry.js | **New.** `{ eventType, uid, email, meta, path, createdAt }` - powers the Admin Dashboard's activity charts |
 | `orders` | auto | payments.js (after a verified Flutterwave charge) | **New.** `{ buyerId, sellerId, product, amount, transactionId, status }`. Read by MyOrders.js (buyer view) and MyListings.js's Recent Sales (seller view) |
+| `demandRequests` | auto | DemandBoard.js (any signed-in user) | **New.** The concept note's "Chat board" - buyers post what they need, producers team up to meet it. `{ title, product, quantityNeeded, unit, deadline, notes, buyerId, buyerName, buyerType, status: open\|fulfilled }` |
+| `demandRequests/{id}/pledges` | auto | DemandBoard.js (farmer/producer) | **New.** `{ farmerId, farmerName, quantity, note, createdAt }` - summed client-side against `quantityNeeded` for the progress bar |
+| `demandRequests/{id}/messages` | auto | DemandBoard.js (any signed-in user) | **New.** `{ authorId, authorName, text, createdAt }` - per-post coordination thread, permanent (no update/delete) |
 
 ## Realtime Database
 
@@ -70,33 +73,39 @@ print the real, live version once you give it a service account key - see
 
 ## Deploying the rules
 
-No Firebase CLI session was available here, so these are written to
-`firestore.rules` and `database.rules.json` but not deployed. Either:
+**Both `firestore.rules` and `database.rules.json` are deployed to the live
+project** (`afriagrifed-ebc30`) via `firebase deploy --only
+firestore:rules,database` - the app at https://afriagrifed-ebc30.web.app runs
+against the same rules committed in this repo. If you change either file,
+redeploy with:
 
-- Paste `firestore.rules` into Firebase Console -> Firestore Database ->
-  Rules -> Publish, and `database.rules.json`'s contents into Realtime
-  Database -> Rules -> Publish, or
-- Run `npm install -g firebase-tools`, `firebase login`, `firebase deploy
-  --only firestore:rules,database`.
+```
+firebase login   # one-time, opens a browser sign-in
+firebase deploy --only firestore:rules,database --project afriagrifed-ebc30
+```
 
-**Confirmed live, not a guess:** I created a real test farmer account and tried
-posting a marketplace listing end-to-end. Sign-up/sign-in and reading/writing
-your own `users` doc already work on the live project (there's an existing
-custom ruleset covering those). Writing to `admins`, `system`, and the new
-`marketPrices` self-write rule all failed with "Missing or insufficient
-permissions" - exactly as expected, because those rules only exist in this
-repo's `firestore.rules` file, not on the live project yet. Once you deploy
-this file, admin claiming, `/my-listings`, and payments all start working
-with no code changes needed.
+or paste the file contents into Firebase Console -> Firestore Database /
+Realtime Database -> Rules -> Publish.
 
-**One more one-time step after deploying rules:** a few queries need a
-Firestore composite index the first time they run - the notification bell
-(`where userId ==` + `orderBy createdAt`), MyOrders.js (`where buyerId ==` +
-`orderBy createdAt`), and MyListings.js's Recent Sales (`where sellerId ==` +
-`orderBy createdAt`). Each one, the first time it runs, prints a direct
-"create it here" link to the Firebase Console in the browser console - click
-it, click Create, wait a minute for it to build. This is normal for any new
-where+orderBy query combination, not a bug.
+**A real bug that shipped and was later fixed:** the `system/bootstrap`
+singleton (gates the one-time founder self-claim) originally only had `allow
+update`, with `allow create: if false`. Since that document never exists on a
+fresh project, the very first founder claim's write is a *create*, not an
+*update* - so it was hard-blocked no matter who tried it or whether the rest
+of the rules were deployed correctly. Fixed by allowing `create` under the
+same conditions as `update` (see `firestore.rules`). If you ever add another
+singleton/bootstrap-style document, watch for this exact trap.
+
+**One more one-time step after deploying new rules:** a `where` + `orderBy`
+query on two different fields needs a Firestore composite index the first
+time it runs - currently the notification bell (`where userId ==` +
+`orderBy createdAt`), MyOrders.js (`where buyerId ==` + `orderBy createdAt`),
+and MyListings.js's Recent Sales (`where sellerId ==` + `orderBy createdAt`).
+Each one, the first time it runs, prints a direct "create it here" link to
+the Firebase Console in the browser console - click it, click Create, wait a
+minute for it to build. This is normal for any new where+orderBy combination,
+not a bug. (DemandBoard.js's queries were deliberately kept to a single
+`orderBy` with no `where`, so they don't need one.)
 
 ## Connecting for real (live inspection, bulk admin seeding)
 
