@@ -1,0 +1,265 @@
+.data-page,
+.statistics-page,
+.promotions-page {
+  min-height: 100vh;
+  background: #f7f9fc;
+  font-family: "Inter", sans-serif;
+  color: #1f2937;
+  padding: 2rem;
+}
+
+.data-header,
+.statistics-header,
+.promotions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.data-header .eyebrow,
+.statistics-header .eyebrow,
+.promotions-header .eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #16a34a;
+  font-weight: 700;
+  font-size: 0.75rem;
+  margin: 0 0 0.25rem;
+}
+
+.data-header button,
+.statistics-header button,
+.promotions-header button {
+  border: none;
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  background: #ffffff;
+  color: #166534;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.data-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.data-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.2rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.data-card.highlight {
+  border-left: 6px solid #16a34a;
+}
+
+.data-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.data-value {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #166534;
+}
+
+.data-footnote {
+  font-size: 0.7rem;
+  color: #9ca3af;
+}
+
+.data-note {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* ---- statistics ---- */
+
+.statistics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+}
+
+.statistics-panel {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+}
+
+.statistics-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 140px;
+  margin-top: 1rem;
+}
+
+.statistics-bar {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  font-size: 0.6rem;
+  color: #6b7280;
+}
+
+.statistics-bar-fill {
+  width: 100%;
+  background: linear-gradient(180deg, #2563eb, #1d4ed8);
+  border-radius: 4px 4px 0 0;
+}
+
+.statistics-empty-note {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 12px;
+  padding: 1.25rem;
+  color: #92400e;
+  grid-column: 1 / -1;
+}
+
+/* ---- promotions ---- */
+
+.promotions-ticker {
+  overflow: hidden;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  padding: 1rem 0;
+  margin-bottom: 1.5rem;
+}
+
+.promotions-ticker-track {
+  display: flex;
+  gap: 2rem;
+  width: max-content;
+  animation: scroll-left 30s linear infinite;
+}
+
+.promotions-ticker:hover .promotions-ticker-track {
+  animation-play-state: paused;
+}
+
+@keyframes scroll-left {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+.ticker-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0 1.5rem;
+  border-right: 1px solid #f0f2f5;
+  white-space: nowrap;
+}
+
+.ticker-item img {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.promotions-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 1.5rem;
+}
+
+.promotion-form-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  align-self: start;
+}
+
+.promotion-form-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.promotion-form-card label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.promotion-form-card input,
+.promotion-form-card textarea {
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  font-family: inherit;
+}
+
+.promotion-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.9rem;
+}
+
+.promotion-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.promotion-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  display: flex;
+  gap: 1rem;
+}
+
+.promotion-card img {
+  width: 90px;
+  height: 90px;
+  border-radius: 8px;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.promotion-dates {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.empty-state {
+  color: #6b7280;
+}
+
+@media (max-width: 900px) {
+  .promotions-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .promotion-form-row {
+    grid-template-columns: 1fr;
+  }
+}

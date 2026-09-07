@@ -1,0 +1,8 @@
+node_modules/
+build/
+.env
+.env.local
+serviceAccountKey.json
+npm-debug.log*
+.DS_Store
+.claude/

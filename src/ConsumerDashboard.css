@@ -1,0 +1,145 @@
+/* Consumer / Farmer dashboard content (rendered inside AppShell). */
+
+.create-post,
+.market-prices,
+.posts-section {
+  margin: 0 0 1.25rem;
+}
+
+.create-post h2,
+.market-prices h2,
+.posts-section h2 {
+  color: var(--aaf-canopy);
+  margin: 0 0 14px;
+  font-size: 1.15rem;
+}
+
+.create-post textarea {
+  width: 100%;
+  min-height: 100px;
+  resize: vertical;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  padding: 14px;
+  font-family: inherit;
+  margin-bottom: 12px;
+  background: var(--aaf-mist);
+}
+
+.create-post input[type="file"] {
+  display: block;
+  margin-bottom: 12px;
+}
+
+.price-card,
+.post-card {
+  background: var(--aaf-mist);
+  border-radius: var(--aaf-radius-sm);
+  padding: 18px;
+  margin-top: 14px;
+  border: 1px solid var(--aaf-border);
+}
+
+.price-card h3,
+.post-card h4 {
+  color: var(--aaf-canopy);
+  margin-bottom: 8px;
+}
+
+.price-card p {
+  color: var(--aaf-baobab);
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.price-unit {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--aaf-text-muted);
+}
+
+.price-seller {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--aaf-text-muted) !important;
+  margin: -8px 0 8px;
+}
+
+.buy-btn {
+  border: none;
+  border-radius: var(--aaf-radius-sm);
+  padding: 8px 16px;
+  background: var(--aaf-baobab);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.buy-btn:disabled {
+  background: #d1d5db;
+  color: #6b7280;
+  cursor: not-allowed;
+}
+
+.post-card p {
+  line-height: 1.6;
+}
+
+.post-image {
+  width: 100%;
+  border-radius: var(--aaf-radius-sm);
+  margin-top: 12px;
+  max-height: 480px;
+  object-fit: cover;
+}
+
+.comments {
+  margin-top: 16px;
+  padding-top: 14px;
+  border-top: 1px solid var(--aaf-border);
+}
+
+.comments h4 {
+  color: var(--aaf-canopy);
+}
+
+.comment {
+  background: #ffffff;
+  border-radius: var(--aaf-radius-sm);
+  padding: 10px 12px;
+  margin: 10px 0;
+}
+
+.comments input {
+  width: min(100%, 520px);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  padding: 12px;
+  margin-right: 8px;
+  background: #ffffff;
+  font-family: inherit;
+}
+
+.comments button {
+  border: none;
+  border-radius: var(--aaf-radius-sm);
+  padding: 10px 16px;
+  font-weight: 700;
+  cursor: pointer;
+  background: var(--aaf-baobab);
+  color: #ffffff;
+}
+
+.create-post button {
+  border: none;
+  border-radius: var(--aaf-radius-sm);
+  padding: 12px 18px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboard-empty-state {
+  color: var(--aaf-text-muted);
+  font-size: 0.9rem;
+  padding: 0.5rem 0;
+}

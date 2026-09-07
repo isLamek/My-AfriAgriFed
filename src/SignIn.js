@@ -1,0 +1,205 @@
+import React, { useState } from "react";
+import "./SignIn.css";
+import appIcon from "./images/seed-mark.png";
+
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
+import { auth, db } from "./firebaseConfig";
+import { autoClaimPresetAdmin, isAdmin } from "./admin";
+import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
+import { Link, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+
+export default function SignIn() {
+const navigate = useNavigate()
+  const [formData, setFormData] = useState({
+    loginId: "",
+    password: ""
+  });
+
+  const [errors, setErrors] = useState({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleHomeClick = () => {
+    navigate("/");
+    // onNavigate("home");
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
+
+ const handleSubmit = async (e) => {
+  e.preventDefault();
+
+  const newErrors = {};
+
+  if (!formData.loginId)
+    newErrors.loginId = "Email is required";
+
+  if (!formData.password)
+    newErrors.password = "Password is required";
+
+  if (Object.keys(newErrors).length) {
+    setErrors(newErrors);
+    return;
+  }
+
+  setIsSubmitting(true);
+
+  try {
+    const cred = await signInWithEmailAndPassword(
+      auth,
+      formData.loginId,
+      formData.password
+    );
+
+    const user = cred.user;
+
+    logTelemetryEvent(TELEMETRY_EVENTS.SIGN_IN, {});
+
+    const claimResult = await autoClaimPresetAdmin(user);
+    const admin = claimResult.claimed || (await isAdmin(user));
+
+    if (admin) {
+      navigate("/admin/dashboard");
+      return;
+    }
+
+    if (claimResult.error) {
+      toast.error(claimResult.error);
+    }
+
+    const userSnapshot = await getDoc(doc(db, "users", user.uid));
+    const userData = userSnapshot.exists() ? userSnapshot.data() : {};
+
+    if (userData.userType === "farmer") {
+      const approved =
+        userData.approved === true ||
+        userData.status === "approved" ||
+        userData.status === "verified" ||
+        userData.accountStatus?.registrationStatus === "verified" ||
+        userData.accountStatus?.documentStatus === "approved";
+
+      if (approved) {
+        navigate("/farmerdashboard");
+      } else {
+        toast.error("Your farmer account is still awaiting admin approval.");
+        await auth.signOut();
+        navigate("/signin");
+      }
+    } else if (userData.userType === "institution") {
+      const approved =
+        userData.approved === true ||
+        userData.status === "approved" ||
+        userData.status === "verified" ||
+        userData.accountStatus?.registrationStatus === "verified" ||
+        userData.accountStatus?.documentStatus === "approved";
+
+      if (approved) {
+        navigate("/institutiondashboard");
+      } else {
+        toast.error("Your institution account is still awaiting admin approval.");
+        await auth.signOut();
+        navigate("/signin");
+      }
+    } else {
+      navigate("/dashboard");
+    }
+
+  } catch (err) {
+    console.error(err);
+
+    let msg = "Login failed.";
+
+    if (err.code === "auth/user-not-found")
+      msg = "No account found.";
+
+    if (err.code === "auth/wrong-password")
+      msg = "Incorrect password.";
+
+    if (err.code === "auth/invalid-email")
+      msg = "Invalid email.";
+
+    toast.error(msg);
+
+  } finally {
+    setIsSubmitting(false);
+  }
+};
+  
+
+  return (
+    <div className="signin-page">
+      <nav className="navbar">
+        <div className="nav-links desktop-nav">
+          <button className="nav-btn" onClick={handleHomeClick}>
+            Home
+          </button>
+          <button className="nav-btn primary">
+            Contact Us
+          </button>
+        </div>
+      </nav>
+
+      <div className="signin-container">
+        <div className="signin-card">
+          <div className="signin-logo">
+            <img src={appIcon} alt="AfriAgriFed" />
+            <span className="signin-brand">AfriAgriFed</span>
+          </div>
+
+          <h1 className="signin-title">Sign In</h1>
+
+          <form onSubmit={handleSubmit} className="signin-form">
+            <div className="form-group">
+              <label>Email *</label>
+              <input
+                type="email"
+                name="loginId"
+                value={formData.loginId}
+                onChange={handleInputChange}
+                className={errors.loginId ? "error" : ""}
+              />
+              {errors.loginId && <span className="error-text">{errors.loginId}</span>}
+            </div>
+
+            <div className="form-group">
+              <label>Password *</label>
+              <input
+                type="password"
+                name="password"
+                value={formData.password}
+                onChange={handleInputChange}
+                className={errors.password ? "error" : ""}
+              />
+              {errors.password && <span className="error-text">{errors.password}</span>}
+            </div>
+
+            <Link to="/forgot-password" className="signin-forgot-link">
+              Forgot password?
+            </Link>
+
+            <button className="btn-primary" disabled={isSubmitting}>
+              {isSubmitting ? "Signing In..." : "Sign In"}
+            </button>
+          </form>
+
+          <p className="signin-footnote">
+            Need an account? <Link to="/register">Register</Link> or use{" "}
+            <Link to="/quick-access">Quick Access</Link>.
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+}

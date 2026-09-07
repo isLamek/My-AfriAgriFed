@@ -1,0 +1,150 @@
+.payout-card {
+  margin-bottom: 1.25rem;
+  border-left: 4px solid var(--aaf-shoot);
+}
+
+.payout-card-heading {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+  color: var(--aaf-baobab);
+}
+
+.payout-card-heading h3 {
+  margin: 0 0 4px;
+  color: var(--aaf-canopy);
+}
+
+.payout-card-heading p {
+  margin: 0;
+  color: var(--aaf-text-muted);
+  font-size: 0.9rem;
+}
+
+.payout-form,
+.listing-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.payout-form label,
+.listing-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--aaf-ink);
+}
+
+.payout-form input,
+.payout-form select,
+.listing-form input,
+.listing-form select {
+  padding: 0.6rem 0.7rem;
+  border-radius: var(--aaf-radius-sm);
+  border: 1px solid var(--aaf-border);
+  font-family: inherit;
+  background: var(--aaf-mist);
+}
+
+.payout-hint {
+  font-weight: 400;
+  font-size: 0.75rem;
+  color: var(--aaf-text-muted);
+}
+
+.payout-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--aaf-success);
+  background: var(--aaf-success-bg);
+  padding: 0.6rem 1rem;
+  border-radius: var(--aaf-radius-sm);
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1.25rem;
+}
+
+.listing-form-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.listings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.recent-sales {
+  margin-top: 1.25rem;
+}
+
+.recent-sales h3 {
+  margin: 0 0 1rem;
+  color: var(--aaf-canopy);
+}
+
+.listing-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.listing-card h4 {
+  margin: 0 0 6px;
+  color: var(--aaf-canopy);
+}
+
+.listing-price {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--aaf-baobab);
+  margin: 0;
+}
+
+.listing-price span {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--aaf-text-muted);
+}
+
+.listing-qty {
+  font-size: 0.8rem;
+  color: var(--aaf-text-muted);
+  margin: 4px 0 0;
+}
+
+.listing-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.listing-actions button {
+  border: none;
+  background: var(--aaf-mist);
+  color: var(--aaf-canopy);
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.listing-actions button.danger {
+  color: var(--aaf-danger);
+}
+
+.listing-actions button:hover {
+  background: var(--aaf-border);
+}

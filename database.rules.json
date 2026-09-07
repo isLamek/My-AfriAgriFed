@@ -1,0 +1,20 @@
+{
+  "rules": {
+    "posts": {
+      ".read": "auth != null",
+      ".indexOn": ["createdAt"],
+      "$postId": {
+        ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)",
+        "comments": {
+          ".write": "auth != null"
+        }
+      }
+    },
+    "farmerVerification": {
+      ".read": "auth != null",
+      "$applicationId": {
+        ".write": "auth != null"
+      }
+    }
+  }
+}

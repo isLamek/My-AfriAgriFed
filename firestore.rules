@@ -1,0 +1,155 @@
+rules_version = '2';
+
+// Deploy with: firebase deploy --only firestore:rules
+// or paste into Firebase Console -> Firestore Database -> Rules.
+//
+// Admin access model:
+//   - admins/{email}  (email lowercased) is the source of truth for who can
+//     reach the Admin Dashboard, with a role of founder | developer | moderator.
+//   - Only founders can add/remove other admins.
+//   - The very first admin is created through a one-time "bootstrap": while
+//     system/bootstrap.founderClaimed is not yet true, a signed-in user can
+//     make THEMSELVES (and only themselves) a founder.
+//   - admin/{uid} is the legacy scheme kept for backward compatibility.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function myEmail() {
+      return request.auth.token.email.lower();
+    }
+
+    function isAdminEmail(email) {
+      return exists(/databases/$(database)/documents/admins/$(email));
+    }
+
+    function adminData(email) {
+      return get(/databases/$(database)/documents/admins/$(email)).data;
+    }
+
+    function isFounderEmail(email) {
+      return isAdminEmail(email) && adminData(email).role == 'founder';
+    }
+
+    function isSignedInAdmin() {
+      return signedIn() && isAdminEmail(myEmail());
+    }
+
+    function isSignedInFounder() {
+      return signedIn() && isFounderEmail(myEmail());
+    }
+
+    function founderSeatUnclaimed() {
+      return !exists(/databases/$(database)/documents/system/bootstrap)
+        || get(/databases/$(database)/documents/system/bootstrap).data.founderClaimed != true;
+    }
+
+    // ---- bootstrap flag ----
+    match /system/bootstrap {
+      allow get: if true;
+      allow create: if false;
+      allow update: if signedIn()
+        && founderSeatUnclaimed()
+        && request.resource.data.founderClaimed == true
+        && request.resource.data.claimedBy == myEmail();
+      allow delete: if isSignedInFounder();
+    }
+
+    // ---- email-keyed admin roster (current scheme) ----
+    match /admins/{email} {
+      allow get: if signedIn() && (myEmail() == email || isSignedInAdmin());
+      allow list: if isSignedInAdmin();
+      allow create: if isSignedInFounder()
+        || (
+          signedIn()
+          && myEmail() == email
+          && request.resource.data.role == 'founder'
+          && founderSeatUnclaimed()
+        );
+      allow update, delete: if isSignedInFounder();
+    }
+
+    // ---- legacy uid-keyed admin flag ----
+    match /admin/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
+      allow write: if isSignedInFounder();
+    }
+
+    // ---- application data ----
+    match /users/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid;
+      allow read, update: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
+      allow delete: if isSignedInAdmin();
+    }
+
+    match /marketPrices/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.sellerId == request.auth.uid;
+      allow update, delete: if signedIn() && (resource.data.sellerId == request.auth.uid || isSignedInAdmin());
+    }
+
+    // Safe, PII-free aggregate counts for the public Data Dashboard.
+    // Refreshed opportunistically whenever an admin opens the Admin Dashboard.
+    match /publicStats/{id} {
+      allow read: if true;
+      allow write: if isSignedInAdmin();
+    }
+
+    match /institutionResearchArticles/{id} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update, delete: if signedIn() && (resource.data.authorId == request.auth.uid || isSignedInAdmin());
+    }
+
+    match /researchProblems/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.farmerId == request.auth.uid;
+      allow update: if signedIn(); // institutions mark answered; farmer can only own their doc
+      allow delete: if isSignedInAdmin();
+    }
+
+    match /trainingPrograms/{id} {
+      allow read: if true;
+      allow create: if signedIn();
+      allow update, delete: if signedIn() && (resource.data.institutionId == request.auth.uid || isSignedInAdmin());
+    }
+
+    match /internships/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && request.resource.data.postedById == request.auth.uid;
+      allow update: if signedIn();
+      allow delete: if isSignedInAdmin();
+    }
+
+    match /promotions/{id} {
+      allow read: if true;
+      allow create: if signedIn() && request.resource.data.farmerId == request.auth.uid;
+      allow update, delete: if signedIn() && (resource.data.farmerId == request.auth.uid || isSignedInAdmin());
+    }
+
+    match /notifications/{id} {
+      allow create: if signedIn();
+      allow read, update: if signedIn() && resource.data.userId == request.auth.uid;
+      allow delete: if false;
+    }
+
+    match /telemetry/{id} {
+      allow create: if true;
+      allow read: if isSignedInAdmin();
+    }
+
+    match /orders/{id} {
+      allow create: if signedIn();
+      allow read: if signedIn() && (
+        resource.data.buyerId == request.auth.uid ||
+        resource.data.sellerId == request.auth.uid ||
+        isSignedInAdmin()
+      );
+      allow update: if isSignedInAdmin();
+    }
+  }
+}

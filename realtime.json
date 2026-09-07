@@ -1,0 +1,19 @@
+{
+  "posts": {
+    "-OWabc123": {
+      "userId": "uid123",
+      "userName": "John",
+      "content": "Fresh tomatoes available",
+      "imageUrl": "https://res.cloudinary.com/...",
+      "createdAt": 1757000000000
+    },
+
+    "-OWabc124": {
+      "userId": "uid456",
+      "userName": "Maria",
+      "content": "Looking for maize suppliers",
+      "imageUrl": "",
+      "createdAt": 1757001000000
+    }
+  }
+}
