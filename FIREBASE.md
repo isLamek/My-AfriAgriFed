@@ -34,6 +34,8 @@ print the real, live version once you give it a service account key - see
 | `demandRequests` | auto | DemandBoard.js (any signed-in user) | **New.** The concept note's "Chat board" - buyers post what they need, producers team up to meet it. `{ title, product, quantityNeeded, unit, deadline, notes, buyerId, buyerName, buyerType, status: open\|fulfilled }` |
 | `demandRequests/{id}/pledges` | auto | DemandBoard.js (farmer/producer) | **New.** `{ farmerId, farmerName, quantity, note, createdAt }` - summed client-side against `quantityNeeded` for the progress bar |
 | `demandRequests/{id}/messages` | auto | DemandBoard.js (any signed-in user) | **New.** `{ authorId, authorName, text, createdAt }` - per-post coordination thread, permanent (no update/delete) |
+| `pageAccess` | anonymous Firebase Auth uid | PageAccessGate.js | **New.** `{ data: bool, statistics: bool, studentVerified: bool, studentCardUrl, updatedAt }` - the Data/Statistics Dashboard paywall's unlock record for a visitor with no account |
+| `studentAccessRequests` | auto | PageAccessGate.js | **New.** `{ uid, studentCardUrl, createdAt }` - audit trail of student-card self-verifications; not gated on approval (see below), admin-readable for spot-checking |
 
 ## Realtime Database
 
@@ -147,3 +149,32 @@ uses this for Promotions' per-working-day fee (`Promotions.js`) - the same
 charge, branching on the `purpose` stashed in `sessionStorage` before the
 redirect (`"order"` writes an `orders` doc; `"promotion"` flips that
 promotion's `status` to `active`).
+
+## Data/Statistics Dashboard paywall
+
+Concept note: "provision of data and statistics for personal use is charged
+for if you are not registered on the app" - N$5/page, free for registered
+members and for students. `PageAccessGate.js` wraps the `/data` and
+`/statistics` routes (in `App.js`, the same pattern as `ProtectedRoute`):
+
+1. A visitor with a real account always gets in for free.
+2. A visitor with no account is silently signed in anonymously
+   (`signInAnonymously`) so their unlock can be tied to a stable uid instead
+   of a spoofable `localStorage` flag, then shown a gate offering to
+   register (free), pay N$5 (`startAnonymousPageCheckout`, no seller split),
+   or upload a student card for immediate free access
+   (`studentAccessRequests` - trust-based, not gatekept behind a review
+   queue, to match "no charging is done for... educational purposes").
+3. `pageAccess/{anonymousUid}` records what that visitor has unlocked.
+
+**Only `publicStats/summary`'s rule is actually tightened at the database
+level** (`isRegisteredUser() || hasPageAccess('data')` in `firestore.rules`)
+- it has no other consumer, so restricting it can't break anything else.
+The live per-collection counts DataDashboard also shows
+(`marketPrices`/`institutionResearchArticles`/etc.) stay on their existing
+`allow read: if true` rules, because those same collections are read
+elsewhere for legitimate free browsing (the Marketplace tab, Research.js,
+TrainingPrograms.js...) - locking them down would break that. So the paywall
+is fully enforced for the "Registered users" figure, and UI-level (not
+bypass-proof against someone hitting Firestore directly) for the rest,
+same trust model as every other payment-verification path in this app.

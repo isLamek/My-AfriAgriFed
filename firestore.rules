@@ -48,6 +48,23 @@ service cloud.firestore {
         || get(/databases/$(database)/documents/system/bootstrap).data.founderClaimed != true;
     }
 
+    // A real (non-anonymous) account - always gets free access per the
+    // concept note ("zero fee charged on app" for data/statistics).
+    function isRegisteredUser() {
+      return signedIn() && request.auth.token.firebase.sign_in_provider != 'anonymous';
+    }
+
+    // Anonymous visitor who paid N$5 for this specific page, or verified as
+    // a student (which unlocks every paywalled page).
+    function hasPageAccess(page) {
+      return signedIn()
+        && exists(/databases/$(database)/documents/pageAccess/$(request.auth.uid))
+        && (
+          get(/databases/$(database)/documents/pageAccess/$(request.auth.uid)).data[page] == true ||
+          get(/databases/$(database)/documents/pageAccess/$(request.auth.uid)).data.studentVerified == true
+        );
+    }
+
     // ---- bootstrap flag ----
     match /system/bootstrap {
       allow get: if true;
@@ -93,8 +110,13 @@ service cloud.firestore {
 
     // Safe, PII-free aggregate counts for the public Data Dashboard.
     // Refreshed opportunistically whenever an admin opens the Admin Dashboard.
+    // The only consumer of this doc is the paywalled Data Dashboard (unlike
+    // marketPrices/trainingPrograms/etc. below, which stay openly readable
+    // because they're also used for legitimate free browsing elsewhere) -
+    // so this is the one place the N$5-per-page paywall is actually
+    // enforced at the database level, not just in the page's UI.
     match /publicStats/{id} {
-      allow read: if true;
+      allow read: if isRegisteredUser() || hasPageAccess('data');
       allow write: if isSignedInAdmin();
     }
 
@@ -138,6 +160,19 @@ service cloud.firestore {
 
     match /telemetry/{id} {
       allow create: if true;
+      allow read: if isSignedInAdmin();
+    }
+
+    // Anonymous-visitor paywall for Data/Statistics Dashboard (concept note:
+    // free once registered, N$5/page or student verification otherwise).
+    // Keyed by the visitor's anonymous Firebase Auth uid, own-doc only.
+    match /pageAccess/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow create, update: if signedIn() && request.auth.uid == uid;
+    }
+
+    match /studentAccessRequests/{id} {
+      allow create: if signedIn() && request.resource.data.uid == request.auth.uid;
       allow read: if isSignedInAdmin();
     }
 

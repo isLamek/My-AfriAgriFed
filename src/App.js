@@ -19,6 +19,7 @@ import Prices from "./Prices";
 import Profile from "./Profile";
 import MyOrders from "./MyOrders";
 import DemandBoard from "./DemandBoard";
+import PageAccessGate from "./PageAccessGate";
 import Research from "./Research";
 import TrainingPrograms from "./TrainingPrograms";
 import Internships from "./Internships";
@@ -276,8 +277,22 @@ function App() {
         }
       />
 
-      <Route path="/data" element={<DataDashboard />} />
-      <Route path="/statistics" element={<StatisticsDashboard />} />
+      <Route
+        path="/data"
+        element={
+          <PageAccessGate pageKey="data">
+            <DataDashboard />
+          </PageAccessGate>
+        }
+      />
+      <Route
+        path="/statistics"
+        element={
+          <PageAccessGate pageKey="statistics">
+            <StatisticsDashboard />
+          </PageAccessGate>
+        }
+      />
       <Route path="/promotions" element={<Promotions />} />
       <Route path="/payment-callback" element={<PaymentCallback />} />
 

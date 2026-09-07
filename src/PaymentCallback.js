@@ -7,6 +7,7 @@ export default function PaymentCallback() {
   const navigate = useNavigate();
   const [status, setStatus] = useState("verifying");
   const [purpose, setPurpose] = useState("order");
+  const [refId, setRefId] = useState(null);
 
   useEffect(() => {
     const transactionId = searchParams.get("transaction_id");
@@ -20,10 +21,14 @@ export default function PaymentCallback() {
     verifyAndFinalizePayment(transactionId)
       .then((result) => {
         setPurpose(result.purpose || "order");
+        setRefId(result.refId || null);
         setStatus(result.success ? "success" : "failed");
       })
       .catch(() => setStatus("failed"));
   }, [searchParams]);
+
+  const returnTo = purpose === "page_access" ? `/${refId || "data"}` : "/dashboard";
+  const returnLabel = purpose === "page_access" ? "Go to page" : "Back to Dashboard";
 
   return (
     <div style={{ padding: "3rem", textAlign: "center", fontFamily: "Inter, sans-serif" }}>
@@ -31,7 +36,13 @@ export default function PaymentCallback() {
       {status === "success" && (
         <>
           <h1>Payment confirmed</h1>
-          <p>{purpose === "promotion" ? "Your promotion is now live." : "Your order has been recorded."}</p>
+          <p>
+            {purpose === "promotion"
+              ? "Your promotion is now live."
+              : purpose === "page_access"
+              ? "This page is now unlocked."
+              : "Your order has been recorded."}
+          </p>
         </>
       )}
       {status === "failed" && (
@@ -42,8 +53,8 @@ export default function PaymentCallback() {
       )}
       {status === "cancelled" && <h1>Payment cancelled</h1>}
 
-      <button onClick={() => navigate("/dashboard")} style={{ marginTop: "1.5rem" }}>
-        Back to Dashboard
+      <button onClick={() => navigate(returnTo)} style={{ marginTop: "1.5rem" }}>
+        {returnLabel}
       </button>
     </div>
   );

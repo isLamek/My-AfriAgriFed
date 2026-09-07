@@ -8,7 +8,7 @@
 //   - Platform-only charges (e.g. promotion fees): no seller involved, the
 //     full amount goes to the platform's main Flutterwave account.
 
-import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { auth, db } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
@@ -106,6 +106,41 @@ export async function startPlatformCheckout({ description, amount, purpose, refI
 }
 
 /**
+ * Platform-only charge for a visitor with no real account (Data/Statistics
+ * Dashboard's N$5-per-page paywall) - identified by their anonymous Firebase
+ * Auth uid rather than a signed-in user, since there is no account to pull
+ * an email/name from.
+ */
+export async function startAnonymousPageCheckout({ email, pageKey, uid }) {
+  const response = await fetch(`${API_BASE_URL}/api/payments/initiate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      amount: 5,
+      customerEmail: email,
+      customerName: email,
+      productName: `${pageKey === "statistics" ? "Statistics" : "Data"} Dashboard access`,
+      buyerId: uid,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.link) {
+    throw new Error(data.error || "Could not start payment.");
+  }
+
+  sessionStorage.setItem(
+    "aaf_pending_payment",
+    JSON.stringify({ purpose: "page_access", refId: pageKey, amount: 5, buyerId: uid, txRef: data.txRef })
+  );
+
+  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_INITIATED, { product: `page_access:${pageKey}`, price: 5 });
+
+  window.location.href = data.link;
+}
+
+/**
  * Call this on the /payment-callback route. Verifies the transaction with
  * the backend, and only if Flutterwave confirms it as successful, finalizes
  * whatever this payment was for (a marketplace order, or a platform charge
@@ -131,6 +166,17 @@ export async function verifyAndFinalizePayment(transactionId) {
 
     logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: "promotion" });
     return { success: true, purpose: "promotion" };
+  }
+
+  if (pending?.purpose === "page_access") {
+    await setDoc(
+      doc(db, "pageAccess", pending.buyerId),
+      { [pending.refId]: true, updatedAt: serverTimestamp() },
+      { merge: true }
+    );
+
+    logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: "page_access" });
+    return { success: true, purpose: "page_access", refId: pending.refId };
   }
 
   await addDoc(collection(db, "orders"), {
