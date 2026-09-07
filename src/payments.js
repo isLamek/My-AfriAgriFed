@@ -1,11 +1,15 @@
 // payments.js
 //
-// Frontend helper for the Flutterwave split-payment flow implemented in
-// server.js. The buyer pays the listed price; Flutterwave automatically
-// routes the platform's commission and the seller's share per the
-// subaccount split configured when the seller's account was set up.
+// Frontend helper for the Flutterwave payment flow implemented in server.js.
+// Two kinds of charge:
+//   - Marketplace orders: the buyer pays the listed price; Flutterwave
+//     automatically routes the platform's commission and the seller's share
+//     per the subaccount split configured when the seller's account was set up.
+//   - Platform-only charges (e.g. promotion fees): no seller involved, the
+//     full amount goes to the platform's main Flutterwave account.
 
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
+import toast from "react-hot-toast";
 import { auth, db } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 
@@ -20,12 +24,12 @@ export async function startCheckout({ product, price, sellerId, sellerSubaccount
   const user = auth.currentUser;
 
   if (!user) {
-    alert("Please sign in before buying.");
+    toast.error("Please sign in before buying.");
     return;
   }
 
   if (!sellerSubaccountId) {
-    alert(`${sellerName || "This seller"} hasn't set up payouts yet - contact them directly.`);
+    toast.error(`${sellerName || "This seller"} hasn't set up payouts yet - contact them directly.`);
     return;
   }
 
@@ -46,13 +50,13 @@ export async function startCheckout({ product, price, sellerId, sellerSubaccount
   const data = await response.json();
 
   if (!response.ok || !data.link) {
-    alert(data.error || "Could not start payment.");
+    toast.error(data.error || "Could not start payment.");
     return;
   }
 
   sessionStorage.setItem(
-    "aaf_pending_order",
-    JSON.stringify({ product, price, sellerId, sellerName, buyerId: user.uid, txRef: data.txRef })
+    "aaf_pending_payment",
+    JSON.stringify({ purpose: "order", product, price, sellerId, sellerName, buyerId: user.uid, txRef: data.txRef })
   );
 
   logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_INITIATED, { product, price, sellerId });
@@ -61,11 +65,53 @@ export async function startCheckout({ product, price, sellerId, sellerSubaccount
 }
 
 /**
- * Call this on the /payment-callback route. Verifies the transaction with
- * the backend, and only if Flutterwave confirms it as successful, writes
- * the order to Firestore.
+ * Platform-only charge with no seller split - e.g. a promotion's per-day
+ * fee. Redirects to Flutterwave the same way startCheckout does.
  */
-export async function verifyAndRecordOrder(transactionId) {
+export async function startPlatformCheckout({ description, amount, purpose, refId }) {
+  const user = auth.currentUser;
+
+  if (!user) {
+    toast.error("Please sign in first.");
+    return;
+  }
+
+  const response = await fetch(`${API_BASE_URL}/api/payments/initiate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      amount,
+      customerEmail: user.email,
+      customerName: user.displayName || user.email,
+      productName: description,
+      buyerId: user.uid,
+    }),
+  });
+
+  const data = await response.json();
+
+  if (!response.ok || !data.link) {
+    toast.error(data.error || "Could not start payment.");
+    return;
+  }
+
+  sessionStorage.setItem(
+    "aaf_pending_payment",
+    JSON.stringify({ purpose, refId, amount, description, buyerId: user.uid, txRef: data.txRef })
+  );
+
+  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_INITIATED, { product: description, price: amount });
+
+  window.location.href = data.link;
+}
+
+/**
+ * Call this on the /payment-callback route. Verifies the transaction with
+ * the backend, and only if Flutterwave confirms it as successful, finalizes
+ * whatever this payment was for (a marketplace order, or a platform charge
+ * like a promotion fee) based on what was stashed before redirecting out.
+ */
+export async function verifyAndFinalizePayment(transactionId) {
   const response = await fetch(`${API_BASE_URL}/api/payments/verify/${transactionId}`);
   const data = await response.json();
 
@@ -73,7 +119,19 @@ export async function verifyAndRecordOrder(transactionId) {
     return { success: false };
   }
 
-  const pending = JSON.parse(sessionStorage.getItem("aaf_pending_order") || "null");
+  const pending = JSON.parse(sessionStorage.getItem("aaf_pending_payment") || "null");
+  sessionStorage.removeItem("aaf_pending_payment");
+
+  if (pending?.purpose === "promotion") {
+    await updateDoc(doc(db, "promotions", pending.refId), {
+      status: "active",
+      paidAmount: data.transaction?.amount || pending.amount || 0,
+      transactionId,
+    });
+
+    logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: "promotion" });
+    return { success: true, purpose: "promotion" };
+  }
 
   await addDoc(collection(db, "orders"), {
     buyerId: pending?.buyerId || auth.currentUser?.uid || "",
@@ -86,8 +144,7 @@ export async function verifyAndRecordOrder(transactionId) {
     createdAt: serverTimestamp(),
   });
 
-  sessionStorage.removeItem("aaf_pending_order");
-  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId });
+  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: "order" });
 
-  return { success: true, order: pending };
+  return { success: true, purpose: "order", order: pending };
 }

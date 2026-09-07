@@ -119,6 +119,9 @@
 }
 
 .training-location {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   color: #4b5563;
   font-size: 0.9rem;
 }

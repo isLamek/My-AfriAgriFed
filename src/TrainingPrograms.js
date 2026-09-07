@@ -10,7 +10,9 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { ref, push } from "firebase/database";
+import { onAuthStateChanged } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { MapPin, Video } from "lucide-react";
 import { auth, db, database } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
@@ -22,6 +24,7 @@ const emptyProgram = {
   mode: "In-person",
   location: "",
   startDate: "",
+  videoUrl: "",
 };
 
 export default function TrainingPrograms() {
@@ -34,14 +37,16 @@ export default function TrainingPrograms() {
   const canPost = userType === "institution";
 
   useEffect(() => {
-    const loadUserType = async () => {
-      const uid = auth.currentUser?.uid;
-      if (!uid) return;
-      const snap = await getDoc(doc(db, "users", uid));
+    // onAuthStateChanged (not auth.currentUser, which can still be null right
+    // after a fresh page load/refresh while the session restores) so this
+    // reliably fires once the signed-in user is actually known.
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      if (!user) return;
+      const snap = await getDoc(doc(db, "users", user.uid));
       setUserType(snap.exists() ? snap.data().userType : null);
-    };
+    });
 
-    loadUserType();
+    return () => unsubscribe();
   }, []);
 
   useEffect(() => {
@@ -151,6 +156,16 @@ export default function TrainingPrograms() {
                 <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} />
               </label>
 
+              <label>
+                Recorded class / tutorial link (optional)
+                <input
+                  name="videoUrl"
+                  value={formData.videoUrl}
+                  onChange={handleChange}
+                  placeholder="YouTube, Vimeo or other video link"
+                />
+              </label>
+
               <button className="publish-btn" disabled={posting}>
                 {posting ? "Posting..." : "Post Program"}
               </button>
@@ -170,7 +185,19 @@ export default function TrainingPrograms() {
                 </div>
                 <h3>{program.title}</h3>
                 <p>{program.description}</p>
-                {program.location && <p className="training-location">📍 {program.location}</p>}
+                {program.location && (
+                  <p className="training-location">
+                    <MapPin size={14} /> {program.location}
+                  </p>
+                )}
+                {program.videoUrl && (
+                  <p className="training-location">
+                    <Video size={14} />{" "}
+                    <a href={program.videoUrl} target="_blank" rel="noreferrer">
+                      Watch recorded class
+                    </a>
+                  </p>
+                )}
                 <p className="training-host">Hosted by {program.institutionName}</p>
               </article>
             ))

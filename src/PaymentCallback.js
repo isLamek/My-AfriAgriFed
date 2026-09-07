@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { verifyAndRecordOrder } from "./payments";
+import { verifyAndFinalizePayment } from "./payments";
 
 export default function PaymentCallback() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const [status, setStatus] = useState("verifying");
+  const [purpose, setPurpose] = useState("order");
 
   useEffect(() => {
     const transactionId = searchParams.get("transaction_id");
@@ -16,8 +17,11 @@ export default function PaymentCallback() {
       return;
     }
 
-    verifyAndRecordOrder(transactionId)
-      .then((result) => setStatus(result.success ? "success" : "failed"))
+    verifyAndFinalizePayment(transactionId)
+      .then((result) => {
+        setPurpose(result.purpose || "order");
+        setStatus(result.success ? "success" : "failed");
+      })
       .catch(() => setStatus("failed"));
   }, [searchParams]);
 
@@ -27,7 +31,7 @@ export default function PaymentCallback() {
       {status === "success" && (
         <>
           <h1>Payment confirmed</h1>
-          <p>Your order has been recorded.</p>
+          <p>{purpose === "promotion" ? "Your promotion is now live." : "Your order has been recorded."}</p>
         </>
       )}
       {status === "failed" && (

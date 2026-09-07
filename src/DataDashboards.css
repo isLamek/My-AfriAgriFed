@@ -250,6 +250,19 @@
   color: #6b7280;
 }
 
+.promotion-pricing-note {
+  margin: -0.5rem 0 0.5rem;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.promotion-cost-preview {
+  margin: 0;
+  font-weight: 700;
+  color: #044d3a;
+  font-size: 0.9rem;
+}
+
 .empty-state {
   color: #6b7280;
 }

@@ -11,6 +11,7 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
+import { MapPin } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import { notifyUser } from "./notifications";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
@@ -242,7 +243,11 @@ export default function Internships() {
                 </div>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
-                {item.location && <p className="internship-location">📍 {item.location}</p>}
+                {item.location && (
+                  <p className="internship-location">
+                    <MapPin size={14} /> {item.location}
+                  </p>
+                )}
                 <p className="internship-host">Posted by {item.postedByName}</p>
                 <div className="internship-actions">{renderActions(item)}</div>
               </article>

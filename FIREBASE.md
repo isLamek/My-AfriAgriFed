@@ -27,7 +27,7 @@ print the real, live version once you give it a service account key - see
 | `researchProblems` | auto | Research.js (farmer) | **New.** `{ title, description, farmerId, farmerName, status: open\|answered, answeredArticleId }` |
 | `trainingPrograms` | auto | TrainingPrograms.js (institution) | **New.** `{ title, description, mode, location, startDate, institutionId }` |
 | `internships` | auto | Internships.js (farmer/institution) | **New.** `{ type: offer\|request, status: open\|claimed\|approved\|closed, postedById, claimedById, approvedById }` |
-| `promotions` | auto | Promotions.js (farmer) | **New.** `{ productName, description, imageUrl, startDate, endDate, farmerId }` |
+| `promotions` | auto | Promotions.js (farmer) | **New.** `{ productName, description, imageUrl, startDate, endDate, farmerId, workingDays, cost, status: pending_payment\|active, paidAmount, transactionId }` - paid per the concept note's financial model (N$30/working day), only visible once `status` flips to `active` after a verified Flutterwave charge |
 | `notifications` | auto | notifications.js | **New.** `{ userId, title, body, link, read }` - the bell icon reads this |
 | `telemetry` | auto | telemetry.js | **New.** `{ eventType, uid, email, meta, path, createdAt }` - powers the Admin Dashboard's activity charts |
 | `orders` | auto | payments.js (after a verified Flutterwave charge) | **New.** `{ buyerId, sellerId, product, amount, transactionId, status }`. Read by MyOrders.js (buyer view) and MyListings.js's Recent Sales (seller view) |
@@ -138,3 +138,12 @@ a live `GET /api/payments/banks` list, account number) that calls
 `flutterwaveSubaccountId` on `users/{uid}`, plus create/edit/delete for their
 own `marketPrices` listings. A listing's "Buy" button on the consumer side
 activates automatically once its `sellerSubaccountId` is set.
+
+`/api/payments/initiate` also supports a second mode with no seller at all:
+omit `sellerSubaccountId` and the full amount goes straight to the platform's
+main account instead of being split. `payments.js`'s `startPlatformCheckout`
+uses this for Promotions' per-working-day fee (`Promotions.js`) - the same
+`/payment-callback` page and `verifyAndFinalizePayment` handle both kinds of
+charge, branching on the `purpose` stashed in `sessionStorage` before the
+redirect (`"order"` writes an `orders` doc; `"promotion"` flips that
+promotion's `status` to `active`).

@@ -3,7 +3,7 @@ import { sendPasswordResetEmail, signOut } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { LayoutDashboard, FileText, Lock, Pencil } from "lucide-react";
+import { LayoutDashboard, FileText, Lock, Pencil, Paperclip } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import { uploadToCloudinary } from "./cloudinairyUpload";
 import { getAdminProfile } from "./admin";
@@ -221,7 +221,7 @@ export default function Profile() {
               {Object.entries(profile.documents).map(([name, document]) =>
                 document?.url ? (
                   <a key={name} href={document.url} target="_blank" rel="noreferrer" className="profile-document-card">
-                    <span>📎</span>
+                    <span><Paperclip size={18} /></span>
                     <div>
                       <strong>{formatLabel(name)}</strong>
                       <p>{document.fileName || "View file"}</p>

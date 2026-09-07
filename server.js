@@ -175,31 +175,39 @@ app.post("/api/payments/initiate", async (req, res) => {
     sellerId
   } = req.body;
 
-  if (!amount || !customerEmail || !sellerSubaccountId) {
+  if (!amount || !customerEmail) {
     return res.status(400).json({
-      error: "amount, customerEmail and sellerSubaccountId are required"
+      error: "amount and customerEmail are required"
     });
   }
 
   const txRef = `aaf-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
   try {
+    const payload = {
+      tx_ref: txRef,
+      amount,
+      currency,
+      redirect_url: `${appBaseUrl}/payment-callback`,
+      customer: { email: customerEmail, name: customerName },
+      customizations: { title: "AfriAgriFed", description: productName || "Marketplace order" },
+      meta: { buyerId, sellerId, productName }
+    };
+
+    // Marketplace orders split to the seller's subaccount; platform-only
+    // charges (e.g. promotion fees) have no seller and go entirely to the
+    // main account, so this is only added when one is provided.
+    if (sellerSubaccountId) {
+      payload.subaccounts = [{ id: sellerSubaccountId }];
+    }
+
     const response = await fetch(`${FLW_BASE_URL}/payments`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${FLW_SECRET_KEY}`,
         "Content-Type": "application/json"
       },
-      body: JSON.stringify({
-        tx_ref: txRef,
-        amount,
-        currency,
-        redirect_url: `${appBaseUrl}/payment-callback`,
-        customer: { email: customerEmail, name: customerName },
-        customizations: { title: "AfriAgriFed", description: productName || "Marketplace order" },
-        subaccounts: [{ id: sellerSubaccountId }],
-        meta: { buyerId, sellerId, productName }
-      })
+      body: JSON.stringify(payload)
     });
 
     const data = await response.json();
