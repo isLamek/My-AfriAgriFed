@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { sendPasswordResetEmail, signOut } from "firebase/auth";
+import { sendPasswordResetEmail, signOut, updateProfile } from "firebase/auth";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { LayoutDashboard, FileText, Lock, Pencil, Paperclip } from "lucide-react";
+import { LayoutDashboard, FileText, Lock, Pencil, Paperclip, Check, X } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import { uploadToCloudinary } from "./cloudinairyUpload";
 import { getAdminProfile } from "./admin";
@@ -70,6 +70,9 @@ export default function Profile() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [tab, setTab] = useState("overview");
   const [resetStatus, setResetStatus] = useState("");
+  const [editingProfile, setEditingProfile] = useState(false);
+  const [editForm, setEditForm] = useState(null);
+  const [savingProfile, setSavingProfile] = useState(false);
 
   useEffect(() => {
     const loadProfile = async () => {
@@ -122,6 +125,58 @@ export default function Profile() {
       toast.error("Profile picture upload failed: " + error.message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const startEditProfile = () => {
+    setEditForm({
+      firstName: profile?.personalInfo?.firstName || "",
+      lastName: profile?.personalInfo?.lastName || "",
+      nationality: profile?.personalInfo?.nationality || "",
+      gender: profile?.personalInfo?.gender || "",
+    });
+    setEditingProfile(true);
+  };
+
+  const cancelEditProfile = () => {
+    setEditingProfile(false);
+    setEditForm(null);
+  };
+
+  const saveProfile = async () => {
+    if (!editForm.firstName.trim() || !editForm.lastName.trim()) {
+      toast.error("First and last name can't be empty.");
+      return;
+    }
+
+    setSavingProfile(true);
+
+    try {
+      const updatedPersonalInfo = {
+        ...profile.personalInfo,
+        firstName: editForm.firstName.trim(),
+        lastName: editForm.lastName.trim(),
+        nationality: editForm.nationality.trim(),
+        gender: editForm.gender,
+      };
+
+      await updateDoc(doc(db, "users", auth.currentUser.uid), { personalInfo: updatedPersonalInfo });
+
+      // Keeps auth.currentUser.displayName in sync, since posts/comments/
+      // listings elsewhere fall back to it (and to the account email when
+      // it's unset) rather than doing an extra Firestore read per author.
+      await updateProfile(auth.currentUser, {
+        displayName: `${updatedPersonalInfo.firstName} ${updatedPersonalInfo.lastName}`.trim(),
+      });
+
+      setProfile((prev) => ({ ...prev, personalInfo: updatedPersonalInfo }));
+      setEditingProfile(false);
+      setEditForm(null);
+      toast.success("Profile updated.");
+    } catch (error) {
+      toast.error(error.message || "Could not update profile.");
+    } finally {
+      setSavingProfile(false);
     }
   };
 
@@ -202,8 +257,63 @@ export default function Profile() {
       {tab === "overview" && (
         <div className="profile-panels">
           <section className="aaf-card profile-section">
-            <h3>Personal Information</h3>
-            <InfoGrid data={profile.personalInfo} />
+            <div className="profile-section-header">
+              <h3>Personal Information</h3>
+              {!editingProfile && (
+                <button className="aaf-btn aaf-btn-ghost" onClick={startEditProfile}>
+                  <Pencil size={14} /> Edit
+                </button>
+              )}
+            </div>
+
+            {editingProfile ? (
+              <div className="profile-edit-form">
+                <label>
+                  First name
+                  <input
+                    value={editForm.firstName}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, firstName: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  Last name
+                  <input
+                    value={editForm.lastName}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, lastName: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  Nationality
+                  <input
+                    value={editForm.nationality}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, nationality: e.target.value }))}
+                  />
+                </label>
+                <label>
+                  Gender
+                  <select
+                    value={editForm.gender}
+                    onChange={(e) => setEditForm((prev) => ({ ...prev, gender: e.target.value }))}
+                  >
+                    <option value="">Select</option>
+                    <option value="male">Male</option>
+                    <option value="female">Female</option>
+                    <option value="other">Other</option>
+                  </select>
+                </label>
+
+                <div className="profile-edit-actions">
+                  <button className="aaf-btn aaf-btn-primary" onClick={saveProfile} disabled={savingProfile}>
+                    <Check size={14} /> {savingProfile ? "Saving..." : "Save"}
+                  </button>
+                  <button className="aaf-btn aaf-btn-ghost" onClick={cancelEditProfile} disabled={savingProfile}>
+                    <X size={14} /> Cancel
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <InfoGrid data={profile.personalInfo} />
+            )}
           </section>
 
           <section className="aaf-card profile-section">

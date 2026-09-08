@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import seedMark from "./images/seed-mark-reversed.png";
 import "./AppShell.css";
+
+function readStoredCollapsed() {
+  try {
+    return localStorage.getItem("aaf_sidebar_collapsed") === "1";
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Shared sidebar + topbar layout for every signed-in area of the app
@@ -23,6 +31,19 @@ export default function AppShell({
 }) {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(readStoredCollapsed);
+
+  const toggleDesktopSidebar = () => {
+    setDesktopCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem("aaf_sidebar_collapsed", next ? "1" : "0");
+      } catch {
+        // ignore - private browsing / storage disabled
+      }
+      return next;
+    });
+  };
 
   const go = (item) => {
     setMobileOpen(false);
@@ -40,7 +61,7 @@ export default function AppShell({
         <Menu size={20} />
       </button>
 
-      <aside className={`aaf-sidebar ${mobileOpen ? "open" : ""}`}>
+      <aside className={`aaf-sidebar ${mobileOpen ? "open" : ""} ${desktopCollapsed ? "collapsed" : ""}`}>
         <div className="aaf-sidebar-brand" onClick={() => navigate("/")}>
           <img src={seedMark} alt="AfriAgriFed" />
           <span>AfriAgriFed</span>
@@ -75,10 +96,20 @@ export default function AppShell({
 
       <div className="aaf-shell-main">
         <header className="aaf-shell-topbar">
-          <div>
-            {eyebrow && <p className="aaf-eyebrow">{eyebrow}</p>}
-            <h1>{title}</h1>
-            {subtitle && <p className="aaf-shell-subtitle">{subtitle}</p>}
+          <div className="aaf-shell-topbar-left">
+            <button
+              className="aaf-sidebar-collapse-btn"
+              onClick={toggleDesktopSidebar}
+              aria-label={desktopCollapsed ? "Show sidebar" : "Hide sidebar"}
+              title={desktopCollapsed ? "Show sidebar" : "Hide sidebar"}
+            >
+              {desktopCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
+            </button>
+            <div>
+              {eyebrow && <p className="aaf-eyebrow">{eyebrow}</p>}
+              <h1>{title}</h1>
+              {subtitle && <p className="aaf-shell-subtitle">{subtitle}</p>}
+            </div>
           </div>
 
           {headerRight && <div className="aaf-shell-topbar-right">{headerRight}</div>}

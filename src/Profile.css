@@ -111,6 +111,49 @@
   font-size: 1.05rem;
 }
 
+.profile-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+}
+
+.profile-section-header h3 {
+  margin: 0;
+}
+
+.profile-edit-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.9rem;
+}
+
+.profile-edit-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--aaf-text-muted);
+}
+
+.profile-edit-form input,
+.profile-edit-form select {
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--aaf-radius-sm);
+  border: 1px solid var(--aaf-border);
+  font-family: inherit;
+  background: var(--aaf-mist);
+  color: var(--aaf-ink);
+}
+
+.profile-edit-actions {
+  grid-column: 1 / -1;
+  display: flex;
+  gap: 0.6rem;
+  margin-top: 0.2rem;
+}
+
 .profile-fields {
   display: flex;
   flex-direction: column;

@@ -106,6 +106,8 @@ export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard
   const [posting, setPosting] = useState(false);
 
   const [commentText, setCommentText] = useState({});
+  const [replyText, setReplyText] = useState({});
+  const [openReplyKey, setOpenReplyKey] = useState(null);
   const [selectedImage, setSelectedImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
   const [orgProfile, setOrgProfile] = useState(null);
@@ -328,6 +330,43 @@ export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard
     }
   };
 
+  const deleteComment = async (postId, commentId) => {
+    if (!window.confirm("Delete this comment?")) return;
+    try {
+      await remove(ref(database, `posts/${postId}/comments/${commentId}`));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const addReply = async (postId, commentId) => {
+    const key = `${postId}_${commentId}`;
+    if (!replyText[key]?.trim()) return;
+
+    try {
+      await set(push(ref(database, `posts/${postId}/comments/${commentId}/replies`)), {
+        userId: auth.currentUser.uid,
+        userName: auth.currentUser.displayName || auth.currentUser.email,
+        text: replyText[key].trim(),
+        createdAt: Date.now(),
+      });
+
+      setReplyText((prev) => ({ ...prev, [key]: "" }));
+      setOpenReplyKey(null);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const deleteReply = async (postId, commentId, replyId) => {
+    if (!window.confirm("Delete this reply?")) return;
+    try {
+      await remove(ref(database, `posts/${postId}/comments/${commentId}/replies/${replyId}`));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
 
   /*
   ==================================
@@ -524,7 +563,9 @@ export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard
             const uid = auth.currentUser?.uid;
             const liked = !!post.likes?.[uid];
             const likeCount = post.likes ? Object.keys(post.likes).length : 0;
-            const commentList = post.comments ? Object.values(post.comments) : [];
+            const commentList = post.comments
+              ? Object.entries(post.comments).map(([id, comment]) => ({ id, ...comment }))
+              : [];
             // Realtime Database rules only allow the post's own author to
             // delete it (no admin cross-post override without mirroring
             // admin uids into RTDB, which isn't wired up) - keep this in
@@ -581,21 +622,77 @@ export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard
 
   <div className="comments">
 
-   {commentList.map(
-    (comment, index) => (
-     <div
-  key={index}
-  className="comment"
->
-  <span className="comment-avatar" style={{ background: avatarColor(comment.userName || comment.userId) }}>
-    {initials(comment.userName || comment.userId)}
-  </span>
-  <div>
-    <strong>{comment.userName || "Member"}</strong>
-    <p>{comment.text}</p>
-  </div>
-</div>
-    ))}
+   {commentList.map((comment) => {
+     const replyKey = `${post.id}_${comment.id}`;
+     const replies = comment.replies
+       ? Object.entries(comment.replies).map(([id, reply]) => ({ id, ...reply }))
+       : [];
+
+     return (
+     <div key={comment.id} className="comment-thread">
+       <div className="comment">
+         <span className="comment-avatar" style={{ background: avatarColor(comment.userName || comment.userId) }}>
+           {initials(comment.userName || comment.userId)}
+         </span>
+         <div className="comment-body">
+           <strong>{comment.userName || "Member"}</strong>
+           <p>{comment.text}</p>
+           <div className="comment-actions">
+             <button onClick={() => setOpenReplyKey(openReplyKey === replyKey ? null : replyKey)}>
+               Reply
+             </button>
+             {comment.userId === auth.currentUser?.uid && (
+               <button onClick={() => deleteComment(post.id, comment.id)} className="comment-delete">
+                 Delete
+               </button>
+             )}
+           </div>
+
+           {replies.length > 0 && (
+             <div className="comment-replies">
+               {replies.map((reply) => (
+                 <div key={reply.id} className="comment reply">
+                   <span className="comment-avatar" style={{ background: avatarColor(reply.userName || reply.userId) }}>
+                     {initials(reply.userName || reply.userId)}
+                   </span>
+                   <div className="comment-body">
+                     <strong>{reply.userName || "Member"}</strong>
+                     <p>{reply.text}</p>
+                     {reply.userId === auth.currentUser?.uid && (
+                       <div className="comment-actions">
+                         <button onClick={() => deleteReply(post.id, comment.id, reply.id)} className="comment-delete">
+                           Delete
+                         </button>
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               ))}
+             </div>
+           )}
+
+           {openReplyKey === replyKey && (
+             <div className="comment-input-row reply-input-row">
+               <input
+                 type="text"
+                 placeholder={`Reply to ${comment.userName || "this comment"}...`}
+                 value={replyText[replyKey] || ""}
+                 onChange={(e) => setReplyText((prev) => ({ ...prev, [replyKey]: e.target.value }))}
+                 onKeyDown={(e) => {
+                   if (e.key === "Enter") addReply(post.id, comment.id);
+                 }}
+                 autoFocus
+               />
+               <button onClick={() => addReply(post.id, comment.id)} aria-label="Send reply">
+                 <Send size={14} />
+               </button>
+             </div>
+           )}
+         </div>
+       </div>
+     </div>
+     );
+   })}
     <div className="comment-input-row">
       <input
         type="text"

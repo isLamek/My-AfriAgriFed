@@ -3,7 +3,7 @@ import "./Register.css";
 
 import appIcon from "./images/seed-mark.png";
 import { auth, db } from "./firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import FarmerQuestionnaire from "./FarmerQuestionnaire";
 import ConsumerQuestionnaire from './ConsumerQuestionnaire';
@@ -177,6 +177,13 @@ const handleSubmit = async (completeRegistration = false) => {
     );
 
     user = userCredential.user;
+
+    // Posts/comments/listings elsewhere fall back to auth.currentUser's
+    // displayName (and to the account email when it's unset) rather than
+    // an extra Firestore read per author - set it here so it's never blank.
+    await updateProfile(user, {
+      displayName: `${formData.firstName} ${formData.lastName}`.trim(),
+    }).catch(() => {});
 
     // 2️⃣ File validation
     const validateFile = (file) => {

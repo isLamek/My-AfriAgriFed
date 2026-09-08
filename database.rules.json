@@ -6,7 +6,14 @@
       "$postId": {
         ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)",
         "comments": {
-          ".write": "auth != null"
+          "$commentId": {
+            ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)",
+            "replies": {
+              "$replyId": {
+                ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)"
+              }
+            }
+          }
         },
         "likes": {
           "$uid": {
