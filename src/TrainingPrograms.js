@@ -89,6 +89,7 @@ export default function TrainingPrograms() {
       await push(ref(database, "posts"), {
         userId: user?.uid || "",
         userName: user?.email || "Institution",
+        authorRole: "Institution",
         content: `New training program: ${formData.title} (${formData.mode}, starts ${formData.startDate}). See Training Programs for details.`,
         imageUrl: "",
         comments: {},

@@ -239,10 +239,21 @@ const handleSubmit = async (completeRegistration = false) => {
     await Promise.all(uploadPromises);
 
     // 4️⃣ Build Firestore document
+    // Consumer accounts capture a business type in their questionnaire
+    // (Retailer/Wholesaler/Processor/Restaurant/NGO vs. Individual Buyer) -
+    // anything but "Individual Buyer" is an organization (supermarkets,
+    // cooperatives, food processors, etc.), not an individual end-consumer,
+    // even though they share the same account type and approval flow.
+    const isOrganization =
+      formData.userType === "consumer" &&
+      !!questionnaireData.consumerType &&
+      questionnaireData.consumerType !== "Individual Buyer";
+
     const userData = {
   uid: user.uid,
 
   userType: formData.userType,
+  isOrganization,
 
   // Approval fields
   approved: false,
@@ -482,7 +493,7 @@ const handleSubmit = async (completeRegistration = false) => {
                     className={errors.userType ? 'error' : ''}
                   >
                     <option value="">Select Account Type</option>
-                    <option value="consumer">Consumer</option>
+                    <option value="consumer">Consumer / Organization (supermarket, retailer, buyer)</option>
                     <option value="farmer">Farmer</option>
                     <option value="institution">Tertiary Institution</option>
                   </select>

@@ -11,6 +11,7 @@ import "./MyOrders.css";
 export default function MyOrders() {
   const [orders, setOrders] = useState([]);
   const [userType, setUserType] = useState(null);
+  const [isOrganization, setIsOrganization] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
 
   useEffect(() => {
@@ -18,7 +19,13 @@ export default function MyOrders() {
     if (!uid) return;
 
     getDoc(doc(db, "users", uid)).then((snap) => {
-      setUserType(snap.exists() ? snap.data().userType : null);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      setUserType(data.userType || null);
+      setIsOrganization(
+        data.isOrganization === true ||
+          (!!data.questionnaireData?.consumerType && data.questionnaireData.consumerType !== "Individual Buyer")
+      );
     });
 
     getAdminProfile(auth.currentUser).then((profile) => setIsAdminUser(!!profile));
@@ -56,7 +63,7 @@ export default function MyOrders() {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={isAdminUser ? "admin" : userType}
+      theme={isAdminUser ? "admin" : isOrganization ? "organization" : userType}
     >
       <section className="aaf-card">
         {orders.length === 0 ? (

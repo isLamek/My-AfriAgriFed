@@ -15,10 +15,11 @@ import {
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, Wallet, CheckCircle2 } from "lucide-react";
+import { Pencil, Trash2, Wallet, CheckCircle2, ImagePlus, X } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import { getAdminProfile } from "./admin";
 import { buildNavSections } from "./navConfig";
+import { uploadToCloudinary } from "./cloudinairyUpload";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import "./MyListings.css";
@@ -39,6 +40,9 @@ export default function MyListings() {
   const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [existingImageUrl, setExistingImageUrl] = useState(null);
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
@@ -134,11 +138,22 @@ export default function MyListings() {
   const startEdit = (listing) => {
     setEditingId(listing.id);
     setFormData({ product: listing.product, price: listing.price, unit: listing.unit || "kg", quantity: listing.quantity || "" });
+    setExistingImageUrl(listing.imageUrl || null);
+    setImageFile(null);
+    setImagePreview(null);
   };
 
   const cancelEdit = () => {
     setEditingId(null);
     setFormData(emptyListing);
+    setImageFile(null);
+    setImagePreview(null);
+    setExistingImageUrl(null);
+  };
+
+  const handleImageSelect = (file) => {
+    setImageFile(file || null);
+    setImagePreview(file ? URL.createObjectURL(file) : null);
   };
 
   const saveListing = async (event) => {
@@ -153,11 +168,19 @@ export default function MyListings() {
     setSaving(true);
 
     try {
+      let imageUrl = existingImageUrl || "";
+
+      if (imageFile) {
+        const upload = await uploadToCloudinary(imageFile, "marketplace");
+        imageUrl = upload.secure_url;
+      }
+
       const payload = {
         product: formData.product.trim(),
         price: Number(formData.price),
         unit: formData.unit,
         quantity: formData.quantity ? Number(formData.quantity) : null,
+        imageUrl,
         sellerId: user.uid,
         sellerName: user.displayName || user.email,
         sellerSubaccountId: subaccountId || null,
@@ -312,6 +335,23 @@ export default function MyListings() {
             />
           </label>
 
+          <label className="listing-photo-field">
+            Photo (optional)
+            {(imagePreview || existingImageUrl) ? (
+              <div className="listing-photo-preview">
+                <img src={imagePreview || existingImageUrl} alt="Listing" />
+                <button type="button" onClick={() => { handleImageSelect(null); setExistingImageUrl(null); }} aria-label="Remove photo">
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <span className="listing-photo-placeholder">
+                <ImagePlus size={16} /> Add a photo buyers will see
+              </span>
+            )}
+            <input type="file" accept="image/*" onChange={(e) => handleImageSelect(e.target.files?.[0])} />
+          </label>
+
           <div className="listing-form-actions">
             <button className="aaf-btn aaf-btn-primary" disabled={saving}>
               {saving ? "Saving..." : editingId ? "Save Changes" : "Post Listing"}
@@ -331,6 +371,9 @@ export default function MyListings() {
         ) : (
           listings.map((listing) => (
             <div className="aaf-card listing-card" key={listing.id}>
+              {listing.imageUrl && (
+                <img src={listing.imageUrl} alt={listing.product} className="listing-card-image" />
+              )}
               <div>
                 <h4>{listing.product}</h4>
                 <p className="listing-price">

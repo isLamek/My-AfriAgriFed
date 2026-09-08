@@ -7,6 +7,11 @@
         ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)",
         "comments": {
           ".write": "auth != null"
+        },
+        "likes": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid"
+          }
         }
       }
     },

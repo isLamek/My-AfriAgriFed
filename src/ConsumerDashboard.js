@@ -1,18 +1,25 @@
 import React, {
   useState,
-  useEffect
+  useEffect,
+  useMemo
 } from "react";
 
 import {
   collection,
+  doc,
+  getDoc,
   onSnapshot
 } from "firebase/firestore";
 
 import {
   ref,
   push,
+  query,
+  orderByChild,
+  limitToLast,
   onValue,
-  set
+  set,
+  remove
 } from "firebase/database";
 
 import { signOut } from "firebase/auth";
@@ -22,63 +29,154 @@ import {
   auth,
   database
 } from "./firebaseConfig";
-import { uploadToCloudinary }
-from "./cloudinairyUpload";
+import { uploadToCloudinary } from "./cloudinairyUpload";
+import { getAdminProfile } from "./admin";
 import NotificationBell from "./NotificationBell";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import { startCheckout } from "./payments";
 import toast from "react-hot-toast";
 import { buildNavSections } from "./navConfig";
 import AppShell from "./AppShell";
+import {
+  Heart,
+  MessageCircle,
+  Send,
+  Trash2,
+  ImagePlus,
+  X,
+  Sparkles,
+  Clock,
+} from "lucide-react";
 
 import "./ConsumerDashboard.css";
+
+const MAX_POST_LENGTH = 500;
+const FEED_WINDOW = 60; // most recent N posts pulled from Realtime DB
+
+function formatRelativeTime(timestamp) {
+  if (!timestamp) return "";
+  const diffMs = Date.now() - timestamp;
+  const minutes = Math.round(diffMs / 60000);
+  if (minutes < 1) return "just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  return new Date(timestamp).toLocaleDateString();
+}
+
+const AVATAR_COLORS = ["#044d3a", "#7bb141", "#c3602b", "#2f6fb0", "#7c4fd1", "#0f9488"];
+
+function avatarColor(name) {
+  const str = name || "?";
+  let hash = 0;
+  for (let i = 0; i < str.length; i += 1) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
+}
+
+function initials(name) {
+  if (!name) return "?";
+  const parts = name.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
+  if (parts.length === 0) return name[0]?.toUpperCase() || "?";
+  return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
+}
+
+// Lightweight engagement ranking (freshness decay + likes/comments weight) -
+// a "For You" feed without needing a follow graph or ML infra. "Recent"
+// stays a plain reverse-chronological option alongside it.
+function scorePost(post) {
+  const likeCount = post.likes ? Object.keys(post.likes).length : 0;
+  const commentCount = post.comments ? Object.keys(post.comments).length : 0;
+  const ageHours = Math.max(0, (Date.now() - (post.createdAt || 0)) / 3600000);
+  return (likeCount * 2 + commentCount * 3 + 1) / Math.pow(ageHours + 2, 1.5);
+}
 
 export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard", role = "consumer" }) {
 
   const [selectedPage, setSelectedPage] = useState("feed");
+  const [feedMode, setFeedMode] = useState("forYou"); // forYou | recent
 
   const [posts, setPosts] = useState([]);
   const [prices, setPrices] = useState([]);
 
+  const [marketSearch, setMarketSearch] = useState("");
+
   const [postText, setPostText] = useState("");
+  const [posting, setPosting] = useState(false);
 
   const [commentText, setCommentText] = useState({});
   const [selectedImage, setSelectedImage] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [orgProfile, setOrgProfile] = useState(null);
+  const [isAdminUser, setIsAdminUser] = useState(false);
 
+  useEffect(() => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+
+    getAdminProfile(auth.currentUser).then((profile) => setIsAdminUser(!!profile));
+
+    if (role !== "consumer") return;
+
+    getDoc(doc(db, "users", uid)).then((snap) => {
+      if (!snap.exists()) return;
+      const data = snap.data();
+      const isOrganization =
+        data.isOrganization === true ||
+        (!!data.questionnaireData?.consumerType && data.questionnaireData.consumerType !== "Individual Buyer");
+
+      if (isOrganization) {
+        setOrgProfile({
+          consumerType: data.questionnaireData?.consumerType || "Organization",
+          businessName: data.questionnaireData?.businessName || "",
+        });
+      }
+    });
+  }, [role]);
+
+  const authorRoleLabel = role === "farmer" ? "Farmer" : orgProfile ? "Organization" : "Consumer";
 
   /*
   ==================================
-  REAL TIME POSTS
+  REAL TIME POSTS - windowed to the most recent FEED_WINDOW so this
+  doesn't load the entire post history on every visit as the community grows.
   ==================================
   */
 
-useEffect(() => {
-  const postsRef = ref(database, "posts");
+  useEffect(() => {
+    const postsQuery = query(ref(database, "posts"), orderByChild("createdAt"), limitToLast(FEED_WINDOW));
 
-  const unsubscribe = onValue(postsRef, (snapshot) => {
-    const data = snapshot.val();
+    const unsubscribe = onValue(postsQuery, (snapshot) => {
+      const data = snapshot.val();
 
-    if (!data) {
-      setPosts([]);
-      return;
+      if (!data) {
+        setPosts([]);
+        return;
+      }
+
+      const postsArray = Object.entries(data).map(
+        ([id, post]) => ({
+          id,
+          ...post
+        })
+      );
+
+      setPosts(postsArray);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const rankedPosts = useMemo(() => {
+    const copy = [...posts];
+    if (feedMode === "recent") {
+      copy.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    } else {
+      copy.sort((a, b) => scorePost(b) - scorePost(a));
     }
-
-    const postsArray = Object.entries(data).map(
-      ([id, post]) => ({
-        id,
-        ...post
-      })
-    );
-
-    postsArray.sort(
-      (a, b) => b.createdAt - a.createdAt
-    );
-
-    setPosts(postsArray);
-  });
-
-  return () => unsubscribe();
-}, []);
+    return copy;
+  }, [posts, feedMode]);
 
   /*
   ==================================
@@ -110,78 +208,125 @@ useEffect(() => {
   CREATE POST
   ==================================
   */
-const createPost = async () => {
+  const handleImageSelect = (file) => {
+    setSelectedImage(file || null);
+    setImagePreview(file ? URL.createObjectURL(file) : null);
+  };
 
-  if (!postText && !selectedImage)
-    return;
+  const createPost = async () => {
 
-  try {
+    if ((!postText.trim() && !selectedImage) || posting)
+      return;
 
-    let imageUrl = "";
+    setPosting(true);
 
-    if (selectedImage) {
+    try {
 
-      const result =
-        await uploadToCloudinary(
-          selectedImage,
-          "posts"
-        );
+      let imageUrl = "";
 
-      imageUrl = result.secure_url;
-    }
+      if (selectedImage) {
 
-    await push(
-      ref(database, "posts"),
-      {
-        userId: auth.currentUser.uid,
-        userName: auth.currentUser.email,
-        content: postText,
-        imageUrl,
-        comments: {},
-        createdAt: Date.now()
+        const result =
+          await uploadToCloudinary(
+            selectedImage,
+            "posts"
+          );
+
+        imageUrl = result.secure_url;
       }
-    );
 
-    setPostText("");
-    setSelectedImage(null);
-    logTelemetryEvent(TELEMETRY_EVENTS.POST_CREATED, {});
+      await push(
+        ref(database, "posts"),
+        {
+          userId: auth.currentUser.uid,
+          userName: auth.currentUser.displayName || auth.currentUser.email,
+          authorRole: authorRoleLabel,
+          content: postText.trim(),
+          imageUrl,
+          comments: {},
+          createdAt: Date.now()
+        }
+      );
 
-  } catch (error) {
+      setPostText("");
+      handleImageSelect(null);
+      logTelemetryEvent(TELEMETRY_EVENTS.POST_CREATED, {});
 
-    console.error(error);
+    } catch (error) {
 
-    toast.error(
-      "Failed to upload post: " +
-      error.message
-    );
-  }
-};
+      console.error(error);
+
+      toast.error(
+        "Failed to upload post: " +
+        error.message
+      );
+    } finally {
+      setPosting(false);
+    }
+  };
+
+  /*
+  ==================================
+  LIKE / DELETE
+  ==================================
+  */
+  const toggleLike = async (post) => {
+    const uid = auth.currentUser?.uid;
+    if (!uid) return;
+
+    const likeRef = ref(database, `posts/${post.id}/likes/${uid}`);
+    try {
+      if (post.likes?.[uid]) {
+        await remove(likeRef);
+      } else {
+        await set(likeRef, true);
+      }
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const deletePost = async (post) => {
+    if (!window.confirm("Delete this post?")) return;
+    try {
+      await remove(ref(database, `posts/${post.id}`));
+      toast.success("Post deleted.");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   /*
   ==================================
   ADD COMMENT
   ==================================
   */
-const addComment = async (postId) => {
-  if (!commentText[postId]) return;
+  const addComment = async (postId) => {
+    if (!commentText[postId]?.trim()) return;
 
-  const commentsRef = ref(
-    database,
-    `posts/${postId}/comments`
-  );
+    const commentsRef = ref(
+      database,
+      `posts/${postId}/comments`
+    );
 
-  const newCommentRef = push(commentsRef);
+    const newCommentRef = push(commentsRef);
 
-  await set(newCommentRef, {
-    userId: auth.currentUser.uid,
-    text: commentText[postId],
-    createdAt: Date.now()
-  });
+    try {
+      await set(newCommentRef, {
+        userId: auth.currentUser.uid,
+        userName: auth.currentUser.displayName || auth.currentUser.email,
+        text: commentText[postId].trim(),
+        createdAt: Date.now()
+      });
 
-  setCommentText(prev => ({
-    ...prev,
-    [postId]: ""
-  }));
-};
+      setCommentText(prev => ({
+        ...prev,
+        [postId]: ""
+      }));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
 
 
   /*
@@ -200,7 +345,7 @@ const addComment = async (postId) => {
 
   const navSections = buildNavSections({
     userType: role,
-    isAdmin: false,
+    isAdmin: isAdminUser,
     activePath: "/dashboard",
     onFeedClick: () => setSelectedPage("feed"),
     onMarketplaceClick: () => setSelectedPage("prices"),
@@ -215,12 +360,18 @@ const addComment = async (postId) => {
 
   return (
     <AppShell
-      eyebrow={role === "farmer" ? "Producer workspace" : "Consumer workspace"}
-      title={dashboardTitle}
+      eyebrow={
+        role === "farmer"
+          ? "Producer workspace"
+          : orgProfile
+          ? `Organization workspace · ${orgProfile.consumerType}`
+          : "Consumer workspace"
+      }
+      title={orgProfile?.businessName || dashboardTitle}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={role === "farmer" ? "farmer" : "consumer"}
+      theme={role === "farmer" ? "farmer" : orgProfile ? "organization" : "consumer"}
     >
 
       {/* CREATE POST */}
@@ -232,20 +383,36 @@ const addComment = async (postId) => {
         <textarea
           placeholder="Share something..."
           value={postText}
+          maxLength={MAX_POST_LENGTH}
           onChange={(e) =>
             setPostText(e.target.value)
           }
         />
-        <input
+        <div className="create-post-charcount">
+          {postText.length}/{MAX_POST_LENGTH}
+        </div>
+
+        {imagePreview && (
+          <div className="create-post-preview">
+            <img src={imagePreview} alt="Selected" />
+            <button type="button" onClick={() => handleImageSelect(null)} aria-label="Remove image">
+              <X size={16} />
+            </button>
+          </div>
+        )}
+
+        <label className="create-post-file-btn">
+          <ImagePlus size={16} /> {selectedImage ? "Change photo" : "Add a photo"}
+          <input
             type="file"
             accept="image/*"
-        onChange={(e) =>
-         setSelectedImage(e.target.files[0])
-            }
-        />
+            onChange={(e) => handleImageSelect(e.target.files?.[0])}
+            hidden
+          />
+        </label>
 
-        <button className="aaf-btn aaf-btn-primary" onClick={createPost}>
-          Post
+        <button className="aaf-btn aaf-btn-primary" onClick={createPost} disabled={posting}>
+          {posting ? "Posting..." : "Post"}
         </button>
 
       </div>
@@ -256,47 +423,72 @@ const addComment = async (postId) => {
 
         <div className="market-prices aaf-card">
 
-          <h2>Marketplace</h2>
+          <div className="feed-header">
+            <h2>Marketplace</h2>
+            <input
+              className="market-search"
+              type="search"
+              placeholder="Search products..."
+              value={marketSearch}
+              onChange={(e) => setMarketSearch(e.target.value)}
+            />
+          </div>
 
-          {prices.length === 0 ? (
-            <p className="dashboard-empty-state">No marketplace listings yet.</p>
-          ) : (
-          prices.map(price => (
+          {(() => {
+            const filtered = prices.filter((price) =>
+              price.product?.toLowerCase().includes(marketSearch.trim().toLowerCase())
+            );
 
-            <div
-              key={price.id}
-              className="price-card"
-            >
+            if (prices.length === 0) {
+              return <p className="dashboard-empty-state">No marketplace listings yet.</p>;
+            }
+            if (filtered.length === 0) {
+              return <p className="dashboard-empty-state">No listings match "{marketSearch}".</p>;
+            }
 
-              <h3>{price.product}</h3>
+            return (
+              <div className="market-grid">
+                {filtered.map(price => {
+                  const isOwn = price.sellerId === auth.currentUser?.uid;
+                  return (
+                    <div key={price.id} className="price-card">
+                      {price.imageUrl && <img src={price.imageUrl} alt={price.product} className="price-card-image" />}
+                      <h3>{price.product}</h3>
 
-              <p>
-                N${price.price}
-                {price.unit && <span className="price-unit"> / {price.unit}</span>}
-              </p>
+                      <p>
+                        N${price.price}
+                        {price.unit && <span className="price-unit"> / {price.unit}</span>}
+                      </p>
 
-              {price.sellerName && <p className="price-seller">Sold by {price.sellerName}</p>}
+                      {price.quantity != null && <p className="price-qty">{price.quantity} available</p>}
+                      {price.sellerName && <p className="price-seller">Sold by {price.sellerName}</p>}
 
-              <button
-                className="buy-btn"
-                disabled={!price.sellerSubaccountId}
-                onClick={() =>
-                  startCheckout({
-                    product: price.product,
-                    price: price.price,
-                    sellerId: price.sellerId,
-                    sellerSubaccountId: price.sellerSubaccountId,
-                    sellerName: price.sellerName,
-                  })
-                }
-                title={price.sellerSubaccountId ? "" : "This seller hasn't set up payouts yet"}
-              >
-                Buy
-              </button>
-
-            </div>
-
-          )))}
+                      {isOwn ? (
+                        <span className="price-own-badge">Your listing</span>
+                      ) : (
+                        <button
+                          className="buy-btn"
+                          disabled={!price.sellerSubaccountId}
+                          onClick={() =>
+                            startCheckout({
+                              product: price.product,
+                              price: price.price,
+                              sellerId: price.sellerId,
+                              sellerSubaccountId: price.sellerSubaccountId,
+                              sellerName: price.sellerName,
+                            })
+                          }
+                          title={price.sellerSubaccountId ? "" : "This seller hasn't set up payouts yet"}
+                        >
+                          Buy
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
 
         </div>
       )}
@@ -307,19 +499,62 @@ const addComment = async (postId) => {
 
         <div className="posts-section aaf-card">
 
-          <h2>Community Feed</h2>
+          <div className="feed-header">
+            <h2>Community Feed</h2>
+            <div className="feed-mode-toggle">
+              <button
+                className={feedMode === "forYou" ? "active" : ""}
+                onClick={() => setFeedMode("forYou")}
+              >
+                <Sparkles size={14} /> For You
+              </button>
+              <button
+                className={feedMode === "recent" ? "active" : ""}
+                onClick={() => setFeedMode("recent")}
+              >
+                <Clock size={14} /> Recent
+              </button>
+            </div>
+          </div>
 
-          {posts.length === 0 ? (
+          {rankedPosts.length === 0 ? (
             <p className="dashboard-empty-state">No posts yet. Be the first to share something.</p>
           ) : (
-          posts.map(post => (
+          rankedPosts.map(post => {
+            const uid = auth.currentUser?.uid;
+            const liked = !!post.likes?.[uid];
+            const likeCount = post.likes ? Object.keys(post.likes).length : 0;
+            const commentList = post.comments ? Object.values(post.comments) : [];
+            // Realtime Database rules only allow the post's own author to
+            // delete it (no admin cross-post override without mirroring
+            // admin uids into RTDB, which isn't wired up) - keep this in
+            // sync with database.rules.json.
+            const canDelete = post.userId === uid;
 
+            return (
            <div
   key={post.id}
   className="post-card"
 >
-<h4>{post.userName}</h4>
-  <p>{post.content}</p>
+  <div className="post-header">
+    <span className="post-avatar" style={{ background: avatarColor(post.userName) }}>
+      {initials(post.userName)}
+    </span>
+    <div className="post-header-text">
+      <h4>
+        {post.userName}
+        {post.authorRole && <span className="post-role-badge">{post.authorRole}</span>}
+      </h4>
+      <span className="post-time">{formatRelativeTime(post.createdAt)}</span>
+    </div>
+    {canDelete && (
+      <button className="post-delete-btn" onClick={() => deletePost(post)} aria-label="Delete post">
+        <Trash2 size={15} />
+      </button>
+    )}
+  </div>
+
+  {post.content && <p>{post.content}</p>}
 
   {/* DISPLAY IMAGE */}
 
@@ -332,49 +567,66 @@ const addComment = async (postId) => {
     />
   )}
 
+  {/* LIKE / COMMENT BAR */}
+  <div className="post-actions">
+    <button className={`post-action-btn ${liked ? "liked" : ""}`} onClick={() => toggleLike(post)}>
+      <Heart size={16} fill={liked ? "currentColor" : "none"} /> {likeCount > 0 ? likeCount : "Like"}
+    </button>
+    <span className="post-action-btn static">
+      <MessageCircle size={16} /> {commentList.length > 0 ? commentList.length : "Comment"}
+    </span>
+  </div>
+
   {/* COMMENTS */}
 
   <div className="comments">
 
-    <h4>Comments</h4>
-
-   {post.comments &&
-  Object.values(post.comments).map(
+   {commentList.map(
     (comment, index) => (
      <div
   key={index}
   className="comment"
 >
-  <strong>{comment.userId}</strong>
-  <p>{comment.text}</p>
+  <span className="comment-avatar" style={{ background: avatarColor(comment.userName || comment.userId) }}>
+    {initials(comment.userName || comment.userId)}
+  </span>
+  <div>
+    <strong>{comment.userName || "Member"}</strong>
+    <p>{comment.text}</p>
+  </div>
 </div>
-    )
-)}
-    <input
-      type="text"
-      placeholder="Write a comment..."
-      value={commentText[post.id] || ""}
-      onChange={(e) =>
-        setCommentText(prev => ({
-          ...prev,
-          [post.id]: e.target.value
-        }))
-      }
-    />
+    ))}
+    <div className="comment-input-row">
+      <input
+        type="text"
+        placeholder="Write a comment..."
+        value={commentText[post.id] || ""}
+        onChange={(e) =>
+          setCommentText(prev => ({
+            ...prev,
+            [post.id]: e.target.value
+          }))
+        }
+        onKeyDown={(e) => {
+          if (e.key === "Enter") addComment(post.id);
+        }}
+      />
 
-    <button
-      onClick={() =>
-        addComment(post.id)
-      }
-    >
-      Comment
-    </button>
+      <button
+        onClick={() =>
+          addComment(post.id)
+        }
+        aria-label="Send comment"
+      >
+        <Send size={15} />
+      </button>
+    </div>
 
   </div>
 
 </div>
-
-          )))}
+            );
+          }))}
 
         </div>
       )}

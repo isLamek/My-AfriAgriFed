@@ -17,12 +17,12 @@ print the real, live version once you give it a service account key - see
 
 | Collection | Key | Written by | Notes |
 |---|---|---|---|
-| `users` | uid | Register.js | `userType`: farmer/consumer/institution, `accountStatus`, `documents`, `questionnaireData` |
+| `users` | uid | Register.js | `userType`: farmer/consumer/institution, `accountStatus`, `documents`, `questionnaireData`, `isOrganization` (consumer accounts only - true when `questionnaireData.consumerType` is anything but "Individual Buyer", e.g. Retailer/Wholesaler/Processor/NGO. Gives supermarkets/cooperatives/bulk buyers their own theme + "Organization workspace" label without a separate account type/approval flow - same underlying consumer questionnaire already captures business details) |
 | `admin` | uid | *(manual, legacy)* | Old admin flag scheme. Still checked for backward compatibility. |
 | `admins` | lowercase email | AdminDashboard.js | **New.** `{ email, role: founder\|developer\|moderator, addedBy, addedAt, uid }` |
 | `system/bootstrap` | — | AdminDashboard.js | Singleton doc `{ founderClaimed, claimedBy, claimedAt }` gating the one-time founder self-claim |
 | `publicStats/summary` | — | AdminDashboard.js | PII-free aggregate counts, refreshed whenever an admin opens the dashboard, read by the public Data Dashboard |
-| `marketPrices` | auto | MyListings.js (farmer) | **New write UI.** `{ product, price, unit, quantity, sellerId, sellerName, sellerSubaccountId }`, read by ConsumerDashboard's Marketplace tab |
+| `marketPrices` | auto | MyListings.js (farmer) | **New write UI.** `{ product, price, unit, quantity, imageUrl, sellerId, sellerName, sellerSubaccountId }`, read by ConsumerDashboard's Marketplace tab (search, own-listing badge, image) |
 | `institutionResearchArticles` | auto | InstitutionDashboard.js | `{ title, summary, category, sourceName, articleUrl, image, pdf, authorId, respondsToProblemId }` |
 | `researchProblems` | auto | Research.js (farmer) | **New.** `{ title, description, farmerId, farmerName, status: open\|answered, answeredArticleId }` |
 | `trainingPrograms` | auto | TrainingPrograms.js (institution) | **New.** `{ title, description, mode, location, startDate, institutionId }` |

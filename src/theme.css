@@ -76,6 +76,12 @@
   --aaf-accent-contrast: var(--aaf-white);
 }
 
+.aaf-theme-organization {
+  --aaf-shoot: #0f9488;
+  --aaf-shoot-dark: #0c766c;
+  --aaf-accent-contrast: var(--aaf-white);
+}
+
 * {
   box-sizing: border-box;
 }

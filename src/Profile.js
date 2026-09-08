@@ -153,6 +153,11 @@ export default function Profile() {
 
   const name = [profile?.personalInfo?.firstName, profile?.personalInfo?.lastName].filter(Boolean).join(" ");
   const userType = isAdmin ? "admin" : profile?.userType;
+  const isOrganization =
+    userType === "consumer" &&
+    (profile?.isOrganization === true ||
+      (!!profile?.questionnaireData?.consumerType && profile.questionnaireData.consumerType !== "Individual Buyer"));
+  const theme = isOrganization ? "organization" : userType;
 
   const navSections = buildNavSections({ userType, isAdmin, activePath: "/profile" });
 
@@ -163,7 +168,7 @@ export default function Profile() {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={userType}
+      theme={theme}
     >
       <div className="profile-hero aaf-card">
         <div className="profile-identity">

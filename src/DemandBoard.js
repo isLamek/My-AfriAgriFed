@@ -24,6 +24,7 @@ const emptyDemand = { title: "", product: "", quantityNeeded: "", unit: "kg", de
 
 export default function DemandBoard() {
   const [userType, setUserType] = useState(null);
+  const [isOrganization, setIsOrganization] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [demands, setDemands] = useState([]);
   const [formData, setFormData] = useState(emptyDemand);
@@ -36,7 +37,13 @@ export default function DemandBoard() {
     if (!uid) return;
     getAdminProfile(auth.currentUser).then((profile) => setIsAdminUser(!!profile));
     getDoc(doc(db, "users", uid)).then((snap) => {
-      setUserType(snap.exists() ? snap.data().userType : null);
+      if (!snap.exists()) return;
+      const data = snap.data();
+      setUserType(data.userType || null);
+      setIsOrganization(
+        data.isOrganization === true ||
+          (!!data.questionnaireData?.consumerType && data.questionnaireData.consumerType !== "Individual Buyer")
+      );
     });
   }, []);
 
@@ -96,7 +103,15 @@ export default function DemandBoard() {
     window.location.href = "/";
   };
 
-  const theme = isAdminUser ? "admin" : userType === "farmer" ? "farmer" : userType === "institution" ? "institution" : "consumer";
+  const theme = isAdminUser
+    ? "admin"
+    : userType === "farmer"
+    ? "farmer"
+    : userType === "institution"
+    ? "institution"
+    : isOrganization
+    ? "organization"
+    : "consumer";
   const navSections = buildNavSections({ userType, isAdmin: isAdminUser, activePath: "/demand-board" });
 
   return (
