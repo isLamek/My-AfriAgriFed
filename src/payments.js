@@ -1,215 +1,120 @@
 // payments.js
 //
-// Frontend helper for the Flutterwave payment flow implemented in server.js.
-// Two kinds of charge:
-//   - Marketplace orders: the buyer pays the listed price; Flutterwave
-//     automatically routes the platform's commission and the seller's share
-//     per the subaccount split configured when the seller's account was set up.
-//   - Platform-only charges (e.g. promotion fees): no seller involved, the
-//     full amount goes to the platform's main Flutterwave account.
+// The browser's side of the Flutterwave flow in server/checkout.js.
+//
+// The browser only ASKS to pay for something ("this listing", "this promotion",
+// "this page"). The server decides the price and who is paid, and records the
+// order / activates the promotion / unlocks the page once Flutterwave confirms
+// the charge. Nothing here writes orders or unlocks to the database, and
+// nothing here sends an amount, so there is nothing to tamper with.
 
-import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { auth, db } from "./firebaseConfig";
-import { notifyUser } from "./notifications";
+import { auth } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 
 // Same variable cloudinairyUpload.js uses for the backend URL.
 const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
-/**
- * Kicks off checkout for a single item and redirects the browser to the
- * Flutterwave-hosted payment page. Call this from a "Buy" button.
- */
-export async function startCheckout({ product, price, sellerId, sellerSubaccountId, sellerName }) {
-  const user = auth.currentUser;
+/** The backend's own words if it gave any, otherwise something plain. */
+function messageFrom(data, fallback) {
+  return (data && data.message) || fallback;
+}
 
-  if (!user) {
+/** Call the backend as the signed-in user (anonymous visitors count: they have an identity too). */
+async function authedFetch(path, options = {}) {
+  await auth.authStateReady(); // on a fresh page load the session is restored asynchronously
+  const user = auth.currentUser;
+  if (!user) throw new Error("Please sign in first.");
+  const token = await user.getIdToken();
+
+  let response;
+  try {
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      ...options,
+      headers: {
+        ...(options.body ? { "Content-Type": "application/json" } : {}),
+        ...options.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch {
+    throw new Error("Could not reach the payment service. Check your connection and try again.");
+  }
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    // not JSON (a proxy error page, for example)
+  }
+  return { response, data };
+}
+
+/** Ask the server to start a payment and send the browser to Flutterwave's page. */
+async function startPayment(body, telemetry) {
+  const { response, data } = await authedFetch("/api/payments/initiate", {
+    method: "POST",
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok || !data || !data.link) {
+    throw new Error(messageFrom(data, "Could not start payment."));
+  }
+
+  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_INITIATED, telemetry);
+  window.location.href = data.link;
+}
+
+/**
+ * Buy one unit of a marketplace listing. The price and the seller's payout
+ * account come from the listing on the server, not from this call.
+ */
+export async function startCheckout({ listingId, product, sellerId }) {
+  if (!auth.currentUser) {
     toast.error("Please sign in before buying.");
     return;
   }
-
-  if (!sellerSubaccountId) {
-    toast.error(`${sellerName || "This seller"} hasn't set up payouts yet - contact them directly.`);
-    return;
+  try {
+    await startPayment({ kind: "order", listingId }, { product, listingId, sellerId });
+  } catch (error) {
+    toast.error(error.message);
   }
+}
 
-  const response = await fetch(`${API_BASE_URL}/api/payments/initiate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      amount: price,
-      customerEmail: user.email,
-      customerName: user.displayName || user.email,
-      productName: product,
-      sellerSubaccountId,
-      buyerId: user.uid,
-      sellerId,
-    }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok || !data.link) {
-    toast.error(data.error || "Could not start payment.");
-    return;
+/** Pay a promotion's fee. The server works the price out from the promotion's dates. */
+export async function startPromotionCheckout({ promotionId, description }) {
+  try {
+    await startPayment({ kind: "promotion", promotionId }, { product: description, promotionId });
+  } catch (error) {
+    toast.error(error.message);
   }
-
-  sessionStorage.setItem(
-    "aaf_pending_payment",
-    JSON.stringify({ purpose: "order", product, price, sellerId, sellerName, buyerId: user.uid, txRef: data.txRef })
-  );
-
-  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_INITIATED, { product, price, sellerId });
-
-  window.location.href = data.link;
 }
 
 /**
- * Platform-only charge with no seller split - e.g. a promotion's per-day
- * fee. Redirects to Flutterwave the same way startCheckout does.
+ * N$5 for one dashboard page, for a visitor with no real account (identified
+ * by their anonymous Firebase identity). Throws on failure so the paywall can
+ * show the message.
  */
-export async function startPlatformCheckout({ description, amount, purpose, refId }) {
-  const user = auth.currentUser;
-
-  if (!user) {
-    toast.error("Please sign in first.");
-    return;
-  }
-
-  const response = await fetch(`${API_BASE_URL}/api/payments/initiate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      amount,
-      customerEmail: user.email,
-      customerName: user.displayName || user.email,
-      productName: description,
-      buyerId: user.uid,
-    }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok || !data.link) {
-    toast.error(data.error || "Could not start payment.");
-    return;
-  }
-
-  sessionStorage.setItem(
-    "aaf_pending_payment",
-    JSON.stringify({ purpose, refId, amount, description, buyerId: user.uid, txRef: data.txRef })
-  );
-
-  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_INITIATED, { product: description, price: amount });
-
-  window.location.href = data.link;
+export async function startAnonymousPageCheckout({ email, pageKey }) {
+  await startPayment({ kind: "page_access", pageKey, email }, { product: `page_access:${pageKey}`, pageKey });
 }
 
 /**
- * Platform-only charge for a visitor with no real account (Data/Statistics
- * Dashboard's N$5-per-page paywall) - identified by their anonymous Firebase
- * Auth uid rather than a signed-in user, since there is no account to pull
- * an email/name from.
- */
-export async function startAnonymousPageCheckout({ email, pageKey, uid }) {
-  const response = await fetch(`${API_BASE_URL}/api/payments/initiate`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      amount: 5,
-      customerEmail: email,
-      customerName: email,
-      productName: `${pageKey === "statistics" ? "Statistics" : "Data"} Dashboard access`,
-      buyerId: uid,
-    }),
-  });
-
-  const data = await response.json();
-
-  if (!response.ok || !data.link) {
-    throw new Error(data.error || "Could not start payment.");
-  }
-
-  sessionStorage.setItem(
-    "aaf_pending_payment",
-    JSON.stringify({ purpose: "page_access", refId: pageKey, amount: 5, buyerId: uid, txRef: data.txRef })
-  );
-
-  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_INITIATED, { product: `page_access:${pageKey}`, price: 5 });
-
-  window.location.href = data.link;
-}
-
-/**
- * Call this on the /payment-callback route. Verifies the transaction with
- * the backend, and only if Flutterwave confirms it as successful, finalizes
- * whatever this payment was for (a marketplace order, or a platform charge
- * like a promotion fee) based on what was stashed before redirecting out.
+ * Call this on the /payment-callback route. Asks the server to confirm the
+ * transaction with Flutterwave; the server does whatever it paid for (and does
+ * it only once, however many times this page is reloaded).
+ *
+ * Resolves { success, purpose, refId, orderId, message }.
  */
 export async function verifyAndFinalizePayment(transactionId) {
-  const response = await fetch(`${API_BASE_URL}/api/payments/verify/${transactionId}`);
-  const data = await response.json();
+  const { response, data } = await authedFetch(`/api/payments/verify/${encodeURIComponent(transactionId)}`);
 
-  if (!data.verified) {
-    return { success: false };
+  if (!response.ok || !data || !data.verified) {
+    return { success: false, message: messageFrom(data, "") };
   }
 
-  const pending = JSON.parse(sessionStorage.getItem("aaf_pending_payment") || "null");
-  sessionStorage.removeItem("aaf_pending_payment");
-
-  if (pending?.purpose === "promotion") {
-    await updateDoc(doc(db, "promotions", pending.refId), {
-      status: "active",
-      paidAmount: data.transaction?.amount || pending.amount || 0,
-      transactionId,
-    });
-
-    logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: "promotion" });
-    return { success: true, purpose: "promotion" };
+  if (!data.already) {
+    logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: data.purpose });
   }
-
-  if (pending?.purpose === "page_access") {
-    await setDoc(
-      doc(db, "pageAccess", pending.buyerId),
-      { [pending.refId]: true, updatedAt: serverTimestamp() },
-      { merge: true }
-    );
-
-    logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: "page_access" });
-    return { success: true, purpose: "page_access", refId: pending.refId };
-  }
-
-  const buyerId = pending?.buyerId || auth.currentUser?.uid || "";
-  const product = pending?.product || data.transaction?.meta?.productName || "";
-
-  // Names are stored on the order because users cannot read each other's
-  // profiles, and the tracker needs to say who the other party is.
-  await addDoc(collection(db, "orders"), {
-    buyerId,
-    buyerName: auth.currentUser?.displayName || auth.currentUser?.email || "",
-    sellerId: pending?.sellerId || "",
-    sellerName: pending?.sellerName || "",
-    product,
-    amount: data.transaction?.amount || pending?.price || 0,
-    currency: data.transaction?.currency || "NAD",
-    transactionId,
-    status: "paid",
-    statusHistory: [{ status: "paid", by: buyerId, at: Date.now(), note: "Payment received" }],
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  });
-
-  // Let the seller know there is something to confirm.
-  if (pending?.sellerId) {
-    notifyUser(pending.sellerId, {
-      title: "New order",
-      body: `${product} was just paid for. Confirm it to start fulfilment.`,
-      link: "/track-orders",
-    });
-  }
-
-  logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: "order" });
-
-  return { success: true, purpose: "order", order: pending };
+  return { success: true, purpose: data.purpose, refId: data.refId || null, orderId: data.orderId || null };
 }

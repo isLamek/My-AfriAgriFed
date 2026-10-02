@@ -146,10 +146,21 @@ service cloud.firestore {
       allow delete: if isSignedInAdmin();
     }
 
+    // A promotion becomes "active" only when the server has seen the payment
+    // (server/checkout.js); the owner can never set status or paid fields.
     match /promotions/{id} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.farmerId == request.auth.uid;
-      allow update, delete: if signedIn() && (resource.data.farmerId == request.auth.uid || isSignedInAdmin());
+      allow create: if signedIn()
+        && request.resource.data.farmerId == request.auth.uid
+        && request.resource.data.status == 'pending_payment'
+        && !('paidAmount' in request.resource.data)
+        && !('transactionId' in request.resource.data);
+      allow update: if signedIn() && (
+        (resource.data.farmerId == request.auth.uid
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['status', 'paidAmount', 'transactionId', 'farmerId']))
+        || isSignedInAdmin()
+      );
+      allow delete: if signedIn() && (resource.data.farmerId == request.auth.uid || isSignedInAdmin());
     }
 
     match /notifications/{id} {
@@ -166,9 +177,20 @@ service cloud.firestore {
     // Anonymous-visitor paywall for Data/Statistics Dashboard (concept note:
     // free once registered, N$5/page or student verification otherwise).
     // Keyed by the visitor's anonymous Firebase Auth uid, own-doc only.
+    // The paid flags (data, statistics) are written by the server after Flutterwave
+    // confirms a payment. A visitor may record only their own student self-verification.
     match /pageAccess/{uid} {
-      allow read: if signedIn() && request.auth.uid == uid;
-      allow create, update: if signedIn() && request.auth.uid == uid;
+      allow read: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['studentVerified', 'studentCardUrl', 'verifiedAt']);
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['studentVerified', 'studentCardUrl', 'verifiedAt']);
+      allow write: if isSignedInAdmin();
+    }
+
+    // The server's own record of each payment it started. Never touched by browsers.
+    match /payments/{id} {
+      allow read, write: if false;
     }
 
     match /studentAccessRequests/{id} {
@@ -304,7 +326,8 @@ service cloud.firestore {
     }
 
     match /orders/{id} {
-      allow create: if signedIn();
+      // Created by the server once a payment is confirmed (server/checkout.js), never by a browser.
+      allow create: if false;
       allow read: if signedIn() && (
         resource.data.buyerId == request.auth.uid ||
         resource.data.sellerId == request.auth.uid ||

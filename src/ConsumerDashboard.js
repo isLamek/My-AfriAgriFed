@@ -539,11 +539,9 @@ export default function ConsumerDashboard({ role = "consumer" }) {
                           disabled={!price.sellerSubaccountId}
                           onClick={() =>
                             startCheckout({
+                              listingId: price.id,
                               product: price.product,
-                              price: price.price,
                               sellerId: price.sellerId,
-                              sellerSubaccountId: price.sellerSubaccountId,
-                              sellerName: price.sellerName,
                             })
                           }
                           title={price.sellerSubaccountId ? "" : "This seller hasn't set up payouts yet"}

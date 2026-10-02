@@ -13,7 +13,7 @@ Technical detail is in `docs/FARMVIEW_PLAN.md` (build plan) and
 | 1 | **Host the backend (`server.js`).** It handles Flutterwave payments and Cloudinary uploads and is not hosted anywhere today. Pick a host (Render, Railway, Fly.io, or similar), add the keys below as that host's *environment variables*, and note its URL. | Today the live site is built with `REACT_APP_API_URL=http://localhost:5000`, so payments and image uploads cannot work for real visitors. Orders only exist after a payment succeeds, so the Order Tracker stays empty until this is fixed. |
 | 2 | **Rebuild the site pointing at that URL**: set `REACT_APP_API_URL=https://your-backend-url` in `.env`, run `npm run build`, then deploy. | The URL is baked into the website when it is built. |
 | 3 | **Deploy the security rules**: `firebase deploy --only firestore:rules`. | Sellers cannot update orders and farmers cannot save farms until the new rules are live. The rules are written but have **not been tested in the Firebase emulator** (this machine has no Java), so test them once in a staging project first. |
-| 4 | **Move order creation to the server.** Today the buyer's browser writes the "paid" order after the Flutterwave redirect, so a user could fake one. It should be created by the Flutterwave **webhook** in `server.js`. | Protects sellers from fake orders. |
+| 4 | **Payments are now recorded by the server (built).** The backend prices every order from the listing, pays the seller's own account, verifies who is buying (Firebase sign-in) and creates the order exactly once from a confirmed Flutterwave transaction (via the buyer's return page *or* the webhook). Browsers can no longer create orders, activate promotions or unlock paid pages (`firestore.rules`). **You must add the Firebase admin key** (`FIREBASE_SERVICE_ACCOUNT_JSON`, see `docs/SETUP_GUIDE.pdf` 2.5); without it payments stay OFF. Deploy the backend first, then the website and rules together. | Stops fake orders, price tampering and payout redirection. Tested with fakes; **not yet run against real Flutterwave test mode and a real Firebase project** (do the test purchase in section 6). |
 | 5 | **Test a full purchase with Flutterwave TEST keys**, then switch to live keys. | Money flow must be proven before real money moves. |
 
 ## 2. Licences and permissions 🔴
@@ -89,3 +89,12 @@ Until the crop thresholds are reviewed, keep the "Indicative only" wording
 - The infrared cloud layer is shown as grey satellite tiles; a "clouds only" transparent version is a polish item.
 - Fire hotspots, crop suitability as a map layer (needs soil data), and farms/orders visible to others on the map are not built.
 - The farmer screens and rules have not been exercised against the real Firebase project.
+
+## 8. Payments: known gaps after the server-side rewrite
+
+- **Stock is not reduced after a sale.** A listing with "10 available" stays at 10, so the same stock can be sold repeatedly. Sold-out (0) listings are refused. Decrementing needs a seller-facing decision (what if a buyer wants 3 units; there is only a quantity-1 checkout today).
+- **One unit per checkout.** The price charged is the listing's price; buying several units is not built.
+- **Student self-verification is honour-system.** Any photo unlocks free access (the existing product decision). Paid unlocks, by contrast, can now only be written by the server.
+- **Refunds and cancellations** are still done by hand in the Flutterwave dashboard, and an admin updates the order.
+- **Order-status changes** (confirmed, dispatched, in transit, delivered) are still written by the seller and buyer from the browser under the existing rules, which only allow legal moves.
+- **Test it before going live**: with Flutterwave *test* keys, make a purchase as buyer A from seller B (who has saved bank details), check one order appears for both, reload the return page and confirm no second order, then try the same with the buyer closing the tab before returning (the webhook must still create it).

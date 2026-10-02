@@ -12,12 +12,11 @@ import {
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
 import { uploadToCloudinary } from "./cloudinairyUpload";
-import { startPlatformCheckout } from "./payments";
+import { startPromotionCheckout } from "./payments";
+import { RATE_PER_WORKING_DAY, countWorkingDays } from "./promoPricing";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import InsightsFrame from "./InsightsFrame";
-
-const RATE_PER_WORKING_DAY = 30; // N$/working day, per the concept note's financial model
 
 const emptyPromo = { productName: "", description: "", startDate: "", endDate: "" };
 
@@ -32,25 +31,6 @@ function todayIso() {
 function isActive(promo) {
   const today = todayIso();
   return (!promo.startDate || promo.startDate <= today) && (!promo.endDate || promo.endDate >= today);
-}
-
-// Excludes weekends, per "N$30/working day (excluding weekends and public
-// holidays)" - a public-holiday calendar is out of scope, so this is a
-// deliberate simplification.
-function countWorkingDays(startDate, endDate) {
-  if (!startDate || !endDate) return 0;
-  const start = new Date(startDate);
-  const end = new Date(endDate);
-  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) return 0;
-
-  let count = 0;
-  const cursor = new Date(start);
-  while (cursor <= end) {
-    const day = cursor.getDay();
-    if (day !== 0 && day !== 6) count += 1;
-    cursor.setDate(cursor.getDate() + 1);
-  }
-  return count;
 }
 
 export default function Promotions() {
@@ -141,11 +121,10 @@ export default function Promotions() {
       logTelemetryEvent(TELEMETRY_EVENTS.PROMOTION_CREATED, { productName: formData.productName, cost });
 
       toast("Redirecting to payment to activate your promotion...");
-      await startPlatformCheckout({
+      // The server works the price out from the saved dates; `cost` above is only a preview.
+      await startPromotionCheckout({
+        promotionId: docRef.id,
         description: `Promotion: ${formData.productName} (${workingDays} working day${workingDays > 1 ? "s" : ""})`,
-        amount: cost,
-        purpose: "promotion",
-        refId: docRef.id,
       });
     } catch (error) {
       console.error(error);

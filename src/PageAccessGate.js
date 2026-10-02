@@ -65,7 +65,7 @@ function PagePaywall({ pageKey, uid, onUnlocked }) {
 
     setPaying(true);
     try {
-      await startAnonymousPageCheckout({ email: email.trim(), pageKey, uid });
+      await startAnonymousPageCheckout({ email: email.trim(), pageKey });
     } catch (error) {
       toast.error(error.message || "Could not start payment.");
     } finally {

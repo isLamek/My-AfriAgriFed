@@ -8,6 +8,7 @@ export default function PaymentCallback() {
   const [status, setStatus] = useState("verifying");
   const [purpose, setPurpose] = useState("order");
   const [refId, setRefId] = useState(null);
+  const [message, setMessage] = useState("");
 
   useEffect(() => {
     const transactionId = searchParams.get("transaction_id");
@@ -22,13 +23,14 @@ export default function PaymentCallback() {
       .then((result) => {
         setPurpose(result.purpose || "order");
         setRefId(result.refId || null);
+        setMessage(result.message || "");
         setStatus(result.success ? "success" : "failed");
       })
       .catch(() => setStatus("failed"));
   }, [searchParams]);
 
-  const returnTo = purpose === "page_access" ? `/${refId || "data"}` : "/dashboard";
-  const returnLabel = purpose === "page_access" ? "Go to page" : "Back to Dashboard";
+  const returnTo = purpose === "page_access" ? `/${refId || "data"}` : purpose === "order" ? "/track-orders" : "/dashboard";
+  const returnLabel = purpose === "page_access" ? "Go to page" : purpose === "order" ? "Track your order" : "Back to Dashboard";
 
   return (
     <div style={{ padding: "3rem", textAlign: "center", fontFamily: "Inter, sans-serif" }}>
@@ -48,7 +50,10 @@ export default function PaymentCallback() {
       {status === "failed" && (
         <>
           <h1>Payment could not be verified</h1>
-          <p>If you were charged, contact support with your transaction reference.</p>
+          <p>
+            {message || "We could not confirm this payment yet."} If you were charged, your order is recorded as soon as
+            the payment provider confirms it; otherwise contact support with your transaction reference.
+          </p>
         </>
       )}
       {status === "cancelled" && <h1>Payment cancelled</h1>}
