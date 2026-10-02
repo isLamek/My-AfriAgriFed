@@ -31,6 +31,9 @@ import PaymentCallback from "./PaymentCallback";
 import { auth, db } from "./firebaseConfig";
 import { isAdmin } from "./admin";
 
+// Lazy-loaded so the map library only downloads when someone opens the map.
+const FarmMap = React.lazy(() => import("./FarmMap"));
+
 const isApprovedStatus = (userData) =>
   userData.approved === true ||
   userData.status === "approved" ||
@@ -253,6 +256,17 @@ function App() {
         element={
           <ProtectedRoute>
             <DemandBoard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/farm-map"
+        element={
+          <ProtectedRoute>
+            <React.Suspense fallback={<p style={{ padding: 24 }}>Loading map…</p>}>
+              <FarmMap />
+            </React.Suspense>
           </ProtectedRoute>
         }
       />
