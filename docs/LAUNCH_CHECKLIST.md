@@ -1,0 +1,90 @@
+# AfriAgriFed: what to do before launch
+
+Plain-language list of what **you** need to do, in order of importance. Items
+marked 🔴 block a public launch; 🟡 should be done soon after; 🟢 is polish.
+Technical detail is in `docs/FARMVIEW_PLAN.md` (build plan) and
+`docs/DATA_SOURCES.md` (where every number on the map comes from).
+
+## 1. Things that must work first 🔴
+
+| # | Task | Why |
+|---|------|-----|
+| 1 | **Host the backend (`server.js`).** It handles Flutterwave payments and Cloudinary uploads and is not hosted anywhere today. Pick a host (Render, Railway, Fly.io, or similar), add the keys below as that host's *environment variables*, and note its URL. | Today the live site is built with `REACT_APP_API_URL=http://localhost:5000`, so payments and image uploads cannot work for real visitors. Orders only exist after a payment succeeds, so the Order Tracker stays empty until this is fixed. |
+| 2 | **Rebuild the site pointing at that URL**: set `REACT_APP_API_URL=https://your-backend-url` in `.env`, run `npm run build`, then deploy. | The URL is baked into the website when it is built. |
+| 3 | **Deploy the security rules**: `firebase deploy --only firestore:rules`. | Sellers cannot update orders and farmers cannot save farms until the new rules are live. The rules are written but have **not been tested in the Firebase emulator** (this machine has no Java), so test them once in a staging project first. |
+| 4 | **Move order creation to the server.** Today the buyer's browser writes the "paid" order after the Flutterwave redirect, so a user could fake one. It should be created by the Flutterwave **webhook** in `server.js`. | Protects sellers from fake orders. |
+| 5 | **Test a full purchase with Flutterwave TEST keys**, then switch to live keys. | Money flow must be proven before real money moves. |
+
+## 2. Licences and permissions 🔴
+
+The map uses free public data. Free is not always the same as "allowed for a
+business". Because AfriAgriFed takes a commission, it counts as commercial.
+
+| Source | Today | What to do |
+|---|---|---|
+| **Open-Meteo** (all weather forecasts) | Free tier is **non-commercial only** (I read their pricing page on 2 Oct 2026: 10,000 calls/day, no commercial use). | Buy a commercial plan (Standard = 1 million calls/month; prices are not published, ask info@open-meteo.com). Put the key in `OPEN_METEO_API_KEY`. |
+| **EUMETSAT** (live satellite clouds and lightning) | Free for personal / non-commercial use; **other uses need EUMETSAT's authorisation**; credit "©EUMETSAT" is required. I could not open their licence page, so this comes from a search summary and must be confirmed. | Write to EUMETSAT (user helpdesk on eumetsat.int), describe the app, and ask for written permission for commercial display of Meteosat/MTG imagery. Until you have it, you can hide the satellite layers in `src/farmview/config.js`. |
+| **Esri World Imagery** (satellite basemap) and **OpenStreetMap public tiles** | Used directly. OSM's tile servers are not meant for production traffic; Esri's imagery has its own terms for apps. | Use a paid/commercial tile provider for launch (MapTiler is the usual choice): create a key, restrict it to your website address, put it in `REACT_APP_MAPTILER_KEY`. I will wire it in once you have it. |
+| **OpenStreetMap data** (the 14 region borders) | Allowed with credit. The credit is shown on the map. | Nothing, keep the credit visible. |
+| **NASA data** (rainfall normals) | Public domain. | Nothing. |
+
+## 3. Accounts and keys you need to create
+
+Keep keys **only** in `D:\Desktop\afriagrfed-main\.env` on your computer, and in
+your backend host's "environment variables" screen. **Never** paste them into
+chat, source files, screenshots or Git. After editing `.env`, stop and restart
+`npm start` / `node server.js`.
+
+Only values starting with `REACT_APP_` end up inside the public website, so
+never put a secret there.
+
+| Key | What it switches on | Where to get it | Name in `.env` | Cost |
+|---|---|---|---|---|
+| Open-Meteo commercial key | Weather at launch | open-meteo.com → Pricing | `OPEN_METEO_API_KEY` | Paid (contact them) |
+| Map tiles key | Production basemap | maptiler.com → Account → API keys, **restrict by website** | `REACT_APP_MAPTILER_KEY` | Free tier, paid for commercial use (check) |
+| NASA FIRMS map key | Fire hotspots near farms (not built yet) | firms.modaps.eosdis.nasa.gov/api/map_key | `FIRMS_MAP_KEY` | Free |
+| Email service | Welcome emails (not built yet) | resend.com or sendgrid.com | `EMAIL_API_KEY`, `EMAIL_FROM` | Free tier, then paid |
+| Cloudinary, Flutterwave | Image uploads, payments (already in the code) | Their dashboards | already named in `.env.example` | Per their pricing |
+
+Nothing else is needed: the wind, temperature, rain, soil, flood, region and
+satellite layers use keyless public services.
+
+## 4. Accuracy: who should check what 🟡
+
+I verified what I could against official figures (the 14 region areas match the
+census table within 0.5%, 16 towns land in the right region, satellite times
+are live). What I cannot verify is **local agronomy**.
+
+| Ask | Who |
+|---|---|
+| Review the crop thresholds in `src/farmview/cropRules.js` (rain and temperature ranges for mahangu, sorghum, cowpea, groundnut, bambara, maize, watermelon). | Ministry of Agriculture, Water and Land Reform (MAWLR) extension officers or the Namibia Agronomic Board |
+| Official local forecasts and rainfall-station readings (the map shows global-model forecasts at about 25 km resolution; they can miss local storms). | Namibia Meteorological Service (ask about a data-sharing agreement) |
+| Regional borders and population figures for the official record. | Namibia Statistics Agency / Office of the Surveyor General |
+| Flood information for the Cuvelai / *iishana* floods. | The national water and hydrology authorities |
+| Soil information before a soil-based crop layer is shown. | MAWLR soil maps (global soil data is coarse in Namibia) |
+
+Until the crop thresholds are reviewed, keep the "Indicative only" wording
+(the app already shows it).
+
+## 5. Safety, privacy and legal 🟡
+
+- **Welcome emails with a username and password (concept note step 3).** Please do not email passwords. Send a "set your password" link instead; I can build it.
+- **Farm locations are private** (only the owner and admins can read them). If you later want farms visible to buyers, that must be opt-in and rounded to about 1 km.
+- Add a **privacy policy and terms** that mention location data, farm records and weather sources.
+- Rotate every secret that was ever committed or shared (Cloudinary, Flutterwave, Firebase service accounts).
+- Decide who can create farms: today only accounts of type *farmer*.
+
+## 6. Before you press "go" 🟡
+
+1. Sign in as a **farmer**: add a farm, record inputs, check the totals, delete a record, delete the farm.
+2. Sign in as a **buyer**: buy something (test keys), then as the seller confirm, dispatch, mark in transit; as the buyer confirm delivery. Check the notification bell each time.
+3. Open the map on a **phone with weak signal**; check it loads and the time bar works.
+4. Check the live site after a hard refresh (`Ctrl+Shift+R`).
+5. Make a Firestore **backup/export** schedule.
+
+## 7. Known gaps (so nobody is surprised)
+
+- Weather and satellite layers are fetched from the visitor's browser. At launch the forecast grid should be fetched once an hour **on the server** and shared (one request instead of one per visitor). Not built yet.
+- The infrared cloud layer is shown as grey satellite tiles; a "clouds only" transparent version is a polish item.
+- Fire hotspots, crop suitability as a map layer (needs soil data), and farms/orders visible to others on the map are not built.
+- The farmer screens and rules have not been exercised against the real Firebase project.

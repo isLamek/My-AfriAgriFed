@@ -112,49 +112,6 @@ function latestNumber(values, times) {
   return best;
 }
 
-// ---- Grid forecast: one request paints a whole-region overlay ------------
-// Open-Meteo accepts comma-separated coordinates, so a 5 x 6 grid is a
-// single call instead of 30.
-export function buildGrid([west, south, east, north], cols = 6, rows = 5) {
-  const points = [];
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      points.push({
-        lng: r2(west + ((east - west) * (c + 0.5)) / cols),
-        lat: r2(south + ((north - south) * (r + 0.5)) / rows),
-      });
-    }
-  }
-  return points;
-}
-
-export async function fetchGridWeather(points) {
-  const lats = points.map((p) => p.lat).join(",");
-  const lngs = points.map((p) => p.lng).join(",");
-  const params = new URLSearchParams({
-    latitude: lats,
-    longitude: lngs,
-    daily: "precipitation_sum,temperature_2m_max",
-    hourly: "soil_moisture_0_to_1cm",
-    forecast_days: "7",
-    timezone: TIMEZONE,
-  });
-  const data = await cachedJson(`grid:${lats}|${lngs}`, `https://api.open-meteo.com/v1/forecast?${params}`, TTL.forecast);
-  const list = Array.isArray(data) ? data : [data];
-  return points.map((p, i) => {
-    const d = list[i];
-    const soil = latestNumber(d.hourly?.soil_moisture_0_to_1cm || [], d.hourly?.time);
-    return {
-      ...p,
-      rainMm: Math.round(sum(d.daily?.precipitation_sum) * 10) / 10,
-      maxC: d.daily?.temperature_2m_max?.[0] ?? null,
-      soilPct: soil == null ? null : Math.round(soil * 1000) / 10,
-    };
-  });
-}
-
-const sum = (arr = []) => arr.reduce((a, b) => a + (typeof b === "number" ? b : 0), 0);
-
 // ---- 30-year climate normals (monthly mm/day, °C, MJ/m²/day) -------------
 export async function fetchClimate(lat, lng) {
   const la = r2(lat);

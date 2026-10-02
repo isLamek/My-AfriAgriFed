@@ -1,0 +1,809 @@
+/* Map page - map canvas with a floating control card, time bar and details panel.
+   Uses the shared --aaf-* tokens so it matches the rest of the app. */
+
+.fv-wrap {
+  position: relative;
+  height: calc(100vh - 190px);
+  min-height: 520px;
+  border-radius: var(--aaf-radius-lg);
+  overflow: hidden;
+  background: var(--aaf-canopy);
+  box-shadow: var(--aaf-shadow-md);
+}
+
+.fv-map {
+  position: absolute;
+  inset: 0;
+}
+
+.fv-controls,
+.fv-panel {
+  position: absolute;
+  z-index: 2;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  border-radius: var(--aaf-radius-md);
+  box-shadow: var(--aaf-shadow-md);
+  padding: 14px;
+  font-family: var(--aaf-font);
+  color: var(--aaf-text);
+}
+
+.fv-controls {
+  top: 12px;
+  left: 12px;
+  width: 244px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+}
+
+.fv-panel {
+  top: 12px;
+  right: 56px;
+  width: 340px;
+  max-height: calc(100% - 24px);
+  overflow-y: auto;
+}
+
+.fv-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 14px 0 6px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--aaf-text-muted);
+}
+
+.fv-seg {
+  display: flex;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  overflow: hidden;
+}
+
+.fv-seg button {
+  flex: 1;
+  padding: 8px;
+  border: 0;
+  background: var(--aaf-white);
+  font: inherit;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--aaf-text);
+}
+
+.fv-seg button.on {
+  background: var(--aaf-primary);
+  color: var(--aaf-white);
+}
+
+.fv-layers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.fv-layers button {
+  padding: 6px 10px;
+  border: 1px solid var(--aaf-border);
+  border-radius: 999px;
+  background: var(--aaf-white);
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--aaf-text);
+}
+
+.fv-layers button:hover {
+  border-color: var(--aaf-accent);
+}
+
+.fv-layers button.on {
+  background: var(--aaf-accent);
+  border-color: var(--aaf-accent);
+  color: var(--aaf-accent-contrast);
+  font-weight: 600;
+}
+
+.fv-ramp {
+  height: 8px;
+  border-radius: 4px;
+  margin-top: 12px;
+}
+
+.fv-ramp-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--aaf-text-muted);
+  margin-top: 3px;
+}
+
+.fv-muted {
+  color: var(--aaf-text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+  margin: 4px 0;
+}
+
+.fv-tip {
+  margin-top: 12px;
+}
+
+.fv-warn {
+  color: var(--aaf-warning);
+  background: var(--aaf-warning-bg);
+  border-radius: var(--aaf-radius-sm);
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  margin: 8px 0;
+}
+
+/* Town labels and the tapped-point pin (DOM markers) */
+.fv-town {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #fff;
+  font: 600 12px var(--aaf-font);
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.9);
+  pointer-events: none;
+}
+
+.fv-town-right {
+  flex-direction: row-reverse;
+}
+
+.fv-town span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  border: 2px solid var(--aaf-baobab);
+}
+
+.fv-pin {
+  width: 22px;
+  height: 22px;
+  border-radius: 50% 50% 50% 0;
+  background: var(--aaf-laterite);
+  border: 2px solid #fff;
+  transform: rotate(-45deg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+/* Details panel */
+.fv-panel-toggle {
+  display: none;
+}
+
+.fv-details h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.fv-details h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 16px 0 4px;
+  font-size: 0.92rem;
+  color: var(--aaf-primary);
+}
+
+.fv-now {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px 10px;
+  margin: 12px 0;
+  font-size: 0.85rem;
+}
+
+.fv-now div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.fv-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  align-items: end;
+}
+
+.fv-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 0.7rem;
+}
+
+.fv-day-bar {
+  width: 100%;
+  height: 44px;
+  background: var(--aaf-mist);
+  border-radius: 4px;
+  display: flex;
+  align-items: flex-end;
+  overflow: hidden;
+}
+
+.fv-day-bar i {
+  display: block;
+  width: 100%;
+  background: #4292c6;
+}
+
+.fv-day-rain {
+  color: #2b6a99;
+  font-weight: 600;
+}
+
+.fv-day-t {
+  font-weight: 600;
+}
+
+.fv-day-d {
+  color: var(--aaf-text-muted);
+}
+
+.fv-flood {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  border-radius: var(--aaf-radius-sm);
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  margin: 10px 0;
+}
+
+.fv-flood.elevated {
+  background: var(--aaf-warning-bg);
+  color: var(--aaf-warning);
+}
+
+.fv-flood.high {
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+}
+
+.fv-crop {
+  margin: 10px 0;
+}
+
+.fv-crop-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.fv-crop-head .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex: none;
+}
+
+.fv-crop-head .tag {
+  margin-left: auto;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.tag.s3 { background: var(--aaf-success-bg); color: var(--aaf-success); }
+.tag.s2 { background: #eef5e2; color: #4c7a1f; }
+.tag.s1 { background: var(--aaf-warning-bg); color: var(--aaf-warning); }
+.tag.s0 { background: var(--aaf-danger-bg); color: var(--aaf-danger); }
+
+.fv-bar {
+  height: 6px;
+  background: var(--aaf-mist);
+  border-radius: 3px;
+  margin: 5px 0 2px;
+  overflow: hidden;
+}
+
+.fv-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 3px;
+}
+
+.fv-disclaimer {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid var(--aaf-border);
+}
+
+/* Narrow screens (phones, and laptops once the sidebar is open): the control
+   card slims to a strip and the details become a bottom sheet, so the map
+   itself stays visible. */
+@media (max-width: 1100px) {
+  .fv-wrap {
+    height: calc(100vh - 150px);
+    min-height: 480px;
+  }
+
+  /* One compact row: map type + layer chips, with the legend ramp beneath. */
+  .fv-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 10px;
+    width: calc(100% - 24px);
+    max-height: none;
+    padding: 8px 10px;
+    overflow: visible;
+  }
+
+  .fv-seg {
+    flex: none;
+  }
+
+  .fv-layers {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .fv-layers button {
+    white-space: nowrap;
+  }
+
+  .fv-legend {
+    flex-basis: 100%;
+  }
+
+  .fv-ramp {
+    margin-top: 2px;
+  }
+
+  .fv-label,
+  .fv-jump,
+  .fv-tip,
+  .fv-note,
+  .fv-source {
+    display: none;
+  }
+
+  /* leave room for the time bar under the details sheet */
+  .fv-timeline ~ .fv-panel {
+    bottom: 76px;
+    max-height: 42%;
+  }
+
+  .fv-timeline {
+    left: 12px;
+  }
+
+  .fv-panel {
+    top: auto;
+    right: 12px;
+    left: 12px;
+    bottom: 12px;
+    width: auto;
+    max-height: 48%;
+  }
+
+  .fv-panel.closed {
+    max-height: 44px;
+    overflow: hidden;
+  }
+
+  .fv-panel-toggle {
+    display: block;
+    width: 100%;
+    margin-bottom: 8px;
+    padding: 6px;
+    border: 0;
+    border-radius: var(--aaf-radius-sm);
+    background: var(--aaf-mist);
+    font: inherit;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+}
+
+/* ---- Weather layers, regions, timeline ---------------------------------- */
+
+.fv-wind {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.fv-note {
+  margin: 8px 0 0;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: var(--aaf-text);
+}
+
+.fv-source {
+  margin: 6px 0 0;
+  font-size: 0.7rem;
+  line-height: 1.35;
+  color: var(--aaf-text-muted);
+}
+
+.fv-select {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-white);
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--aaf-text);
+}
+
+/* Region names: visible when zoomed out, give way to towns when zoomed in. */
+.fv-region-label {
+  color: #fff;
+  font: 600 10.5px var(--aaf-font);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95), 0 0 6px rgba(0, 0, 0, 0.6);
+  pointer-events: none;
+  white-space: nowrap;
+  opacity: 0.92;
+}
+
+.fv-map[data-band="high"] .fv-region-label,
+.fv-map[data-band="low"] .fv-town,
+.fv-map[data-band="mid"] .fv-town:not(.major) {
+  display: none;
+}
+
+.fv-timeline {
+  position: absolute;
+  z-index: 2;
+  left: 12px;
+  right: 12px;
+  bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: var(--aaf-radius-md);
+  box-shadow: var(--aaf-shadow-md);
+  font-family: var(--aaf-font);
+}
+
+.fv-play {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--aaf-primary);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.fv-timeline input[type="range"] {
+  flex: 1;
+  min-width: 0;
+  accent-color: var(--aaf-accent);
+}
+
+.fv-time {
+  flex: none;
+  min-width: 118px;
+  text-align: right;
+  display: flex;
+  flex-direction: column;
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.fv-time span {
+  font-size: 0.7rem;
+  color: var(--aaf-text-muted);
+}
+
+/* Wide screens: the time bar sits between the control card and the map edge. */
+@media (min-width: 1101px) {
+  .fv-timeline {
+    left: 280px;
+    right: 56px;
+  }
+
+  .fv-timeline ~ .fv-panel {
+    max-height: calc(100% - 96px);
+  }
+}
+
+/* ---- Farmer tools: my farms, add-farm form, input log --------------------- */
+
+.fv-farms .fv-add {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border-style: dashed;
+  color: var(--aaf-primary);
+  font-weight: 600;
+}
+
+.fv-placing {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-warning-bg);
+  color: var(--aaf-warning);
+  font-size: 0.82rem;
+}
+
+.fv-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  color: inherit;
+  cursor: pointer;
+}
+
+.fv-farm-pin {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+}
+
+.fv-farm-pin::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  border-radius: 5px;
+  background: var(--aaf-primary);
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45);
+}
+
+.fv-farm-pin.on::before {
+  background: var(--aaf-shoot);
+}
+
+.fv-farm-pin span {
+  order: -1;
+  max-width: 150px;
+  margin-bottom: 3px;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--aaf-primary);
+  font: 600 11px var(--aaf-font);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.fv-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 12px;
+  padding: 3px;
+  border-radius: 999px;
+  background: var(--aaf-mist);
+}
+
+.fv-tabs button {
+  flex: 1;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.8rem;
+  cursor: pointer;
+  color: var(--aaf-text);
+}
+
+.fv-tabs button.on {
+  background: var(--aaf-primary);
+  color: #fff;
+}
+
+.fv-form {
+  display: grid;
+  gap: 10px;
+}
+
+.fv-form-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.fv-form-head h3,
+.fv-farm-details h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.fv-farm-details h4 {
+  margin: 16px 0 6px;
+  font-size: 0.9rem;
+  color: var(--aaf-primary);
+}
+
+.fv-field {
+  display: grid;
+  gap: 3px;
+  font-size: 0.78rem;
+  color: var(--aaf-text-muted);
+}
+
+.fv-field input,
+.fv-field select,
+.fv-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 10px;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-white);
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--aaf-text);
+}
+
+.fv-error {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--aaf-danger);
+}
+
+p.fv-error {
+  margin: 0;
+}
+
+.fv-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 8px;
+}
+
+.fv-crops-pick {
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  display: grid;
+  gap: 4px;
+  font-size: 0.82rem;
+}
+
+.fv-crops-pick legend {
+  padding: 0 4px;
+  font-size: 0.78rem;
+  color: var(--aaf-text-muted);
+}
+
+.fv-form-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.fv-btn {
+  padding: 9px 14px;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-white);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--aaf-text);
+}
+
+.fv-btn.primary {
+  background: var(--aaf-primary);
+  border-color: var(--aaf-primary);
+  color: #fff;
+}
+
+.fv-btn.danger {
+  margin-top: 18px;
+  color: var(--aaf-danger);
+  border-color: var(--aaf-danger-bg);
+  background: var(--aaf-danger-bg);
+}
+
+.fv-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.fv-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--aaf-text-muted);
+  cursor: pointer;
+}
+
+.fv-icon:hover {
+  background: var(--aaf-mist);
+}
+
+.fv-summary > strong {
+  font-size: 1.1rem;
+}
+
+.fv-spend {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.78rem;
+}
+
+.fv-spend .fv-bar i {
+  background: var(--aaf-accent);
+}
+
+.fv-records {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.fv-records li {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  font-size: 0.82rem;
+}
+
+.fv-records li > div:first-child {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fv-record-side {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+@media (max-width: 1100px) {
+  .fv-farms {
+    flex-basis: 100%;
+  }
+}

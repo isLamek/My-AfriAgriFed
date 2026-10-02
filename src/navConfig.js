@@ -57,7 +57,7 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
   sections.push({
     heading: "Insights",
     items: [
-      { label: "Farm Map", icon: <MapIcon {...iconProps} />, path: "/farm-map" },
+      { label: "Map", icon: <MapIcon {...iconProps} />, path: "/map" },
       { label: "Data Dashboard", icon: <BarChart3 {...iconProps} />, path: "/data" },
       { label: "Statistics", icon: <LineChart {...iconProps} />, path: "/statistics" },
       { label: "Promotions", icon: <Megaphone {...iconProps} />, path: "/promotions" },

@@ -1,23 +1,34 @@
-// FarmView configuration: where the map is allowed to go and what it shows.
-// Namibia only, Oshana region first. Everything here is static - no keys.
+// Map configuration: where the map may go, what it can show, and where each
+// piece of information comes from. Everything here is static and keyless;
+// production keys are listed in docs/LAUNCH_CHECKLIST.md.
 
-// [west, south, east, north]
-export const NAMIBIA_BOUNDS = [11.5, -29.2, 25.4, -16.8];
+// [west, south, east, north] - the whole of Namibia with a small margin.
+export const NAMIBIA_BOUNDS = [11.2, -29.6, 25.8, -16.5];
 
-// The populated north of Oshana, where the towns and farms are. The OSM
-// boundary polygon also includes a long southern strip toward Etosha that
-// we could not verify, so the default frame stays on this box instead.
-export const OSHANA_FOCUS_BOUNDS = [15.2, -18.25, 16.15, -17.6];
-export const OSHANA_CENTER = [15.78, -17.9]; // [lng, lat]
+// Quick views. Oshana is the pilot region.
+export const VIEWS = {
+  namibia: { label: "Namibia", bounds: [11.5, -29.2, 25.4, -16.8] },
+  oshana: { label: "Oshana", bounds: [15.2, -19.45, 16.15, -17.6] },
+};
 
-// Approximate town positions (lng, lat). Used for labels and quick-jump.
-// Only towns whose position was checked against the Oshana boundary are
-// listed; smaller settlements should be added from OpenStreetMap place data
-// rather than typed in by hand.
-export const OSHANA_TOWNS = [
-  { name: "Oshakati", lng: 15.699, lat: -17.788 },
-  { name: "Ongwediva", lng: 15.767, lat: -17.785 },
-  { name: "Ondangwa", lng: 15.97, lat: -17.915 },
+// Major towns (lng, lat). Each was checked to fall inside the right region.
+export const TOWNS = [
+  { name: "Windhoek", lng: 17.083, lat: -22.57, region: "Khomas", major: true },
+  { name: "Oshakati", lng: 15.699, lat: -17.788, region: "Oshana", major: true },
+  { name: "Ongwediva", lng: 15.767, lat: -17.785, region: "Oshana" },
+  { name: "Ondangwa", lng: 15.97, lat: -17.915, region: "Oshana" },
+  { name: "Outapi", lng: 14.82, lat: -17.5, region: "Omusati" },
+  { name: "Eenhana", lng: 16.33, lat: -17.47, region: "Ohangwena" },
+  { name: "Tsumeb", lng: 17.72, lat: -19.24, region: "Oshikoto", major: true },
+  { name: "Rundu", lng: 19.77, lat: -17.93, region: "Kavango East", major: true },
+  { name: "Katima Mulilo", lng: 24.27, lat: -17.5, region: "Zambezi", major: true },
+  { name: "Swakopmund", lng: 14.53, lat: -22.68, region: "Erongo", major: true },
+  { name: "Walvis Bay", lng: 14.5, lat: -22.96, region: "Erongo" },
+  { name: "Keetmanshoop", lng: 18.13, lat: -26.58, region: "Karas", major: true },
+  { name: "Mariental", lng: 17.96, lat: -24.63, region: "Hardap", major: true },
+  { name: "Gobabis", lng: 18.97, lat: -22.45, region: "Omaheke", major: true },
+  { name: "Otjiwarongo", lng: 16.85, lat: -20.46, region: "Otjozondjupa", major: true },
+  { name: "Opuwo", lng: 13.84, lat: -18.06, region: "Kunene", major: true },
 ];
 
 export const BASEMAPS = {
@@ -35,43 +46,91 @@ export const BASEMAPS = {
   },
 };
 
-// Map overlays the user can switch on. Keep this list agriculture-only.
-// Each one paints the same 6 x 5 forecast grid; `stops` are [value, colour]
-// pairs for the colour ramp and `unit` is shown in the legend and popup.
-// Crop suitability is NOT an overlay: the climate data it relies on (NASA
-// POWER, ~50 km cells) is too coarse to colour a map honestly, so it appears
-// when a point is tapped. A soil-based overlay can follow.
-// Farms and orders layers are added when those features ship (see plan).
-export const LAYERS = [
+// ---- Weather and satellite layers ------------------------------------------
+// `kind: "model"`  - forecast fields from the national grid (hourly, 48 h).
+// `kind: "sat"`    - live Meteosat imagery from EUMETSAT (observed).
+// Each layer states its source so the map can show it, and says plainly
+// whether it is a forecast or an observation.
+export const WEATHER_LAYERS = [
+  {
+    id: "none",
+    label: "No weather layer",
+    kind: "none",
+  },
   {
     id: "rain",
-    label: "Rain, next 7 days",
-    prop: "rainMm",
-    unit: "mm",
-    stops: [[0, "#dfeee0"], [5, "#9ecae1"], [20, "#4292c6"], [50, "#08519c"]],
+    label: "Rain",
+    kind: "model",
+    field: "rain",
+    unit: "mm/h",
+    legend: [0.1, 1, 5, 15],
+    source: "ECMWF IFS 0.25° forecast via Open-Meteo",
+    note: "Forecast rainfall in the hour before the selected time. Model forecast, not measured rain.",
   },
   {
     id: "temperature",
-    label: "Today's high",
-    prop: "maxC",
+    label: "Temperature",
+    kind: "model",
+    field: "temp",
     unit: "°C",
-    stops: [[20, "#fee090"], [30, "#fc8d59"], [38, "#d73027"]],
+    legend: [5, 15, 22, 30, 38, 45],
+    source: "ECMWF IFS 0.25° forecast via Open-Meteo",
+    note: "Forecast air temperature 2 m above ground. Model forecast, not measured.",
   },
   {
-    id: "soil",
-    label: "Topsoil moisture",
-    prop: "soilPct",
-    unit: "%",
-    stops: [[5, "#d8b365"], [15, "#c7eae5"], [30, "#01665e"]],
+    id: "clouds",
+    label: "Clouds (infrared)",
+    kind: "sat",
+    workspace: "msg_fes",
+    layer: "ir108",
+    stepMin: 15,
+    source: "Meteosat-11 SEVIRI IR 10.8 µm, ©EUMETSAT",
+    note: "Observed. Bright = cold, high cloud tops; works day and night.",
+  },
+  {
+    id: "storms",
+    label: "Storm clouds",
+    kind: "sat",
+    workspace: "msg_fes",
+    layer: "rgb_convection",
+    stepMin: 15,
+    source: "Meteosat-11 Convection RGB, ©EUMETSAT",
+    note: "Observed. Highlights thick, high clouds with strong updrafts (thunderstorm risk).",
+  },
+  {
+    id: "lightning",
+    label: "Lightning",
+    kind: "sat",
+    workspace: "mtg_fd",
+    layer: "li_afa",
+    stepMin: 5,
+    source: "MTG-I1 Lightning Imager, ©EUMETSAT",
+    note: "Observed. Optical flashes seen from space in the last 5 minutes.",
+  },
+  {
+    id: "truecolor",
+    label: "True colour",
+    kind: "sat",
+    workspace: "mtg_fd",
+    layer: "rgb_geocolour",
+    stepMin: 10,
+    source: "MTG-I1 Geo Colour, ©EUMETSAT",
+    note: "Observed. What the land and clouds look like from space (daytime).",
   },
 ];
+
+// ---- Forecast grid ----------------------------------------------------------
+// ~1° spacing over the whole country: 15 x 13 = 195 points in one request.
+export const GRID = { cols: 15, rows: 13, bounds: [11.5, -29.2, 25.4, -16.8], hours: 48, model: "ecmwf_ifs025" };
 
 // Cache lifetimes. Weather moves slowly; being kind to the APIs is also what
 // keeps the map fast.
 export const TTL = {
-  forecast: 30 * 60 * 1000, // 30 min
+  forecast: 30 * 60 * 1000, // 30 min for a point forecast
+  grid: 60 * 60 * 1000, // 1 h for the national grid (the model updates every 6 h)
   climate: 30 * 24 * 60 * 60 * 1000, // 30 days (these are 30-year normals)
   flood: 3 * 60 * 60 * 1000, // 3 h
+  satelliteTimes: 5 * 60 * 1000, // 5 min
 };
 
 export const TIMEZONE = "Africa/Windhoek";

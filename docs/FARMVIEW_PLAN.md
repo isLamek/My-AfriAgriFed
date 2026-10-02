@@ -26,23 +26,31 @@ is copied it goes in `THIRD_PARTY_NOTICES` with its MIT notice.
 - [x] `src/farmview/` module: config, data clients, crop rules
 - [x] Nav entry "Farm Map" (Insights) + protected route `/farm-map`
 
-### Phase 1 — Oshana Farm Map (keyless MVP)
-- [x] Namibia-locked map (max bounds), Oshana boundary (dashed, approximate), town labels
+### Phase 1 — Map (keyless MVP) — renamed from "Farm Map"; route `/map`
+- [x] Namibia-locked map; **all 14 current regions** (labelled, tap to highlight), verified against official areas (within 0.5%, Zambezi -1.9%) and 16 towns; the previous regions file was pre-2013 and has been replaced
+- [x] Oshana boundary is **correct**: an earlier note here said its southern strip toward Etosha looked wrong. That was my mistake: the polygon's area (8,692 km²) matches the official 8,647 km²
 - [x] Basemaps: satellite / streets
-- [x] Weather at any tapped point: now + 7-day forecast (Open-Meteo)
-- [x] Rain / temperature / soil-moisture overlay across Oshana (30 sample points, one request)
-- [x] Topsoil moisture (Open-Meteo)
-- [x] Climate normals from NASA POWER feeding the crop rules and rain-onset month
+- [x] Weather at any tapped spot: now + 7-day forecast (Open-Meteo), region name, nearest town
+- [x] National forecast grid (ECMWF IFS 0.25°, 195 points, 48 h): rain, temperature, **animated wind**, smooth colour fields clipped to Namibia, time slider + play
+- [x] Live Meteosat/MTG satellite layers: clouds (infrared), storm clouds, lightning, true colour — each labelled observed vs forecast with its age
+- [x] Climate normals from NASA POWER feeding crop suitability and rain-onset month
 - [x] Flood outlook (Open-Meteo flood API) — shown only when elevated
-- [x] Crop suitability on tap: mahangu, sorghum, cowpea, groundnut, bambara, maize, watermelon (unit-tested rule engine)
-- [x] Rain-onset month ("rains usually start in November")
-- [ ] **Verify the Oshana boundary** with the Surveyor General / NSA: the free OSM and geoBoundaries polygons both include a ~5,300 km² southern strip down to Etosha (contains Okaukuejo) that looks wrong
-- [ ] Add more Oshana towns/villages from OSM place data (only 3 verified towns for now)
-- [ ] Soil data (e.g. ISRIC SoilGrids) so crop suitability can become a real map overlay — NASA POWER's ~50 km cells are too coarse to colour a map honestly
-- [ ] Monthly rain/temperature chart in the details panel
-- [ ] Fire hotspots near farms (NASA FIRMS, via `server.js` proxy) — needs key #1
-- [ ] "Pin my farm" — farmer saves a location (rounded for privacy) to their profile
-- [ ] Marketplace listings shown on the map (opt-in farms only)
+- [x] Crop suitability on tap (unit-tested rule engine, "indicative only")
+- [ ] Review crop thresholds with MAWLR extension officers (launch checklist §4)
+- [ ] Add more towns/villages from OSM place data
+- [ ] Soil data (ISRIC SoilGrids) so suitability can become a map layer
+- [ ] "Clouds only" transparent infrared layer (currently grey satellite tiles)
+- [ ] Fire hotspots near farms (NASA FIRMS via `server.js`) — needs the free FIRMS key
+- [ ] Fetch the forecast grid server-side once an hour (shared cache) for launch
+
+### Phase 1b — Farmer tools (built; not yet exercised against real Firebase)
+- [x] Farmers (account type *farmer*) add a farm by tapping its location: name, size, crops, notes — private to the owner
+- [x] Per-farm **input log**: seed, fertiliser, pesticide, herbicide, water, labour, feed, veterinary, equipment, other; quantity, unit, cost (N$), crop/animal, note
+- [x] Cost summary by type, delete record / delete farm
+- [x] Security rules for `farms` and `farmInputs` (owner-only; only farmer accounts create) — untested in the emulator
+- [ ] Rain at my farm since planting (Open-Meteo archive)
+- [ ] Field boundaries (draw a polygon) and area from the drawing
+- [ ] Farms visible to buyers on the map (opt-in, rounded to ~1 km)
 
 ### Phase 2 — Order tracking
 - [x] Order status model: `paid → confirmed → dispatched → in_transit → delivered` (+ `cancelled`, admin-only) — `src/orderStatus.js`, 14 unit tests

@@ -228,6 +228,62 @@ service cloud.firestore {
         );
     }
 
+    // ---- Farmers' private farm records and input log ------------------------
+    // Only farmer accounts create these; only the owner (and admins, for
+    // support) can read them. Mirrors src/farmview/farmInputs.js limits.
+    function isFarmerAccount() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.userType == 'farmer';
+    }
+
+    function validFarm(d) {
+      return d.keys().hasOnly(['ownerId', 'name', 'lat', 'lng', 'region', 'crops', 'areaHa', 'notes', 'createdAt', 'updatedAt'])
+        && d.ownerId == request.auth.uid
+        && d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.lat is number && d.lat >= -29.7 && d.lat <= -16.4
+        && d.lng is number && d.lng >= 11.0 && d.lng <= 25.9
+        && (!('region' in d) || (d.region is string && d.region.size() <= 40))
+        && (!('crops' in d) || (d.crops is list && d.crops.size() <= 12))
+        && (!('areaHa' in d) || (d.areaHa is number && d.areaHa >= 0 && d.areaHa <= 100000))
+        && (!('notes' in d) || (d.notes is string && d.notes.size() <= 500));
+    }
+
+    function validFarmInput(d) {
+      return d.keys().hasOnly(['ownerId', 'farmId', 'date', 'type', 'item', 'quantity', 'unit', 'costNad', 'target', 'note', 'createdAt'])
+        && d.ownerId == request.auth.uid
+        && d.farmId is string && d.farmId.size() > 0 && d.farmId.size() <= 40
+        && d.date is string && d.date.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
+        && d.type in ['seed', 'fertiliser', 'pesticide', 'herbicide', 'water', 'labour', 'feed', 'veterinary', 'equipment', 'other']
+        && d.item is string && d.item.size() > 0 && d.item.size() <= 80
+        && (!('quantity' in d) || (d.quantity is number && d.quantity >= 0))
+        && (!('unit' in d) || (d.unit is string && d.unit.size() <= 20))
+        && (!('costNad' in d) || (d.costNad is number && d.costNad >= 0))
+        && (!('target' in d) || (d.target is string && d.target.size() <= 60))
+        && (!('note' in d) || (d.note is string && d.note.size() <= 300));
+    }
+
+    match /farms/{id} {
+      allow create: if isFarmerAccount() && validFarm(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow read: if signedIn() && (resource.data.ownerId == request.auth.uid || isSignedInAdmin());
+      allow update: if signedIn() && resource.data.ownerId == request.auth.uid
+        && validFarm(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    match /farmInputs/{id} {
+      allow create: if isFarmerAccount() && validFarmInput(request.resource.data)
+        && request.resource.data.createdAt == request.time
+        && get(/databases/$(database)/documents/farms/$(request.resource.data.farmId)).data.ownerId == request.auth.uid;
+      allow read: if signedIn() && (resource.data.ownerId == request.auth.uid || isSignedInAdmin());
+      allow update: if signedIn() && resource.data.ownerId == request.auth.uid
+        && validFarmInput(request.resource.data)
+        && request.resource.data.createdAt == resource.data.createdAt;
+      allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
     match /orders/{id} {
       allow create: if signedIn();
       allow read: if signedIn() && (
