@@ -1,14 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { collection, doc, getDoc, onSnapshot, orderBy, query, where } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
 import { getAdminProfile } from "./admin";
 import { buildNavSections } from "./navConfig";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
+import { normaliseStatus, STATUS_LABELS } from "./orderStatus";
 import "./MyOrders.css";
 
 export default function MyOrders() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [userType, setUserType] = useState(null);
   const [isOrganization, setIsOrganization] = useState(false);
@@ -79,6 +82,7 @@ export default function MyOrders() {
                 <th>Status</th>
                 <th>Date</th>
                 <th>Reference</th>
+                <th></th>
               </tr>
             </thead>
             <tbody>
@@ -89,10 +93,13 @@ export default function MyOrders() {
                     {order.currency || "NAD"} {order.amount}
                   </td>
                   <td>
-                    <span className={`order-status ${order.status}`}>{order.status}</span>
+                    <span className={`order-status ${normaliseStatus(order.status)}`}>{STATUS_LABELS[normaliseStatus(order.status)]}</span>
                   </td>
                   <td>{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : "—"}</td>
                   <td className="order-ref">{order.transactionId}</td>
+                  <td>
+                    <button className="order-track" onClick={() => navigate("/track-orders")}>Track</button>
+                  </td>
                 </tr>
               ))}
             </tbody>

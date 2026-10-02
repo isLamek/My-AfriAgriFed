@@ -194,6 +194,40 @@ service cloud.firestore {
       }
     }
 
+    // Order progress. Mirrors src/orderStatus.js - keep the two in sync.
+    //   paid -> confirmed -> dispatched -> in_transit -> delivered
+    // The seller moves an order up to in_transit; only the buyer can confirm
+    // delivery (from dispatched or in_transit). Everything else (cancelling,
+    // refunds, corrections) stays admin-only.
+    function sellerMove(from, to) {
+      return (from == 'paid' && to == 'confirmed')
+        || (from == 'confirmed' && to == 'dispatched')
+        || (from == 'dispatched' && to == 'in_transit');
+    }
+
+    function buyerMove(from, to) {
+      return (from == 'dispatched' || from == 'in_transit') && to == 'delivered';
+    }
+
+    // A participant may change ONLY status, statusHistory and updatedAt; the
+    // history must grow by exactly one entry that names the new status and
+    // the person making the change, and updatedAt must be the server time.
+    function isLegalOrderProgress() {
+      let before = resource.data;
+      let after = request.resource.data;
+      return signedIn()
+        && after.diff(before).affectedKeys().hasOnly(['status', 'statusHistory', 'updatedAt'])
+        && after.statusHistory is list
+        && after.statusHistory.size() == before.get('statusHistory', []).size() + 1
+        && after.statusHistory[after.statusHistory.size() - 1].status == after.status
+        && after.statusHistory[after.statusHistory.size() - 1].by == request.auth.uid
+        && after.updatedAt == request.time
+        && (
+          (before.sellerId == request.auth.uid && sellerMove(before.status, after.status))
+          || (before.buyerId == request.auth.uid && buyerMove(before.status, after.status))
+        );
+    }
+
     match /orders/{id} {
       allow create: if signedIn();
       allow read: if signedIn() && (
@@ -201,7 +235,7 @@ service cloud.firestore {
         resource.data.sellerId == request.auth.uid ||
         isSignedInAdmin()
       );
-      allow update: if isSignedInAdmin();
+      allow update: if isSignedInAdmin() || isLegalOrderProgress();
     }
   }
 }

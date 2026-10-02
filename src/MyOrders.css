@@ -28,8 +28,37 @@
 }
 
 .order-status.paid {
+  background: var(--aaf-warning-bg);
+  color: var(--aaf-warning);
+}
+
+.order-status.confirmed,
+.order-status.dispatched,
+.order-status.in_transit {
+  background: #e6f0fa;
+  color: #2f6fb0;
+}
+
+.order-status.delivered {
   background: var(--aaf-success-bg);
   color: var(--aaf-success);
+}
+
+.order-status.cancelled {
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+}
+
+.order-track {
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-white);
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--aaf-primary);
+  cursor: pointer;
 }
 
 .order-status.pending {

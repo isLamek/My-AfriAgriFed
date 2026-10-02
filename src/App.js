@@ -18,6 +18,7 @@ import InstitutionDashboard from "./InstitutionDashboard";
 import Prices from "./Prices";
 import Profile from "./Profile";
 import MyOrders from "./MyOrders";
+import OrderTracker from "./OrderTracker";
 import DemandBoard from "./DemandBoard";
 import PageAccessGate from "./PageAccessGate";
 import Research from "./Research";
@@ -256,6 +257,15 @@ function App() {
         element={
           <ProtectedRoute>
             <DemandBoard />
+          </ProtectedRoute>
+        }
+      />
+
+      <Route
+        path="/track-orders"
+        element={
+          <ProtectedRoute>
+            <OrderTracker />
           </ProtectedRoute>
         }
       />

@@ -11,6 +11,7 @@
 import { addDoc, collection, doc, serverTimestamp, setDoc, updateDoc } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { auth, db } from "./firebaseConfig";
+import { notifyUser } from "./notifications";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 
 // Same variable cloudinairyUpload.js uses for the backend URL.
@@ -179,16 +180,34 @@ export async function verifyAndFinalizePayment(transactionId) {
     return { success: true, purpose: "page_access", refId: pending.refId };
   }
 
+  const buyerId = pending?.buyerId || auth.currentUser?.uid || "";
+  const product = pending?.product || data.transaction?.meta?.productName || "";
+
+  // Names are stored on the order because users cannot read each other's
+  // profiles, and the tracker needs to say who the other party is.
   await addDoc(collection(db, "orders"), {
-    buyerId: pending?.buyerId || auth.currentUser?.uid || "",
+    buyerId,
+    buyerName: auth.currentUser?.displayName || auth.currentUser?.email || "",
     sellerId: pending?.sellerId || "",
-    product: pending?.product || data.transaction?.meta?.productName || "",
+    sellerName: pending?.sellerName || "",
+    product,
     amount: data.transaction?.amount || pending?.price || 0,
     currency: data.transaction?.currency || "NAD",
     transactionId,
     status: "paid",
+    statusHistory: [{ status: "paid", by: buyerId, at: Date.now(), note: "Payment received" }],
     createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
   });
+
+  // Let the seller know there is something to confirm.
+  if (pending?.sellerId) {
+    notifyUser(pending.sellerId, {
+      title: "New order",
+      body: `${product} was just paid for. Confirm it to start fulfilment.`,
+      link: "/track-orders",
+    });
+  }
 
   logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_COMPLETED, { transactionId, purpose: "order" });
 

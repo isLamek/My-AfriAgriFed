@@ -45,11 +45,15 @@ is copied it goes in `THIRD_PARTY_NOTICES` with its MIT notice.
 - [ ] Marketplace listings shown on the map (opt-in farms only)
 
 ### Phase 2 — Order tracking
-- [ ] Order status model: `paid → confirmed → dispatched → in_transit → delivered` (+ `cancelled`)
-- [ ] Firestore rules: seller may advance *their own* orders; buyer may confirm delivery; admin unchanged
-- [ ] **Non-map tracker** `/track-orders`: timeline per order, buyer + seller views
-- [ ] Map tab: pickup (farm) → delivery place pins, status colour
-- [ ] In-app notifications on every status change (existing `notifications.js`)
+- [x] Order status model: `paid → confirmed → dispatched → in_transit → delivered` (+ `cancelled`, admin-only) — `src/orderStatus.js`, 14 unit tests
+- [x] Firestore rules: seller advances *their own* orders to in_transit; only the buyer confirms delivery; history is append-only and names who acted; admin unchanged — written in `firestore.rules`
+- [ ] **Deploy the rules** (`firebase deploy --only firestore:rules`) and test them with the emulator — not machine-tested yet (no Java / Firebase CLI on the dev machine)
+- [x] **Non-map tracker** `/track-orders`: stepper with times, buying/selling tabs, in-progress/completed filter, optional note, history — buyer + seller views
+- [x] In-app notifications on every status change and on a new paid order (existing `notifications.js`)
+- [x] My Orders shows lifecycle labels and a Track link
+- [ ] Map tab: pickup (farm) → delivery place pins, status colour — needs "Pin my farm" first
+- [ ] Harden order creation: orders are written by the buyer's browser after the payment redirect, so a user could fabricate a "paid" order. Create them server-side from the Flutterwave webhook in `server.js`
+- [ ] Cancel / refund flow (needs a refund path through Flutterwave)
 
 ### Phase 3 — Focus cut
 - [ ] Nothing from GEV that is not agriculture is carried over (no flights, military, ships, satellites, cameras, radio, ALPR, cockpit, FLIR styles, voice-agent tools…)

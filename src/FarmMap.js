@@ -1,6 +1,4 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { doc, getDoc } from "firebase/firestore";
-import { signOut } from "firebase/auth";
 import { CloudRain, Droplets, Sprout, Thermometer, Waves, MapPin, Layers } from "lucide-react";
 // The "!" prefix skips Create React App's Babel pass over the library. Babel
 // rewrites the functions MapLibre ships to its web worker and breaks the
@@ -8,9 +6,7 @@ import { CloudRain, Droplets, Sprout, Thermometer, Waves, MapPin, Layers } from 
 // eslint-disable-next-line import/no-webpack-loader-syntax
 import maplibregl from "!maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { auth, db } from "./firebaseConfig";
-import { getAdminProfile } from "./admin";
-import { buildNavSections } from "./navConfig";
+import useAccountContext from "./useAccountContext";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import {
@@ -59,9 +55,7 @@ export default function FarmMap() {
   const mapRef = useRef(null);
   const markerRef = useRef(null);
 
-  const [userType, setUserType] = useState(null);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [isOrganization, setIsOrganization] = useState(false);
+  const { theme, navSections, logout } = useAccountContext("/farm-map");
 
   const [mapReady, setMapReady] = useState(false);
   const [basemap, setBasemap] = useState("satellite");
@@ -71,22 +65,6 @@ export default function FarmMap() {
   const [picked, setPicked] = useState(null); // { lat, lng }
   const [details, setDetails] = useState(null); // { weather, climate, flood, loading, errors }
   const [panelOpen, setPanelOpen] = useState(true);
-
-  // ---- who is signed in (for the sidebar) ---------------------------------
-  useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    getAdminProfile(auth.currentUser).then((profile) => setIsAdminUser(!!profile));
-    getDoc(doc(db, "users", uid)).then((snap) => {
-      if (!snap.exists()) return;
-      const data = snap.data();
-      setUserType(data.userType || null);
-      setIsOrganization(
-        data.isOrganization === true ||
-          (!!data.questionnaireData?.consumerType && data.questionnaireData.consumerType !== "Individual Buyer")
-      );
-    });
-  }, []);
 
   // ---- create the map once --------------------------------------------------
   useEffect(() => {
@@ -256,22 +234,6 @@ export default function FarmMap() {
   }, []);
 
   const resetView = () => mapRef.current?.fitBounds(OSHANA_FOCUS_BOUNDS, { padding: framePadding() });
-
-  const logout = async () => {
-    await signOut(auth);
-    window.location.href = "/";
-  };
-
-  const theme = isAdminUser
-    ? "admin"
-    : userType === "farmer"
-    ? "farmer"
-    : userType === "institution"
-    ? "institution"
-    : isOrganization
-    ? "organization"
-    : "consumer";
-  const navSections = buildNavSections({ userType, isAdmin: isAdminUser, activePath: "/farm-map" });
 
   return (
     <AppShell

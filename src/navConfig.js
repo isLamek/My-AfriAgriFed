@@ -21,6 +21,7 @@ import {
   Receipt,
   MessageSquare,
   Map as MapIcon,
+  Truck,
 } from "lucide-react";
 
 const iconProps = { size: 18, strokeWidth: 2 };
@@ -64,6 +65,7 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
   });
 
   const accountItems = [
+    { label: "Order Tracker", icon: <Truck {...iconProps} />, path: "/track-orders" },
     { label: "My Orders", icon: <Receipt {...iconProps} />, path: "/my-orders" },
     { label: "Profile", icon: <User {...iconProps} />, path: "/profile" },
   ];
