@@ -176,14 +176,33 @@ service cloud.firestore {
       allow read: if isSignedInAdmin();
     }
 
+    function validDemand(d) {
+      return d.buyerId == request.auth.uid
+        && d.status == 'open'
+        && d.title is string && d.title.size() > 0 && d.title.size() <= 120
+        && d.product is string && d.product.size() > 0 && d.product.size() <= 80
+        && d.quantityNeeded is number && d.quantityNeeded > 0 && d.quantityNeeded <= 10000000
+        && d.unit in ['kg', 'ton', 'unit', 'crate', 'litre']
+        && (d.get('notes', '') is string) && d.get('notes', '').size() <= 600;
+    }
+
     match /demandRequests/{id} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.buyerId == request.auth.uid;
+      allow create: if signedIn() && validDemand(request.resource.data);
       allow update, delete: if signedIn() && (resource.data.buyerId == request.auth.uid || isSignedInAdmin());
 
+      // Only producer (farmer) accounts pledge, never to their own request, and
+      // only while it is open. Mirrors src/demandRules.js.
       match /pledges/{pledgeId} {
         allow read: if true;
-        allow create: if signedIn() && request.resource.data.farmerId == request.auth.uid;
+        allow create: if isFarmerAccount()
+          && request.resource.data.farmerId == request.auth.uid
+          && request.resource.data.quantity is number
+          && request.resource.data.quantity > 0 && request.resource.data.quantity <= 10000000
+          && request.resource.data.get('note', '') is string
+          && request.resource.data.get('note', '').size() <= 200
+          && get(/databases/$(database)/documents/demandRequests/$(id)).data.status == 'open'
+          && get(/databases/$(database)/documents/demandRequests/$(id)).data.buyerId != request.auth.uid;
         allow update, delete: if signedIn() && (resource.data.farmerId == request.auth.uid || isSignedInAdmin());
       }
 

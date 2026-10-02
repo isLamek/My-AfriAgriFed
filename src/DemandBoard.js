@@ -1,69 +1,89 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   addDoc,
   collection,
+  deleteDoc,
   doc,
-  getDoc,
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
-import { MessageSquare, Send, Plus, CheckCircle2, Users } from "lucide-react";
+import { CalendarClock, CheckCircle2, MessageSquare, Plus, Send, Users, X } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
-import { getAdminProfile } from "./admin";
-import { buildNavSections } from "./navConfig";
+import { notifyUser } from "./notifications";
+import useAccountContext from "./useAccountContext";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
+import CommunitySpaces from "./CommunitySpaces";
+import {
+  DEMAND_UNITS,
+  FILTERS,
+  LIMITS,
+  countByFilter,
+  deadlineState,
+  filterDemands,
+  summarizePledges,
+  validateDemand,
+  validatePledge,
+} from "./demandRules";
 import "./DemandBoard.css";
 
 const emptyDemand = { title: "", product: "", quantityNeeded: "", unit: "kg", deadline: "", notes: "" };
 
+const STEPS = [
+  { n: 1, title: "A buyer posts a need", body: "What, how much, and by when. A school, a shop, a restaurant, or anyone buying in bulk." },
+  { n: 2, title: "Producers pledge", body: "Each farmer pledges the amount they can supply. Several farmers can team up to cover one request." },
+  { n: 3, title: "Agree and deliver", body: "Use the discussion to settle price, delivery and timing. The buyer marks it fulfilled." },
+];
+
+function FieldError({ children }) {
+  return children ? <em className="demand-error">{children}</em> : null;
+}
+
 export default function DemandBoard() {
-  const [userType, setUserType] = useState(null);
-  const [isOrganization, setIsOrganization] = useState(false);
-  const [isAdminUser, setIsAdminUser] = useState(false);
+  const { userType, isAdminUser, theme, navSections, logout } = useAccountContext("/demand-board");
+  const uid = auth.currentUser?.uid;
+  const isFarmer = userType === "farmer";
+
   const [demands, setDemands] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [filter, setFilter] = useState("open");
   const [formData, setFormData] = useState(emptyDemand);
+  const [errors, setErrors] = useState({});
   const [showForm, setShowForm] = useState(false);
   const [saving, setSaving] = useState(false);
   const [openDemandId, setOpenDemandId] = useState(null);
 
   useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-    getAdminProfile(auth.currentUser).then((profile) => setIsAdminUser(!!profile));
-    getDoc(doc(db, "users", uid)).then((snap) => {
-      if (!snap.exists()) return;
-      const data = snap.data();
-      setUserType(data.userType || null);
-      setIsOrganization(
-        data.isOrganization === true ||
-          (!!data.questionnaireData?.consumerType && data.questionnaireData.consumerType !== "Individual Buyer")
-      );
-    });
+    const demandsQuery = query(collection(db, "demandRequests"), orderBy("createdAt", "desc"));
+    return onSnapshot(
+      demandsQuery,
+      (snapshot) => {
+        setDemands(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+        setLoaded(true);
+      },
+      (error) => {
+        setLoadError(error.message);
+        setLoaded(true);
+      }
+    );
   }, []);
 
-  useEffect(() => {
-    const demandsQuery = query(collection(db, "demandRequests"), orderBy("createdAt", "desc"));
-    const unsubscribe = onSnapshot(demandsQuery, (snapshot) => {
-      setDemands(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
-    });
-    return () => unsubscribe();
-  }, []);
+  const counts = useMemo(() => countByFilter(demands, uid), [demands, uid]);
+  const visible = useMemo(() => filterDemands(demands, filter, uid), [demands, filter, uid]);
+  const set = (key) => (e) => setFormData((prev) => ({ ...prev, [key]: e.target.value }));
 
   const postDemand = async (event) => {
     event.preventDefault();
+    const found = validateDemand(formData);
+    setErrors(found);
+    if (Object.keys(found).length) return;
+
     const user = auth.currentUser;
-
-    if (!formData.title.trim() || !formData.product.trim() || !formData.quantityNeeded) {
-      toast.error("Add a title, product and quantity needed.");
-      return;
-    }
-
     setSaving(true);
     try {
       await addDoc(collection(db, "demandRequests"), {
@@ -79,9 +99,11 @@ export default function DemandBoard() {
         status: "open",
         createdAt: serverTimestamp(),
       });
-      toast.success("Demand posted to the board.");
+      toast.success("Request posted. Producers can now pledge.");
       setFormData(emptyDemand);
+      setErrors({});
       setShowForm(false);
+      setFilter("mine");
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -98,164 +120,174 @@ export default function DemandBoard() {
     }
   };
 
-  const logout = async () => {
-    await signOut(auth);
-    window.location.href = "/";
-  };
-
-  const theme = isAdminUser
-    ? "admin"
-    : userType === "farmer"
-    ? "farmer"
-    : userType === "institution"
-    ? "institution"
-    : isOrganization
-    ? "organization"
-    : "consumer";
-  const navSections = buildNavSections({ userType, isAdmin: isAdminUser, activePath: "/demand-board" });
+  const emptyMessage = {
+    open: "No open requests right now. Buyers can post one with the button above.",
+    fulfilled: "Nothing has been fulfilled yet.",
+    mine: "You haven't posted a request yet.",
+  }[filter];
 
   return (
     <AppShell
-      eyebrow="Coordination"
+      eyebrow="Community"
       title="Demand Board"
-      subtitle="Buyers post what they need. Producers team up to meet it."
+      subtitle="Buyers post what they need in bulk. Producers pledge to supply it."
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
       theme={theme}
     >
+      <CommunitySpaces active="demand" userType={userType} />
+
       <section className="aaf-card demand-intro">
-        <div>
-          <h3>Post what you need</h3>
-          <p>
-            Institutions, consumers or farmers needing bulk supply can post a demand here. Farmers can
-            pledge quantities toward it - individually or teaming up with other farmers to cover the
-            full amount - and coordinate directly in each post's thread.
-          </p>
+        <div className="demand-intro-head">
+          <div>
+            <h3>How the Demand Board works</h3>
+            <p>
+              This is for <strong>bulk requests that need several producers</strong>. For a chat or a question, use the
+              Community Feed. For something already listed for sale, use the Marketplace.
+            </p>
+          </div>
+          <button className="aaf-btn aaf-btn-primary" onClick={() => setShowForm((prev) => !prev)}>
+            {showForm ? <><X size={16} /> Cancel</> : <><Plus size={16} /> Post a request</>}
+          </button>
         </div>
-        <button className="aaf-btn aaf-btn-primary" onClick={() => setShowForm((prev) => !prev)}>
-          <Plus size={16} /> {showForm ? "Cancel" : "Post a Demand"}
-        </button>
+        <ol className="demand-steps">
+          {STEPS.map((step) => (
+            <li key={step.n}>
+              <span className="demand-step-n">{step.n}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <span>{step.body}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
       </section>
 
       {showForm && (
         <section className="aaf-card">
-          <form onSubmit={postDemand} className="demand-form">
+          <form onSubmit={postDemand} className="demand-form" noValidate>
             <label>
               Title
               <input
                 value={formData.title}
-                onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-                placeholder="e.g., Weekly maize supply for school feeding program"
+                maxLength={LIMITS.title}
+                onChange={set("title")}
+                placeholder="e.g. Weekly maize supply for school feeding"
+                autoFocus
               />
+              <FieldError>{errors.title}</FieldError>
             </label>
             <label>
               Product
-              <input
-                value={formData.product}
-                onChange={(e) => setFormData((prev) => ({ ...prev, product: e.target.value }))}
-                placeholder="e.g., White maize"
-              />
+              <input value={formData.product} maxLength={LIMITS.product} onChange={set("product")} placeholder="e.g. White maize" />
+              <FieldError>{errors.product}</FieldError>
             </label>
             <label>
               Quantity needed
-              <input
-                type="number"
-                min="0"
-                value={formData.quantityNeeded}
-                onChange={(e) => setFormData((prev) => ({ ...prev, quantityNeeded: e.target.value }))}
-              />
+              <input type="number" min="0" inputMode="decimal" value={formData.quantityNeeded} onChange={set("quantityNeeded")} />
+              <FieldError>{errors.quantityNeeded}</FieldError>
             </label>
             <label>
               Unit
-              <select value={formData.unit} onChange={(e) => setFormData((prev) => ({ ...prev, unit: e.target.value }))}>
-                <option value="kg">kg</option>
-                <option value="ton">ton</option>
-                <option value="unit">unit</option>
-                <option value="crate">crate</option>
-                <option value="litre">litre</option>
+              <select value={formData.unit} onChange={set("unit")}>
+                {DEMAND_UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
               </select>
             </label>
             <label>
               Needed by (optional)
-              <input
-                type="date"
-                value={formData.deadline}
-                onChange={(e) => setFormData((prev) => ({ ...prev, deadline: e.target.value }))}
-              />
+              <input type="date" value={formData.deadline} onChange={set("deadline")} />
+              <FieldError>{errors.deadline}</FieldError>
             </label>
             <label className="demand-form-notes">
               Notes
               <textarea
                 rows={3}
+                maxLength={LIMITS.notes}
                 value={formData.notes}
-                onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
+                onChange={set("notes")}
                 placeholder="Delivery location, quality requirements, budget range..."
               />
+              <FieldError>{errors.notes}</FieldError>
             </label>
             <button className="aaf-btn aaf-btn-primary" disabled={saving}>
-              {saving ? "Posting..." : "Post Demand"}
+              {saving ? "Posting..." : "Post request"}
             </button>
           </form>
         </section>
       )}
 
+      <div className="demand-filters" role="tablist" aria-label="Filter requests">
+        {FILTERS.map((f) => (
+          <button
+            key={f.id}
+            role="tab"
+            aria-selected={filter === f.id}
+            className={filter === f.id ? "on" : ""}
+            onClick={() => setFilter(f.id)}
+          >
+            {f.label} <span>{counts[f.id]}</span>
+          </button>
+        ))}
+      </div>
+
       <section className="demand-list">
-        {demands.length === 0 ? (
-          <p className="dashboard-empty-state">No open demand yet. Be the first to post one.</p>
-        ) : (
-          demands.map((demand) => (
-            <DemandCard
-              key={demand.id}
-              demand={demand}
-              isOpenThread={openDemandId === demand.id}
-              onToggleThread={() => setOpenDemandId((prev) => (prev === demand.id ? null : demand.id))}
-              onMarkFulfilled={markFulfilled}
-              currentUid={auth.currentUser?.uid}
-              currentName={auth.currentUser?.displayName || auth.currentUser?.email}
-              isAdminUser={isAdminUser}
-            />
-          ))
-        )}
+        {loadError && <p className="dashboard-empty-state">Could not load requests: {loadError}</p>}
+        {!loaded && !loadError && <p className="dashboard-empty-state">Loading requests...</p>}
+        {loaded && !loadError && visible.length === 0 && <p className="dashboard-empty-state">{emptyMessage}</p>}
+        {visible.map((demand) => (
+          <DemandCard
+            key={demand.id}
+            demand={demand}
+            isOpenThread={openDemandId === demand.id}
+            onToggleThread={() => setOpenDemandId((prev) => (prev === demand.id ? null : demand.id))}
+            onMarkFulfilled={markFulfilled}
+            currentUid={uid}
+            currentName={auth.currentUser?.displayName || auth.currentUser?.email}
+            canPledge={isFarmer}
+            isAdminUser={isAdminUser}
+          />
+        ))}
       </section>
     </AppShell>
   );
 }
 
-function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, currentUid, currentName, isAdminUser }) {
+function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, currentUid, currentName, canPledge, isAdminUser }) {
   const [pledges, setPledges] = useState([]);
   const [pledgeQty, setPledgeQty] = useState("");
   const [pledgeNote, setPledgeNote] = useState("");
+  const [pledgeErrors, setPledgeErrors] = useState({});
   const [messages, setMessages] = useState([]);
   const [messageText, setMessageText] = useState("");
 
   useEffect(() => {
     const pledgesQuery = query(collection(db, "demandRequests", demand.id, "pledges"), orderBy("createdAt", "asc"));
-    const unsubscribe = onSnapshot(pledgesQuery, (snapshot) => {
+    return onSnapshot(pledgesQuery, (snapshot) => {
       setPledges(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
     });
-    return () => unsubscribe();
   }, [demand.id]);
 
   useEffect(() => {
-    if (!isOpenThread) return;
+    if (!isOpenThread) return undefined;
     const messagesQuery = query(collection(db, "demandRequests", demand.id, "messages"), orderBy("createdAt", "asc"));
-    const unsubscribe = onSnapshot(messagesQuery, (snapshot) => {
+    return onSnapshot(messagesQuery, (snapshot) => {
       setMessages(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
     });
-    return () => unsubscribe();
   }, [demand.id, isOpenThread]);
 
-  const pledgedTotal = pledges.reduce((sum, p) => sum + (Number(p.quantity) || 0), 0);
-  const progressPct = Math.min(100, Math.round((pledgedTotal / demand.quantityNeeded) * 100)) || 0;
   const isOwnDemand = demand.buyerId === currentUid;
+  const fulfilled = demand.status === "fulfilled";
+  const summary = summarizePledges(demand, pledges, currentUid);
+  const deadline = deadlineState(demand);
+  const canPledgeHere = canPledge && !isOwnDemand && !fulfilled;
+  const canMarkFulfilled = !fulfilled && (isOwnDemand || isAdminUser);
 
   const submitPledge = async (event) => {
     event.preventDefault();
-    if (!pledgeQty || Number(pledgeQty) <= 0) {
-      toast.error("Enter how much you can supply.");
-      return;
-    }
+    const found = validatePledge({ quantity: pledgeQty, note: pledgeNote }, demand);
+    setPledgeErrors(found);
+    if (Object.keys(found).length) return;
     try {
       await addDoc(collection(db, "demandRequests", demand.id, "pledges"), {
         farmerId: currentUid,
@@ -267,6 +299,20 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
       toast.success("Pledge added.");
       setPledgeQty("");
       setPledgeNote("");
+      notifyUser(demand.buyerId, {
+        title: "New pledge on your request",
+        body: `${currentName} can supply ${pledgeQty} ${demand.unit} of ${demand.product}.`,
+        link: "/demand-board",
+      });
+    } catch (error) {
+      toast.error(error.code === "permission-denied" ? "Only producer accounts can pledge." : error.message);
+    }
+  };
+
+  const withdrawPledge = async (pledge) => {
+    if (!window.confirm("Withdraw this pledge?")) return;
+    try {
+      await deleteDoc(doc(db, "demandRequests", demand.id, "pledges", pledge.id));
     } catch (error) {
       toast.error(error.message);
     }
@@ -292,24 +338,25 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
     <div className="aaf-card demand-card">
       <div className="demand-card-header">
         <div>
-          <span className={`aaf-pill ${demand.status === "fulfilled" ? "aaf-pill-success" : "aaf-pill-warning"}`}>
-            {demand.status === "fulfilled" ? "Fulfilled" : "Open"}
-          </span>
+          <div className="demand-badges">
+            <span className={`aaf-pill ${fulfilled ? "aaf-pill-success" : "aaf-pill-warning"}`}>{fulfilled ? "Fulfilled" : "Open"}</span>
+            {isOwnDemand && <span className="aaf-pill">Your request</span>}
+            {!fulfilled && summary.covered && <span className="aaf-pill aaf-pill-success">Fully pledged</span>}
+            {deadline === "overdue" && <span className="aaf-pill demand-pill-danger">Past its date</span>}
+            {deadline === "soon" && <span className="aaf-pill demand-pill-danger">Needed soon</span>}
+          </div>
           <h3>{demand.title}</h3>
           <p className="demand-meta">
             {demand.product} · {demand.quantityNeeded} {demand.unit} needed
-            {demand.deadline ? ` · by ${demand.deadline}` : ""}
+            {demand.deadline && (
+              <span className="demand-deadline"><CalendarClock size={13} /> by {demand.deadline}</span>
+            )}
           </p>
           <p className="demand-buyer">Posted by {demand.buyerName}</p>
         </div>
-        {isOwnDemand && demand.status !== "fulfilled" && (
+        {canMarkFulfilled && (
           <button className="aaf-btn aaf-btn-ghost" onClick={() => onMarkFulfilled(demand)}>
-            <CheckCircle2 size={16} /> Mark Fulfilled
-          </button>
-        )}
-        {isAdminUser && !isOwnDemand && demand.status !== "fulfilled" && (
-          <button className="aaf-btn aaf-btn-ghost" onClick={() => onMarkFulfilled(demand)}>
-            <CheckCircle2 size={16} /> Mark Fulfilled
+            <CheckCircle2 size={16} /> Mark fulfilled
           </button>
         )}
       </div>
@@ -317,33 +364,61 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
       {demand.notes && <p className="demand-notes">{demand.notes}</p>}
 
       <div className="demand-progress">
-        <div className="demand-progress-bar">
-          <div className="demand-progress-fill" style={{ width: `${progressPct}%` }} />
+        <div className="demand-progress-bar" role="progressbar" aria-valuenow={summary.percent} aria-valuemin={0} aria-valuemax={100}>
+          <div className="demand-progress-fill" style={{ width: `${summary.percent}%` }} />
         </div>
         <span className="demand-progress-label">
-          <Users size={14} /> {pledgedTotal} / {demand.quantityNeeded} {demand.unit} pledged ({pledges.length}{" "}
-          {pledges.length === 1 ? "producer" : "producers"})
+          <Users size={14} /> {summary.pledged} / {demand.quantityNeeded} {demand.unit} pledged by {summary.count}{" "}
+          {summary.count === 1 ? "producer" : "producers"}
+          {!fulfilled && summary.remaining > 0 && summary.count > 0 && ` · ${summary.remaining} ${demand.unit} still needed`}
         </span>
       </div>
 
-      {demand.status !== "fulfilled" && (
-        <form onSubmit={submitPledge} className="pledge-form">
-          <input
-            type="number"
-            min="0"
-            placeholder={`Quantity you can supply (${demand.unit})`}
-            value={pledgeQty}
-            onChange={(e) => setPledgeQty(e.target.value)}
-          />
-          <input
-            placeholder="Note (optional)"
-            value={pledgeNote}
-            onChange={(e) => setPledgeNote(e.target.value)}
-          />
-          <button className="aaf-btn aaf-btn-accent" type="submit">
-            Pledge
-          </button>
+      {pledges.length > 0 && (
+        <ul className="demand-pledges">
+          {pledges.map((p) => (
+            <li key={p.id}>
+              <span>
+                <strong>{p.farmerName}</strong> · {p.quantity} {demand.unit}
+                {p.note ? <em> · {p.note}</em> : null}
+              </span>
+              {p.farmerId === currentUid && !fulfilled && (
+                <button type="button" onClick={() => withdrawPledge(p)} aria-label="Withdraw pledge">Withdraw</button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {canPledgeHere && (
+        <form onSubmit={submitPledge} className="pledge-form" noValidate>
+          <div className="pledge-field">
+            <input
+              type="number"
+              min="0"
+              inputMode="decimal"
+              placeholder={`How much can you supply (${demand.unit})`}
+              value={pledgeQty}
+              onChange={(e) => setPledgeQty(e.target.value)}
+              aria-label="Quantity you can supply"
+            />
+            <FieldError>{pledgeErrors.quantity || pledgeErrors.demand}</FieldError>
+          </div>
+          <div className="pledge-field">
+            <input
+              placeholder="Note, e.g. ready 15 Oct (optional)"
+              maxLength={LIMITS.pledgeNote}
+              value={pledgeNote}
+              onChange={(e) => setPledgeNote(e.target.value)}
+              aria-label="Note for the buyer"
+            />
+            <FieldError>{pledgeErrors.note}</FieldError>
+          </div>
+          <button className="aaf-btn aaf-btn-accent" type="submit">Pledge</button>
         </form>
+      )}
+      {!canPledge && !isOwnDemand && !fulfilled && (
+        <p className="demand-hint">Only producer accounts can pledge. Use the discussion to ask the buyer a question.</p>
       )}
 
       <button className="demand-thread-toggle" onClick={onToggleThread}>
@@ -354,7 +429,7 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
         <div className="demand-thread">
           <div className="demand-thread-messages">
             {messages.length === 0 ? (
-              <p className="dashboard-empty-state">No messages yet - start coordinating.</p>
+              <p className="dashboard-empty-state">No messages yet. Start coordinating.</p>
             ) : (
               messages.map((msg) => (
                 <div key={msg.id} className={`demand-message ${msg.authorId === currentUid ? "own" : ""}`}>
@@ -368,6 +443,7 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
             <input
               placeholder="Coordinate on quantities, delivery, timing..."
               value={messageText}
+              maxLength={500}
               onChange={(e) => setMessageText(e.target.value)}
             />
             <button className="aaf-btn aaf-btn-primary" type="submit" aria-label="Send">

@@ -36,6 +36,8 @@ import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import { startCheckout } from "./payments";
 import toast from "react-hot-toast";
 import { buildNavSections } from "./navConfig";
+import { useLocation, useNavigate } from "react-router-dom";
+import CommunitySpaces from "./CommunitySpaces";
 import AppShell from "./AppShell";
 import {
   Heart,
@@ -92,9 +94,12 @@ function scorePost(post) {
   return (likeCount * 2 + commentCount * 3 + 1) / Math.pow(ageHours + 2, 1.5);
 }
 
-export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard", role = "consumer" }) {
+export default function ConsumerDashboard({ role = "consumer" }) {
 
-  const [selectedPage, setSelectedPage] = useState("feed");
+  const location = useLocation();
+  const navigate = useNavigate();
+  // Other pages (the Demand Board, the sidebar) can ask for a specific tab.
+  const [selectedPage, setSelectedPage] = useState(location.state?.page === "prices" ? "prices" : "feed");
   const [feedMode, setFeedMode] = useState("forYou"); // forYou | recent
 
   const [posts, setPosts] = useState([]);
@@ -403,24 +408,47 @@ export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard
         role === "farmer"
           ? "Producer workspace"
           : orgProfile
-          ? `Organization workspace · ${orgProfile.consumerType}`
+          ? `${orgProfile.businessName} · ${orgProfile.consumerType}`
           : "Consumer workspace"
       }
-      title={orgProfile?.businessName || dashboardTitle}
+      title={selectedPage === "prices" ? "Marketplace" : "Community Feed"}
+      subtitle={
+        selectedPage === "prices"
+          ? "Ready-to-sell listings from producers across Namibia."
+          : "Share news, photos, tips and questions with the community."
+      }
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
       theme={role === "farmer" ? "farmer" : orgProfile ? "organization" : "consumer"}
     >
 
+      <CommunitySpaces
+        active={selectedPage === "prices" ? "market" : "feed"}
+        userType={role}
+        onSelect={(space) => {
+          if (space.id === "feed") { setSelectedPage("feed"); return true; }
+          if (space.id === "market") { setSelectedPage("prices"); return true; }
+          return false;
+        }}
+      />
+
       {/* CREATE POST */}
 
+      {selectedPage === "feed" && (
       <div className="create-post aaf-card">
 
-        <h2>Create Post</h2>
+        <h2>Share with the community</h2>
+        <p className="create-post-hint">
+          For news, photos, tips and questions. Need a bulk quantity of something?{" "}
+          <button type="button" className="create-post-link" onClick={() => navigate("/demand-board")}>
+            Post it on the Demand Board
+          </button>{" "}
+          so producers can pledge to supply it.
+        </p>
 
         <textarea
-          placeholder="Share something..."
+          placeholder="What's happening on your farm or in your market?"
           value={postText}
           maxLength={MAX_POST_LENGTH}
           onChange={(e) =>
@@ -455,6 +483,7 @@ export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard
         </button>
 
       </div>
+      )}
 
       {/* MARKET PRICES */}
 
@@ -463,7 +492,7 @@ export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard
         <div className="market-prices aaf-card">
 
           <div className="feed-header">
-            <h2>Marketplace</h2>
+            <h2>Listings</h2>
             <input
               className="market-search"
               type="search"
@@ -539,7 +568,7 @@ export default function ConsumerDashboard({ dashboardTitle = "Consumer Dashboard
         <div className="posts-section aaf-card">
 
           <div className="feed-header">
-            <h2>Community Feed</h2>
+            <h2>Latest posts</h2>
             <div className="feed-mode-toggle">
               <button
                 className={feedMode === "forYou" ? "active" : ""}

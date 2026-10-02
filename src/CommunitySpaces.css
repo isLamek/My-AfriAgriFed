@@ -1,0 +1,140 @@
+.aaf-spaces {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 1.25rem;
+}
+
+.aaf-space {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-md);
+  background: var(--aaf-surface);
+  font: inherit;
+  text-align: left;
+  color: var(--aaf-text);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.aaf-space:hover {
+  border-color: var(--aaf-primary);
+}
+
+.aaf-space:focus-visible {
+  outline: 2px solid var(--aaf-primary);
+  outline-offset: 2px;
+}
+
+.aaf-space.on {
+  border-color: var(--aaf-primary);
+  background: var(--aaf-primary);
+  color: #fff;
+  box-shadow: var(--aaf-shadow-sm);
+  cursor: default;
+}
+
+.aaf-space-icon {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--aaf-mist);
+  color: var(--aaf-primary);
+}
+
+.aaf-space.on .aaf-space-icon {
+  background: rgba(255, 255, 255, 0.16);
+  color: #fff;
+}
+
+.aaf-space-text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.aaf-space-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.aaf-space-title em {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--aaf-mist);
+  color: var(--aaf-primary);
+  font-style: normal;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.aaf-space.on .aaf-space-title em {
+  background: var(--aaf-shoot);
+  color: var(--aaf-accent-contrast);
+}
+
+.aaf-space-blurb {
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--aaf-text-muted);
+}
+
+.aaf-space.on .aaf-space-blurb {
+  color: rgba(255, 255, 255, 0.82);
+}
+
+.aaf-spaces-active {
+  display: none;
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--aaf-text-muted);
+}
+
+@media (max-width: 900px) {
+  .aaf-spaces {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .aaf-space {
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 6px;
+    text-align: center;
+  }
+
+  .aaf-space-icon {
+    width: 30px;
+    height: 30px;
+  }
+
+  .aaf-space-blurb,
+  .aaf-space-title em {
+    display: none;
+  }
+
+  .aaf-space-title {
+    justify-content: center;
+    font-size: 0.78rem;
+    line-height: 1.2;
+  }
+
+  .aaf-spaces-active {
+    display: block;
+  }
+}

@@ -48,7 +48,7 @@ export default function AppShell({
   const go = (item) => {
     setMobileOpen(false);
     if (item.onClick) return item.onClick();
-    if (item.path) navigate(item.path);
+    if (item.path) navigate(item.path, item.state ? { state: item.state } : undefined);
   };
 
   return (
@@ -75,6 +75,7 @@ export default function AppShell({
                 <button
                   key={item.label}
                   className={`aaf-sidebar-link ${item.active ? "active" : ""}`}
+                  title={item.hint}
                   onClick={() => go(item)}
                 >
                   <span className="aaf-sidebar-icon">{item.icon}</span>

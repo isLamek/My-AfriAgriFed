@@ -35,11 +35,11 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
   } else {
     // Consumers and farmers share the same dashboard component, with
     // Feed/Marketplace as in-page tabs rather than separate routes.
-    mainItems.push({ label: "Community Feed", icon: <Newspaper {...iconProps} />, path: "/dashboard", onClick: onFeedClick });
-    mainItems.push({ label: "Marketplace", icon: <ShoppingCart {...iconProps} />, path: "/dashboard", onClick: onMarketplaceClick });
+    mainItems.push({ label: "Community Feed", hint: "Talk: news, photos, tips and questions", icon: <Newspaper {...iconProps} />, path: "/dashboard", state: { page: "feed" }, onClick: onFeedClick });
+    mainItems.push({ label: "Marketplace", hint: "Buy: ready-to-sell listings", icon: <ShoppingCart {...iconProps} />, path: "/dashboard", state: { page: "prices" }, onClick: onMarketplaceClick });
   }
 
-  mainItems.push({ label: "Demand Board", icon: <MessageSquare {...iconProps} />, path: "/demand-board" });
+  mainItems.push({ label: "Demand Board", hint: "Request: buyers post bulk needs, producers pledge", icon: <MessageSquare {...iconProps} />, path: "/demand-board" });
 
   if (userType === "farmer") {
     mainItems.push({ label: "My Listings", icon: <Tags {...iconProps} />, path: "/my-listings" });

@@ -1,111 +1,100 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
 import { db } from "./firebaseConfig";
-import "./DataDashboards.css";
+import InsightsFrame from "./InsightsFrame";
+import { dailyCounts, lastDays } from "./insights";
 
-const TRENDED_COLLECTIONS = [
+const TRENDS = [
+  { key: "marketPrices", label: "Marketplace listings added" },
+  { key: "demandRequests", label: "Demand requests posted" },
   { key: "institutionResearchArticles", label: "Research articles published" },
   { key: "trainingPrograms", label: "Training programs posted" },
   { key: "promotions", label: "Promotions created" },
 ];
 
-function daysAgoKey(date) {
-  return date.toISOString().slice(0, 10);
-}
-
-function buildLastNDays(n) {
-  const days = [];
-  for (let i = n - 1; i >= 0; i -= 1) {
-    const date = new Date();
-    date.setDate(date.getDate() - i);
-    days.push(daysAgoKey(date));
-  }
-  return days;
-}
+const PERIOD = 14;
 
 export default function StatisticsDashboard() {
-  const navigate = useNavigate();
-  const [docsByCollection, setDocsByCollection] = useState({});
-  const last14Days = useMemo(() => buildLastNDays(14), []);
+  const [docsByCollection, setDocsByCollection] = useState({}); // undefined = loading, null = unreadable
+  // 28 days so each chart can say how the last 14 compare with the 14 before.
+  const [previousDays, days] = useMemo(() => {
+    const all = lastDays(PERIOD * 2);
+    return [all.slice(0, PERIOD), all.slice(PERIOD)];
+  }, []);
 
   useEffect(() => {
-    const unsubscribes = TRENDED_COLLECTIONS.map((item) =>
+    const unsubscribes = TRENDS.map((item) =>
       onSnapshot(
         collection(db, item.key),
-        (snapshot) => {
-          setDocsByCollection((prev) => ({
-            ...prev,
-            [item.key]: snapshot.docs.map((docSnap) => docSnap.data()),
-          }));
-        },
-        () => {
-          setDocsByCollection((prev) => ({ ...prev, [item.key]: [] }));
-        }
+        (snapshot) => setDocsByCollection((prev) => ({ ...prev, [item.key]: snapshot.docs.map((d) => d.data()) })),
+        () => setDocsByCollection((prev) => ({ ...prev, [item.key]: null }))
       )
     );
-
     return () => unsubscribes.forEach((unsub) => unsub());
   }, []);
 
-  const trendFor = (key) => {
-    const docs = docsByCollection[key] || [];
-    const map = Object.fromEntries(last14Days.map((day) => [day, 0]));
-
-    docs.forEach((docData) => {
-      const created = docData.createdAt?.toDate ? docData.createdAt.toDate() : null;
-      if (!created) return;
-      const dayKey = daysAgoKey(created);
-      if (dayKey in map) map[dayKey] += 1;
-    });
-
-    return last14Days.map((day) => ({ day, count: map[day] }));
-  };
-
-  const hasAnyData = TRENDED_COLLECTIONS.some((item) => (docsByCollection[item.key] || []).length > 0);
+  const loaded = TRENDS.every((t) => docsByCollection[t.key] !== undefined);
+  const anyActivity = TRENDS.some((t) => (docsByCollection[t.key] || []).length > 0);
 
   return (
-    <div className="statistics-page">
-      <header className="statistics-header">
+    <InsightsFrame
+      eyebrow="Trends, not just totals"
+      title="Statistics Dashboard"
+      subtitle={`Activity over the last ${PERIOD} days, compared with the ${PERIOD} days before.`}
+      activePath="/statistics"
+    >
+      {loaded && !anyActivity && (
+        <section className="aaf-card insight-panel">
+          <p className="insight-empty">
+            Nothing has been recorded yet. Charts fill in as producers list products, buyers post requests and
+            institutions publish research and training.
+          </p>
+        </section>
+      )}
+
+      <div className="trend-grid">
+        {TRENDS.map((item) => (
+          <Trend key={item.key} label={item.label} docs={docsByCollection[item.key]} days={days} previousDays={previousDays} />
+        ))}
+      </div>
+    </InsightsFrame>
+  );
+}
+
+function Trend({ label, docs, days, previousDays }) {
+  const { series, total, previous, max } = useMemo(() => dailyCounts(docs || [], days, previousDays), [docs, days, previousDays]);
+  const change = total - previous;
+  const deltaText =
+    previous === 0 && total === 0
+      ? "No activity in either period"
+      : previous === 0
+      ? `${total} new, none in the 14 days before`
+      : `${change > 0 ? "+" : ""}${change} vs the 14 days before`;
+
+  return (
+    <section className="aaf-card insight-panel">
+      <div className="trend-head">
         <div>
-          <p className="eyebrow">Trends, not just totals</p>
-          <h1>Statistics Dashboard</h1>
-          <p>14-day activity trends drawn from live platform data.</p>
+          <h2>{label}</h2>
+          <span className={`trend-delta ${change > 0 ? "up" : change < 0 ? "down" : ""}`}>
+            {docs === undefined ? "Loading..." : docs === null ? "Could not load" : deltaText}
+          </span>
         </div>
-        <button onClick={() => navigate(-1)}>Back</button>
-      </header>
+        <span className="trend-total">{docs ? total : "-"}</span>
+      </div>
 
-      <section className="statistics-grid">
-        {!hasAnyData && (
-          <div className="statistics-empty-note">
-            No activity recorded in the last 14 days yet. Trends will appear here as institutions
-            publish research and training programs, and as farmers run promotions. Sales and
-            demand trends will join this view once online payments go live.
+      <div className="trend-chart" role="img" aria-label={`${label}: ${total} in the last ${days.length} days`}>
+        <span className="trend-axis">{max}</span>
+        {series.map((point) => (
+          <div className={`trend-bar ${point.count === 0 ? "zero" : ""}`} key={point.day} title={`${point.day}: ${point.count}`}>
+            <i style={{ height: `${point.count === 0 ? 3 : Math.max(6, (point.count / max) * 100)}%` }} />
           </div>
-        )}
-
-        {TRENDED_COLLECTIONS.map((item) => {
-          const trend = trendFor(item.key);
-          const max = Math.max(1, ...trend.map((d) => d.count));
-
-          return (
-            <div className="statistics-panel" key={item.key}>
-              <h2>{item.label}</h2>
-              <div className="statistics-chart">
-                {trend.map((d) => (
-                  <div className="statistics-bar" key={d.day} title={`${d.day}: ${d.count}`}>
-                    <div
-                      className="statistics-bar-fill"
-                      style={{ height: `${Math.max(4, (d.count / max) * 100)}%` }}
-                    />
-                    <span>{d.day.slice(5)}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          );
-        })}
-      </section>
-    </div>
+        ))}
+      </div>
+      <div className="trend-days">
+        <span>{series[0].day.slice(5)}</span>
+        <span>{series[series.length - 1].day.slice(5)}</span>
+      </div>
+    </section>
   );
 }

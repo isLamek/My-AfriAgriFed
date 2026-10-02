@@ -10,20 +10,27 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
 import { auth, db } from "./firebaseConfig";
 import { uploadToCloudinary } from "./cloudinairyUpload";
 import { startPlatformCheckout } from "./payments";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
-import "./DataDashboards.css";
+import InsightsFrame from "./InsightsFrame";
 
 const RATE_PER_WORKING_DAY = 30; // N$/working day, per the concept note's financial model
 
 const emptyPromo = { productName: "", description: "", startDate: "", endDate: "" };
 
+// Local calendar date (Namibia is UTC+2; toISOString would give yesterday's
+// date for the first two hours of every day).
+function todayIso() {
+  const now = new Date();
+  const p = (n) => String(n).padStart(2, "0");
+  return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
+}
+
 function isActive(promo) {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   return (!promo.startDate || promo.startDate <= today) && (!promo.endDate || promo.endDate >= today);
 }
 
@@ -47,7 +54,6 @@ function countWorkingDays(startDate, endDate) {
 }
 
 export default function Promotions() {
-  const navigate = useNavigate();
   const [promotions, setPromotions] = useState([]);
   const [formData, setFormData] = useState(emptyPromo);
   const [imageFile, setImageFile] = useState(null);
@@ -93,8 +99,20 @@ export default function Promotions() {
       return;
     }
 
-    if (!formData.startDate || !formData.endDate || workingDays === 0) {
-      toast.error("Pick a start and end date covering at least one working day.");
+    if (!formData.startDate || !formData.endDate) {
+      toast.error("Pick a start and end date.");
+      return;
+    }
+    if (formData.startDate < todayIso()) {
+      toast.error("The start date can't be in the past.");
+      return;
+    }
+    if (formData.endDate < formData.startDate) {
+      toast.error("The end date must be on or after the start date.");
+      return;
+    }
+    if (workingDays === 0) {
+      toast.error("Those dates fall on a weekend. Pick at least one working day.");
       return;
     }
 
@@ -144,26 +162,22 @@ export default function Promotions() {
   const canPost = userType === "farmer";
 
   return (
-    <div className="promotions-page">
-      <header className="promotions-header">
-        <div>
-          <p className="eyebrow">Visible to producers, consumers &amp; institutions</p>
-          <h1>Promotions</h1>
-          <p>Farmers spotlight products here to reach preferential customers.</p>
-        </div>
-        <button onClick={() => navigate(-1)}>Back</button>
-      </header>
-
-      <div className="promotions-ticker">
+    <InsightsFrame
+      eyebrow="Visible to producers, consumers & institutions"
+      title="Promotions"
+      subtitle="Farmers spotlight products here to reach preferential customers."
+      activePath="/promotions"
+    >
+      <div className="promo-ticker" aria-label="Active promotions">
         {activePromotions.length === 0 ? (
-          <p className="empty-state" style={{ padding: "0 1.5rem" }}>No active promotions right now.</p>
+          <p className="insight-empty" style={{ padding: "0 1rem" }}>No active promotions right now.</p>
         ) : (
-          <div className="promotions-ticker-track">
+          <div className="promo-ticker-track">
             {[...activePromotions, ...activePromotions].map((promo, index) => (
-              <div className="ticker-item" key={`${promo.id}-${index}`}>
-                {promo.imageUrl && <img src={promo.imageUrl} alt={promo.productName} />}
+              <div className="promo-ticker-item" key={`${promo.id}-${index}`} aria-hidden={index >= activePromotions.length}>
+                {promo.imageUrl && <img src={promo.imageUrl} alt="" />}
                 <span>
-                  <strong>{promo.productName}</strong> — {promo.farmerName}
+                  <strong>{promo.productName}</strong> · {promo.farmerName}
                 </span>
               </div>
             ))}
@@ -171,65 +185,69 @@ export default function Promotions() {
         )}
       </div>
 
-      <main className="promotions-layout">
+      <div className="promo-layout">
         {canPost && (
-          <section className="promotion-form-card">
-            <h2>Promote a Product</h2>
-            <p className="promotion-pricing-note">N${RATE_PER_WORKING_DAY} per working day (weekends excluded).</p>
-            <form onSubmit={postPromotion}>
+          <section className="aaf-card">
+            <h2 style={{ margin: "0 0 4px", fontSize: "1.05rem" }}>Promote a product</h2>
+            <p className="insight-foot" style={{ margin: "0 0 12px" }}>
+              N${RATE_PER_WORKING_DAY} per working day (weekends excluded).
+            </p>
+            <form className="promo-form" onSubmit={postPromotion}>
               <label>
                 Product name
-                <input name="productName" value={formData.productName} onChange={handleChange} />
+                <input name="productName" value={formData.productName} onChange={handleChange} maxLength={80} />
               </label>
               <label>
                 Description
-                <textarea name="description" value={formData.description} onChange={handleChange} rows="3" />
+                <textarea name="description" value={formData.description} onChange={handleChange} rows="3" maxLength={400} />
               </label>
-              <div className="promotion-form-row">
+              <div className="promo-form-row">
                 <label>
                   Start date
-                  <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} />
+                  <input type="date" name="startDate" min={todayIso()} value={formData.startDate} onChange={handleChange} />
                 </label>
                 <label>
                   End date
-                  <input type="date" name="endDate" value={formData.endDate} onChange={handleChange} />
+                  <input type="date" name="endDate" min={formData.startDate || todayIso()} value={formData.endDate} onChange={handleChange} />
                 </label>
               </div>
               <label>
-                Photo
+                Photo (optional)
                 <input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0])} />
               </label>
               {workingDays > 0 && (
-                <p className="promotion-cost-preview">
+                <p className="promo-cost">
                   {workingDays} working day{workingDays > 1 ? "s" : ""} · N${cost} total
                 </p>
               )}
-              <button disabled={posting}>{posting ? "Posting..." : `Pay N$${cost || 0} & Post Promotion`}</button>
+              <button className="aaf-btn aaf-btn-primary" disabled={posting}>
+                {posting ? "Posting..." : `Pay N$${cost || 0} & post promotion`}
+              </button>
             </form>
           </section>
         )}
 
-        <section className="promotion-list">
+        <section className="promo-list">
           {visiblePromotions.length === 0 ? (
-            <p className="empty-state">No promotions yet.</p>
+            <p className="insight-empty">No promotions yet.</p>
           ) : (
             visiblePromotions.map((promo) => (
-              <article className="promotion-card" key={promo.id}>
+              <article className="aaf-card promo-card" key={promo.id}>
                 {promo.imageUrl && <img src={promo.imageUrl} alt={promo.productName} />}
                 <div>
                   <h3>{promo.productName}</h3>
-                  <p>{promo.description}</p>
-                  <p className="promotion-dates">
-                    {promo.startDate || "—"} to {promo.endDate || "—"} ·{" "}
+                  {promo.description && <p>{promo.description}</p>}
+                  <p className="promo-meta">
+                    {promo.startDate || "-"} to {promo.endDate || "-"} ·{" "}
                     {promo.status === "pending_payment" ? "Awaiting payment" : isActive(promo) ? "Active" : "Expired"}
                   </p>
-                  <p className="promotion-dates">By {promo.farmerName}</p>
+                  <p className="promo-meta">By {promo.farmerName}</p>
                 </div>
               </article>
             ))
           )}
         </section>
-      </main>
-    </div>
+      </div>
+    </InsightsFrame>
   );
 }

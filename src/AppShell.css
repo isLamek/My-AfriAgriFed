@@ -251,7 +251,20 @@
   }
 
   .aaf-shell-topbar {
-    padding-top: 3.5rem;
+    position: relative;
+    flex-wrap: nowrap;
+    padding-top: 4.25rem;
+  }
+
+  /* Bell sits level with the menu button instead of wrapping onto its own row. */
+  .aaf-shell-topbar-right {
+    position: absolute;
+    top: 0.9rem;
+    right: 1.25rem;
+  }
+
+  .aaf-shell-topbar h1 {
+    font-size: 1.4rem;
   }
 
   .aaf-shell-content,
