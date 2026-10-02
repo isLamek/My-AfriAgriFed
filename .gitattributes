@@ -1,0 +1,7 @@
+# Never convert line endings in binary files (a converted PDF will not open).
+*.pdf binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.avif binary
+*.webp binary
