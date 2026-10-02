@@ -15,6 +15,9 @@ official figure on **2 October 2026**; anything not checked says so.
 | True colour | **MTG-I1 Geo Colour** via EUMETView | Observed (daytime) | Every 10 min | © EUMETSAT, same note | Image checked |
 | 30-year rain/temperature averages (crop suitability, rain onset) | **NASA POWER** climatology | Long-term average | About 50 km cells, 30 years | Public domain (NASA) | Oshakati: about 401 mm Nov–Apr, rains start in November |
 | River flow outlook | Open-Meteo Flood API (GloFAS) | Forecast (model) | Daily, 7 days | CC BY 4.0, non-commercial free tier | Response checked |
+| Fire hotspots | **NASA FIRMS** VIIRS S-NPP and NOAA-20 (about 375 m), fetched by `server.js` | **Observed** (satellite heat detections, not confirmed fires) | Last 48 h, refreshed about every 15 min; satellites pass a few times a day; low-confidence detections are dropped | Free; credit NASA FIRMS (shown on the map) | Parsing and distance logic unit-tested; needs a free `FIRMS_MAP_KEY` |
+
+**How the data reaches the browser.** Forecast, flood and fire requests go through `server.js` (`/api/weather/grid`, `/api/weather/point`, `/api/weather/flood`, `/api/fires`): one cached copy shared by every visitor (grid: 1 h, point forecast: 30 min per ~10 km square, flood: 3 h, fires: 15 min), with the last good copy served for hours if the provider is down. API keys stay on the server; the browser falls back to the public Open-Meteo API only if the backend is unreachable (switch off with `REACT_APP_WEATHER_DIRECT_FALLBACK=false`). Setup: `docs/SETUP_GUIDE.pdf`.
 
 **Forecast vs observed.** Rain, temperature and wind are *forecasts from a
 global model*: they cannot see a single thunderstorm over one village. The

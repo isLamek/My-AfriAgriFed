@@ -807,3 +807,79 @@ p.fv-error {
     flex-basis: 100%;
   }
 }
+
+/* ---- Fire hotspots --------------------------------------------------------- */
+
+.fv-layers .fv-fire-chip.on {
+  background: #b91c1c;
+  border-color: #b91c1c;
+  color: #fff;
+}
+
+.fv-fire-key {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 0.75rem;
+  color: var(--aaf-text-muted);
+}
+
+.fv-fire-key i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 4px;
+  border-radius: 50%;
+  border: 1px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.2);
+}
+
+.fv-fire {
+  margin: 10px 0;
+  padding: 10px 12px;
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-mist);
+  font-size: 0.85rem;
+}
+
+.fv-fire p {
+  margin: 0 0 4px;
+}
+
+.fv-fire p:last-child {
+  margin-bottom: 0;
+}
+
+.fv-fire.near {
+  background: var(--aaf-warning-bg);
+  color: var(--aaf-warning);
+}
+
+.fv-fire.close {
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+}
+
+.fv-fire.near .fv-muted,
+.fv-fire.close .fv-muted {
+  color: inherit;
+  opacity: 0.85;
+}
+
+.fv-fire-alert {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+  padding: 6px 10px;
+  border-radius: var(--aaf-radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--aaf-warning-bg);
+  color: var(--aaf-warning);
+}
+
+.fv-fire-alert.close {
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+}

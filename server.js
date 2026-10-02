@@ -3,11 +3,28 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cloudinary = require("cloudinary").v2;
+const path = require("path");
+const { TtlCache } = require("./server/ttlCache");
+const { rateLimit } = require("./server/rateLimit");
+const weather = require("./server/weather");
+const fires = require("./server/fires");
 
 const app = express();
 
-// In production, lock this down to your frontend's origin instead of "*"
-app.use(cors());
+// Behind a host's load balancer (Render, Railway, Fly) the real visitor IP is in
+// X-Forwarded-For; set TRUST_PROXY=1 there so rate limiting sees each visitor.
+if (process.env.TRUST_PROXY) app.set("trust proxy", Number(process.env.TRUST_PROXY) || 1);
+
+// CORS_ORIGINS="https://your-site.web.app,https://your-domain.com" locks the API
+// to your own website. Left empty it allows any origin (fine for local development).
+const allowedOrigins = (process.env.CORS_ORIGINS || "").split(",").map((o) => o.trim()).filter(Boolean);
+app.use(
+  cors(
+    allowedOrigins.length
+      ? { origin: (origin, done) => done(null, !origin || allowedOrigins.includes(origin)) }
+      : undefined
+  )
+);
 app.use(express.json());
 
 const {
@@ -18,6 +35,8 @@ const {
   FLW_SECRET_HASH,
   PLATFORM_COMMISSION_RATE,
   APP_BASE_URL,
+  OPEN_METEO_API_KEY,
+  FIRMS_MAP_KEY,
   PORT
 } = process.env;
 
@@ -262,7 +281,42 @@ app.post("/api/payments/webhook", (req, res) => {
   res.status(200).end();
 });
 
+/*
+==================================
+WEATHER AND FIRE DATA (cached, shared by every visitor)
+The browser asks this server instead of Open-Meteo / NASA directly, so the
+commercial keys stay private and each provider is called once for everyone.
+See docs/SETUP_GUIDE.pdf.
+==================================
+*/
+const upstreamCache = new TtlCache();
+const dataLimiter = rateLimit({ windowMs: 60000, max: Number(process.env.RATE_LIMIT_PER_MINUTE) || 120 });
+
+const weatherService = weather.register(app, {
+  cache: upstreamCache,
+  apiKey: OPEN_METEO_API_KEY || "",
+  limiter: dataLimiter,
+  cacheFile: path.join(__dirname, ".cache", "weather-grid.json"),
+});
+fires.register(app, { cache: upstreamCache, mapKey: FIRMS_MAP_KEY || "", limiter: dataLimiter });
+
+// Lets the website show only what this server can actually do.
+app.get("/api/features", (req, res) => {
+  res.json({
+    weather: true,
+    commercialWeather: !!OPEN_METEO_API_KEY,
+    fires: !!FIRMS_MAP_KEY,
+    payments: !!FLW_SECRET_KEY,
+  });
+});
+
+// For the host's uptime check (Render/Railway "health check path").
+app.get("/api/health", (req, res) => res.json({ ok: true, uptimeSeconds: Math.round(process.uptime()) }));
+
 const port = PORT || 5000;
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
+  if (!OPEN_METEO_API_KEY) console.warn("OPEN_METEO_API_KEY not set: using Open-Meteo's free, NON-COMMERCIAL tier.");
+  if (!FIRMS_MAP_KEY) console.warn("FIRMS_MAP_KEY not set: the fire layer is switched off.");
+  weatherService.startWarming();
 });

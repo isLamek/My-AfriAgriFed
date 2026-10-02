@@ -3,11 +3,13 @@
 //   - Open-Meteo flood (GloFAS)    https://open-meteo.com/en/docs/flood-api
 //   - NASA POWER climatology       https://power.larc.nasa.gov
 //
-// Open-Meteo's free tier is for non-commercial use. Before AfriAgriFed
-// launches commercially, route these calls through server.js with an
-// OPEN_METEO_API_KEY (see docs/FARMVIEW_PLAN.md).
+// Open-Meteo's free tier is for non-commercial use, so the forecast and flood
+// calls go through server.js first (cached, commercial key kept private) and
+// only fall back to the public API if the backend can't be reached.
+// NASA POWER is public domain and is always called directly.
 
 import { TIMEZONE, TTL } from "./config";
+import { directFallbackAllowed, serverConfigured, serverJson } from "./serverApi";
 
 const memory = new Map(); // key -> { value, expires }
 const inflight = new Map(); // key -> Promise (de-duplicates identical requests)
@@ -32,8 +34,27 @@ function writeStored(key, entry) {
   }
 }
 
+async function plainJson(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Data request failed (${res.status})`);
+  return res.json();
+}
+
+// Ask the backend first; if it is down (or not set up) use the public API.
+// A 4xx from the backend is a real answer (bad request), so it is not retried.
+async function viaServer(serverPath, directUrl) {
+  if (!serverPath || !serverConfigured()) return plainJson(directUrl);
+  try {
+    return await serverJson(serverPath);
+  } catch (error) {
+    const clientError = error.status >= 400 && error.status < 500 && error.status !== 429;
+    if (clientError || !directFallbackAllowed()) throw error;
+    return plainJson(directUrl);
+  }
+}
+
 // Fetch JSON with a TTL cache and request de-duplication.
-async function cachedJson(key, url, ttl) {
+async function cachedJson(key, url, ttl, serverPath) {
   const hit = memory.get(key) || readStored(key);
   if (hit && hit.expires > Date.now()) {
     memory.set(key, hit);
@@ -41,11 +62,7 @@ async function cachedJson(key, url, ttl) {
   }
   if (inflight.has(key)) return inflight.get(key);
 
-  const request = fetch(url)
-    .then((res) => {
-      if (!res.ok) throw new Error(`Data request failed (${res.status})`);
-      return res.json();
-    })
+  const request = viaServer(serverPath, url)
     .then((value) => {
       const entry = { value, expires: Date.now() + ttl };
       memory.set(key, entry);
@@ -74,9 +91,12 @@ export function fetchPointWeather(lat, lng) {
     forecast_days: "7",
     timezone: TIMEZONE,
   });
-  return cachedJson(`pt:${la},${ln}`, `https://api.open-meteo.com/v1/forecast?${params}`, TTL.forecast).then(
-    summarisePointWeather
-  );
+  return cachedJson(
+    `pt:${la},${ln}`,
+    `https://api.open-meteo.com/v1/forecast?${params}`,
+    TTL.forecast,
+    `/api/weather/point?lat=${la}&lng=${ln}`
+  ).then(summarisePointWeather);
 }
 
 function summarisePointWeather(data) {
@@ -144,7 +164,12 @@ export async function fetchFlood(lat, lng) {
     daily: "river_discharge,river_discharge_mean,river_discharge_max",
     forecast_days: "7",
   });
-  const data = await cachedJson(`flood:${la},${ln}`, `https://flood-api.open-meteo.com/v1/flood?${params}`, TTL.flood);
+  const data = await cachedJson(
+    `flood:${la},${ln}`,
+    `https://flood-api.open-meteo.com/v1/flood?${params}`,
+    TTL.flood,
+    `/api/weather/flood?lat=${la}&lng=${ln}`
+  );
   const d = data.daily || {};
   const mean = d.river_discharge_mean || [];
   const flow = d.river_discharge || [];

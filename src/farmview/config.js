@@ -3,6 +3,8 @@
 // production keys are listed in docs/LAUNCH_CHECKLIST.md.
 
 // [west, south, east, north] - the whole of Namibia with a small margin.
+import gridConfig from "./gridConfig.json";
+
 export const NAMIBIA_BOUNDS = [11.2, -29.6, 25.8, -16.5];
 
 // Quick views. Oshana is the pilot region.
@@ -121,7 +123,9 @@ export const WEATHER_LAYERS = [
 
 // ---- Forecast grid ----------------------------------------------------------
 // ~1° spacing over the whole country: 15 x 13 = 195 points in one request.
-export const GRID = { cols: 15, rows: 13, bounds: [11.5, -29.2, 25.4, -16.8], hours: 48, model: "ecmwf_ifs025" };
+// Shared with server/weather.js (which reads the same JSON) so both sides always
+// request exactly the same points.
+export const GRID = gridConfig;
 
 // Cache lifetimes. Weather moves slowly; being kind to the APIs is also what
 // keeps the map fast.

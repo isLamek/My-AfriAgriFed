@@ -2,11 +2,12 @@
 // ONE Open-Meteo request, using the ECMWF IFS 0.25° model so the source can be
 // named exactly. Values are model forecasts, not measurements.
 //
-// Open-Meteo's free tier is non-commercial. For launch, fetch this grid on
-// the server once an hour (one shared copy for every user) with a commercial
-// key - see docs/LAUNCH_CHECKLIST.md.
+// The grid is fetched through server.js (ONE Open-Meteo request an hour for every
+// visitor, commercial key kept private). If the backend can't be reached we ask
+// Open-Meteo directly so the map still works.
 
 import { GRID, TTL } from "./config";
+import { directFallbackAllowed, serverConfigured, serverJson } from "./serverApi";
 
 const STORAGE_KEY = "aaf_fv:grid:v2";
 let inflight = null;
@@ -67,6 +68,29 @@ function readStored() {
   }
 }
 
+// The backend returns { list, ... }; Open-Meteo itself returns the list directly.
+async function loadRawGrid(points) {
+  if (serverConfigured()) {
+    try {
+      return await serverJson("/api/weather/grid", { timeoutMs: 30000 });
+    } catch (error) {
+      if (!directFallbackAllowed()) throw error;
+    }
+  }
+  const params = new URLSearchParams({
+    latitude: points.map((p) => p.lat).join(","),
+    longitude: points.map((p) => p.lng).join(","),
+    hourly: "wind_speed_10m,wind_direction_10m,temperature_2m,precipitation",
+    wind_speed_unit: "ms",
+    models: GRID.model,
+    forecast_hours: String(GRID.hours),
+    timezone: "GMT",
+  });
+  const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
+  if (!res.ok) throw new Error(`Weather service returned ${res.status}`);
+  return res.json();
+}
+
 export async function fetchNationalGrid() {
   if (memory && memory.expires > Date.now()) return memory.grid;
   const stored = readStored();
@@ -77,23 +101,9 @@ export async function fetchNationalGrid() {
   if (inflight) return inflight;
 
   const points = gridPoints();
-  const params = new URLSearchParams({
-    latitude: points.map((p) => p.lat).join(","),
-    longitude: points.map((p) => p.lng).join(","),
-    hourly: "wind_speed_10m,wind_direction_10m,temperature_2m,precipitation",
-    wind_speed_unit: "ms",
-    models: GRID.model,
-    forecast_hours: String(GRID.hours),
-    timezone: "GMT",
-  });
-
-  inflight = fetch(`https://api.open-meteo.com/v1/forecast?${params}`)
-    .then((res) => {
-      if (!res.ok) throw new Error(`Weather service returned ${res.status}`);
-      return res.json();
-    })
+  inflight = loadRawGrid(points)
     .then((json) => {
-      const list = Array.isArray(json) ? json : [json];
+      const list = Array.isArray(json) ? json : json.list;
       if (list.length !== points.length) throw new Error("Weather service returned an incomplete grid");
       const grid = buildGrid(list);
       memory = { grid, expires: Date.now() + TTL.grid };

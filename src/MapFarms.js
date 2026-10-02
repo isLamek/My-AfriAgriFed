@@ -1,10 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Home, Plus, Trash2, X } from "lucide-react";
+import { Flame, Home, Plus, Trash2, X } from "lucide-react";
 import toast from "react-hot-toast";
 import { auth } from "./firebaseConfig";
 import { addInput, deleteFarm, deleteInput, subscribeInputs, addFarm } from "./farms";
 import { CROPS } from "./farmview/cropRules";
 import { regionLabel } from "./farmview/regions";
+import { FireWatch } from "./MapDetails";
 import {
   INPUT_TYPES,
   LIMITS,
@@ -19,7 +20,7 @@ import {
 const nad = (n) => `N$ ${Number(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 
 /** Left-card section: the farmer's farms and the "add" button. */
-export function FarmsSection({ farms, selectedId, placing, onSelect, onAdd, onCancelPlacing }) {
+export function FarmsSection({ farms, selectedId, placing, onSelect, onAdd, onCancelPlacing, fireAlerts = [] }) {
   return (
     <div className="fv-farms">
       <p className="fv-label"><Home size={14} /> My farms</p>
@@ -39,6 +40,11 @@ export function FarmsSection({ farms, selectedId, placing, onSelect, onAdd, onCa
             <button className="fv-add" onClick={onAdd}><Plus size={13} /> Add my farm</button>
           </div>
           {farms.length === 0 && <p className="fv-muted">Add a farm to keep weather, rain and your inputs together in one place.</p>}
+          {fireAlerts.map((a) => (
+            <p key={a.id} className={`fv-fire-alert ${a.level}`}>
+              <Flame size={14} /> {a.name}: fire hotspot {a.km} km away
+            </p>
+          ))}
         </>
       )}
     </div>
@@ -120,7 +126,7 @@ export function FarmForm({ draft, region, onSaved, onCancel }) {
 }
 
 /** One farm: what is recorded, what has been spent, and the input log. */
-export function FarmDetails({ farm, onDeleted }) {
+export function FarmDetails({ farm, onDeleted, fires }) {
   const uid = auth.currentUser?.uid;
   const [inputs, setInputs] = useState(null);
   const [loadError, setLoadError] = useState("");
@@ -186,6 +192,7 @@ export function FarmDetails({ farm, onDeleted }) {
         {cropNames.length ? ` · ${cropNames.join(", ")}` : ""}
       </p>
       {farm.notes && <p className="fv-muted">{farm.notes}</p>}
+      <FireWatch point={farm} fires={fires} />
 
       <h4>Inputs spend</h4>
       {summary.count === 0 ? (

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Layers, MapPin, Pause, Play, Wind } from "lucide-react";
+import { Flame, Layers, MapPin, Pause, Play, Wind } from "lucide-react";
 // The "!" prefix skips Create React App's Babel pass over the library. Babel
 // rewrites the functions MapLibre ships to its web worker and breaks the
 // production build; the library is already compiled, so leave it alone.
@@ -11,6 +11,8 @@ import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import PointDetails from "./MapDetails";
 import { FarmDetails, FarmForm, FarmsSection } from "./MapFarms";
+import { fetchFires, firesNear, fireLevel, toGeoJson } from "./farmview/fires";
+import { fetchFeatures } from "./farmview/serverApi";
 import { auth } from "./firebaseConfig";
 import { subscribeFarms } from "./farms";
 import { BASEMAPS, NAMIBIA_BOUNDS, TIMEZONE, TOWNS, VIEWS, WEATHER_LAYERS } from "./farmview/config";
@@ -82,6 +84,9 @@ export default function MapPage() {
   const [draft, setDraft] = useState(null); // a tapped spot for a new farm
   const [selectedFarmId, setSelectedFarmId] = useState(null);
   const [panelTab, setPanelTab] = useState("farm"); // "farm" | "conditions"
+  const [features, setFeatures] = useState({ fires: false }); // what the backend can do
+  const [firesOn, setFiresOn] = useState(false);
+  const [fireData, setFireData] = useState(null); // { list, fetchedAt } | { list: [], error }
 
   const layer = useMemo(() => WEATHER_LAYERS.find((l) => l.id === layerId) || WEATHER_LAYERS[0], [layerId]);
   const isSat = layer.kind === "sat";
@@ -345,6 +350,72 @@ export default function MapPage() {
     setPlaying(false);
   }, [layerId, windOn]);
 
+  // ---- fire hotspots (NASA FIRMS through the backend) --------------------------
+  useEffect(() => {
+    let cancelled = false;
+    fetchFeatures().then((f) => !cancelled && setFeatures(f));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // Load when the layer is on, and for farmers always (their farms get fire alerts).
+  useEffect(() => {
+    if (!features.fires || !(firesOn || isFarmer)) return undefined;
+    let cancelled = false;
+    const load = () =>
+      fetchFires()
+        .then((d) => !cancelled && setFireData({ list: d.fires, fetchedAt: d.fetchedAt }))
+        .catch((e) => !cancelled && setFireData((prev) => (prev?.list?.length ? prev : { list: [], error: e.message })));
+    load();
+    const timer = setInterval(load, 15 * 60 * 1000);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+    };
+  }, [features.fires, firesOn, isFarmer]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !overlaysReady) return;
+    if (!firesOn || !fireData?.list?.length) {
+      if (map.getLayer("fires")) map.removeLayer("fires");
+      if (map.getSource("fires")) map.removeSource("fires");
+      return;
+    }
+    const geo = toGeoJson(fireData.list);
+    const source = map.getSource("fires");
+    if (source) {
+      source.setData(geo);
+      return;
+    }
+    map.addSource("fires", { type: "geojson", data: geo, attribution: "Fire data: NASA FIRMS" });
+    map.addLayer({
+      id: "fires",
+      type: "circle",
+      source: "fires",
+      paint: {
+        "circle-radius": ["interpolate", ["linear"], ["zoom"], 5, 3, 10, 7, 14, 13],
+        "circle-color": ["match", ["get", "band"], "fresh", "#e11d2e", "today", "#f97316", "#facc15"],
+        "circle-opacity": 0.9,
+        "circle-stroke-color": "#ffffff",
+        "circle-stroke-width": 1,
+      },
+    });
+  }, [overlaysReady, firesOn, fireData]);
+
+  // Farms with a hotspot within 25 km, closest first.
+  const fireAlerts = useMemo(() => {
+    if (!fireData?.list?.length) return [];
+    return farms
+      .map((farm) => {
+        const near = firesNear(farm, fireData.list, { km: 25 });
+        return near.nearest ? { id: farm.id, name: farm.name, km: near.nearest.distanceKm, level: fireLevel(near) } : null;
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.km - b.km);
+  }, [farms, fireData]);
+
   // ---- the signed-in farmer's own farms -----------------------------------------
   useEffect(() => {
     const uid = auth.currentUser?.uid;
@@ -510,6 +581,33 @@ export default function MapPage() {
               </p>
             </div>
           )}
+          {features.fires && (
+            <>
+              <p className="fv-label"><Flame size={14} /> Hazards</p>
+              <div className="fv-layers">
+                <button className={`fv-fire-chip ${firesOn ? "on" : ""}`} onClick={() => setFiresOn((v) => !v)} aria-pressed={firesOn}>
+                  <Flame size={13} /> Fire hotspots
+                </button>
+              </div>
+              {firesOn && (
+                <div className="fv-legend">
+                  <div className="fv-fire-key">
+                    <span><i style={{ background: "#e11d2e" }} /> under 6 h</span>
+                    <span><i style={{ background: "#f97316" }} /> 6-24 h</span>
+                    <span><i style={{ background: "#facc15" }} /> 24-48 h</span>
+                  </div>
+                  <p className="fv-note">
+                    {fireData?.error
+                      ? "Fire data is unavailable right now."
+                      : !fireData
+                      ? "Loading fire hotspots…"
+                      : `${fireData.list.length} satellite heat detection${fireData.list.length === 1 ? "" : "s"} in the last 48 hours. These are not confirmed fires, and satellites pass only a few times a day.`}
+                  </p>
+                  <p className="fv-source">NASA FIRMS (VIIRS), updated about every 15 minutes</p>
+                </div>
+              )}
+            </>
+          )}
           {gridError && <p className="fv-warn">Could not load the forecast grid ({gridError}). Satellite layers and tap-for-weather still work.</p>}
           {!grid && !gridError && <p className="fv-muted">Loading forecast…</p>}
           {satError && <p className="fv-warn">Satellite imagery is unavailable right now ({satError}).</p>}
@@ -522,6 +620,7 @@ export default function MapPage() {
               onSelect={selectFarm}
               onAdd={startPlacing}
               onCancelPlacing={cancelPlacing}
+              fireAlerts={fireAlerts}
             />
           )}
 
@@ -595,9 +694,9 @@ export default function MapPage() {
                   </div>
                 )}
                 {selectedFarm && panelTab === "farm" ? (
-                  <FarmDetails key={selectedFarm.id} farm={selectedFarm} onDeleted={() => { setSelectedFarmId(null); setPicked(null); }} />
+                  <FarmDetails key={selectedFarm.id} farm={selectedFarm} fires={features.fires ? fireData : null} onDeleted={() => { setSelectedFarmId(null); setPicked(null); }} />
                 ) : (
-                  picked && <PointDetails picked={picked} region={pickedRegion} details={details} />
+                  picked && <PointDetails picked={picked} region={pickedRegion} details={details} fires={features.fires ? fireData : null} />
                 )}
               </>
             )}

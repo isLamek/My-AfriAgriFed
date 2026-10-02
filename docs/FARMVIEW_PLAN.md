@@ -40,8 +40,8 @@ is copied it goes in `THIRD_PARTY_NOTICES` with its MIT notice.
 - [ ] Add more towns/villages from OSM place data
 - [ ] Soil data (ISRIC SoilGrids) so suitability can become a map layer
 - [ ] "Clouds only" transparent infrared layer (currently grey satellite tiles)
-- [ ] Fire hotspots near farms (NASA FIRMS via `server.js`) — needs the free FIRMS key
-- [ ] Fetch the forecast grid server-side once an hour (shared cache) for launch
+- [x] Fire hotspots (NASA FIRMS via `server.js`): map layer, "fires within 25 km" for any tapped spot and farm, farmer fire alerts. Needs the free `FIRMS_MAP_KEY`; layer stays hidden without it
+- [x] Server-side cache: grid fetched once an hour for all visitors, point forecasts and flood cached, stale-if-error, per-visitor rate limit, keys kept on the server
 
 ### Phase 1b — Farmer tools (built; not yet exercised against real Firebase)
 - [x] Farmers (account type *farmer*) add a farm by tapping its location: name, size, crops, notes — private to the owner

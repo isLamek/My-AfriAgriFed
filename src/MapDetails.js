@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
-import { CloudRain, Droplets, Sprout, Thermometer, Waves } from "lucide-react";
+import { CloudRain, Droplets, Flame, Sprout, Thermometer, Waves } from "lucide-react";
 import { TOWNS } from "./farmview/config";
 import { regionLabel } from "./farmview/regions";
+import { describeAge, fireLevel, firesNear } from "./farmview/fires";
 import { scoreCrops, seasonalRainMm, seasonalTempC, typicalRainOnset } from "./farmview/cropRules";
 
 const MONTH_NAMES = { JAN: "January", FEB: "February", MAR: "March", APR: "April", MAY: "May", JUN: "June", JUL: "July", AUG: "August", SEP: "September", OCT: "October", NOV: "November", DEC: "December" };
@@ -21,8 +22,40 @@ export function nearestTown(lat, lng) {
   return best ? { name: best.name, km: Math.round(bestKm) } : null;
 }
 
+/**
+ * Fire hotspots near a spot. `fires` is { list, error? } once the fire data has
+ * loaded, or null while it is switched off / loading (then nothing is shown,
+ * because "no data" must never read as "no fire").
+ */
+export function FireWatch({ point, fires, km = 25 }) {
+  const near = useMemo(() => (fires?.list ? firesNear(point, fires.list, { km }) : null), [point, fires, km]);
+  if (!fires) return null;
+  if (fires.error || !near) return <p className="fv-muted">Fire hotspot data is unavailable right now.</p>;
+
+  const level = fireLevel(near);
+  return (
+    <div className={`fv-fire ${level}`}>
+      <p>
+        <Flame size={16} />{" "}
+        {level === "none" ? (
+          <>No fire hotspots seen within {km} km in the last 48 hours.</>
+        ) : (
+          <>
+            <strong>{near.count} fire hotspot{near.count === 1 ? "" : "s"}</strong> within {km} km in the last 48 hours. Nearest is{" "}
+            {near.nearest.distanceKm} km away, seen {describeAge(near.nearest.ageHours)}.
+          </>
+        )}
+      </p>
+      <p className="fv-muted">
+        Hotspots are satellite heat detections, not confirmed fires. Satellites pass a few times a day, so no dot does not
+        guarantee safety. Source: NASA FIRMS.
+      </p>
+    </div>
+  );
+}
+
 /** Everything we know about one tapped spot. */
-export default function PointDetails({ picked, region, details }) {
+export default function PointDetails({ picked, region, details, fires }) {
   const town = nearestTown(picked.lat, picked.lng);
   const climate = details?.climate;
   const crops = useMemo(() => {
@@ -39,6 +72,8 @@ export default function PointDetails({ picked, region, details }) {
         {picked.lat.toFixed(3)}°, {picked.lng.toFixed(3)}°
         {town ? ` · ${town.km <= 1 ? `in ${town.name}` : `about ${town.km} km from ${town.name}`}` : ""}
       </p>
+
+      <FireWatch point={picked} fires={fires} />
 
       {details?.loading && <p className="fv-muted">Loading conditions…</p>}
 

@@ -9,6 +9,7 @@ Technical detail is in `docs/FARMVIEW_PLAN.md` (build plan) and
 
 | # | Task | Why |
 |---|------|-----|
+| 0 | **Follow `docs/SETUP_GUIDE.pdf`.** It walks through every key, the Render hosting setup, and the final checks, step by step. The rows below are the summary. | |
 | 1 | **Host the backend (`server.js`).** It handles Flutterwave payments and Cloudinary uploads and is not hosted anywhere today. Pick a host (Render, Railway, Fly.io, or similar), add the keys below as that host's *environment variables*, and note its URL. | Today the live site is built with `REACT_APP_API_URL=http://localhost:5000`, so payments and image uploads cannot work for real visitors. Orders only exist after a payment succeeds, so the Order Tracker stays empty until this is fixed. |
 | 2 | **Rebuild the site pointing at that URL**: set `REACT_APP_API_URL=https://your-backend-url` in `.env`, run `npm run build`, then deploy. | The URL is baked into the website when it is built. |
 | 3 | **Deploy the security rules**: `firebase deploy --only firestore:rules`. | Sellers cannot update orders and farmers cannot save farms until the new rules are live. The rules are written but have **not been tested in the Firebase emulator** (this machine has no Java), so test them once in a staging project first. |
@@ -22,7 +23,7 @@ business". Because AfriAgriFed takes a commission, it counts as commercial.
 
 | Source | Today | What to do |
 |---|---|---|
-| **Open-Meteo** (all weather forecasts) | Free tier is **non-commercial only** (I read their pricing page on 2 Oct 2026: 10,000 calls/day, no commercial use). | Buy a commercial plan (Standard = 1 million calls/month; prices are not published, ask info@open-meteo.com). Put the key in `OPEN_METEO_API_KEY`. |
+| **Open-Meteo** (all weather forecasts) | **Now routed through `server.js`**, which uses `OPEN_METEO_API_KEY` and its commercial address once set. Free tier is **non-commercial only** (I read their pricing page on 2 Oct 2026: 10,000 calls/day, no commercial use). | Buy a commercial plan (Standard = 1 million calls/month; prices are not published, ask info@open-meteo.com). Put the key in `OPEN_METEO_API_KEY`. |
 | **EUMETSAT** (live satellite clouds and lightning) | Free for personal / non-commercial use; **other uses need EUMETSAT's authorisation**; credit "©EUMETSAT" is required. I could not open their licence page, so this comes from a search summary and must be confirmed. | Write to EUMETSAT (user helpdesk on eumetsat.int), describe the app, and ask for written permission for commercial display of Meteosat/MTG imagery. Until you have it, you can hide the satellite layers in `src/farmview/config.js`. |
 | **Esri World Imagery** (satellite basemap) and **OpenStreetMap public tiles** | Used directly. OSM's tile servers are not meant for production traffic; Esri's imagery has its own terms for apps. | Use a paid/commercial tile provider for launch (MapTiler is the usual choice): create a key, restrict it to your website address, put it in `REACT_APP_MAPTILER_KEY`. I will wire it in once you have it. |
 | **OpenStreetMap data** (the 14 region borders) | Allowed with credit. The credit is shown on the map. | Nothing, keep the credit visible. |
