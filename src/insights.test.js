@@ -22,6 +22,14 @@ describe("priceBoard", () => {
     const rows = priceBoard(listings);
     expect(rows.map((r) => `${r.product}/${r.unit}`)).toEqual(["Mahangu/kg", "Mahangu/crate", "Tomatoes/kg"]);
   });
+  it("leaves out sold-out listings but keeps ones with no stock limit", () => {
+    const rows = priceBoard([
+      { product: "Beans", price: 50, unit: "kg", sellerId: "a", quantity: 0 },
+      { product: "Beans", price: 60, unit: "kg", sellerId: "b", quantity: 4 },
+      { product: "Beans", price: 70, unit: "kg", sellerId: "c", quantity: null },
+    ]);
+    expect(rows).toEqual([{ product: "Beans", unit: "kg", listings: 2, sellers: 2, min: 60, max: 70, avg: 65 }]);
+  });
   it("copes with nothing", () => {
     expect(priceBoard([])).toEqual([]);
     expect(priceBoard(undefined)).toEqual([]);

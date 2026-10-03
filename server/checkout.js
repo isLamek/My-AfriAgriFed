@@ -20,6 +20,7 @@ const CURRENCY = "NAD";
 const PAGE_KEYS = ["data", "statistics"];
 const PAGE_PRICE = 5; // N$ per page (concept note)
 const PROMOTION_RATE_PER_DAY = 30; // N$ per working day (concept note)
+const MAX_QUANTITY = 1000; // units in one order
 
 class HttpError extends Error {
   constructor(status, code, message) {
@@ -134,11 +135,20 @@ function register(app, deps) {
   async function priceOrder(user, body) {
     if (user.anonymous) throw new HttpError(403, "sign_in_required", "Please sign in with your account to buy.");
     if (!isId(body.listingId)) throw new HttpError(400, "bad_request", "Choose a listing to buy.");
+    const quantity = body.quantity === undefined ? 1 : body.quantity;
+    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
+      throw new HttpError(400, "bad_quantity", `Choose a whole number of units from 1 to ${MAX_QUANTITY}.`);
+    }
     const listing = await store.get(`marketPrices/${body.listingId}`);
     if (!listing) throw new HttpError(404, "listing_not_found", "That listing is no longer available.");
     const price = Number(listing.price);
     if (!Number.isFinite(price) || price <= 0) throw new HttpError(409, "listing_unpriced", "This listing has no valid price.");
-    if (typeof listing.quantity === "number" && listing.quantity <= 0) throw new HttpError(409, "sold_out", "This listing is sold out.");
+    if (typeof listing.quantity === "number") {
+      if (listing.quantity <= 0) throw new HttpError(409, "sold_out", "This listing is sold out.");
+      if (quantity > listing.quantity) {
+        throw new HttpError(409, "not_enough_stock", `Only ${listing.quantity} ${listing.quantity === 1 ? "is" : "are"} available.`);
+      }
+    }
     if (!listing.sellerId) throw new HttpError(409, "listing_unavailable", "This listing cannot be bought right now.");
     if (listing.sellerId === user.uid) throw new HttpError(400, "own_listing", "You can't buy your own listing.");
 
@@ -148,14 +158,17 @@ function register(app, deps) {
     if (!subaccount) throw new HttpError(409, "seller_not_ready", `${listing.sellerName || "This seller"} hasn't set up payouts yet. Please contact them directly.`);
 
     return {
-      amount: round2(price),
-      description: listing.product || "Marketplace order",
+      amount: round2(price * quantity),
+      description: `${quantity > 1 ? `${quantity} x ` : ""}${listing.product || "Marketplace order"}`,
       subaccount,
       record: {
         listingId: body.listingId,
         sellerId: listing.sellerId,
         sellerName: listing.sellerName || "",
         product: listing.product || "",
+        quantity,
+        unit: listing.unit || "",
+        unitPrice: round2(price), // what one unit cost when it was bought, whatever the seller changes later
       },
     };
   }
@@ -263,6 +276,7 @@ function register(app, deps) {
     let result = {};
     if (payment.kind === "order") {
       const orderId = `tx_${tx.id}`; // same transaction can never become two orders
+      const quantity = payment.quantity || 1; // payments started before quantities existed
       const created = await store.create(`orders/${orderId}`, {
         buyerId: payment.buyerId,
         buyerName: payment.buyerName,
@@ -270,6 +284,11 @@ function register(app, deps) {
         sellerName: payment.sellerName,
         product: payment.product,
         listingId: payment.listingId,
+        quantity,
+        unit: payment.unit || "",
+        unitPrice: payment.unitPrice ?? payment.amount,
+        stockApplied: false,
+        oversold: false,
         amount: payment.amount,
         currency: payment.currency,
         transactionId: String(tx.id),
@@ -279,10 +298,23 @@ function register(app, deps) {
         createdAt: store.now(),
         updatedAt: store.now(),
       });
+      const what = `${quantity > 1 ? `${quantity} x ` : ""}${payment.product}`;
       if (created) {
         await notify(payment.sellerId, {
           title: "New order",
-          body: `${payment.product} was just paid for. Confirm it to start fulfilment.`,
+          body: `${what} was just paid for. Confirm it to start fulfilment.`,
+          link: "/track-orders",
+        });
+      }
+
+      // Take the units off the listing, once. If another buyer got there first
+      // there may be fewer left than were paid for: the order is kept (the buyer
+      // has paid) and flagged so the seller can deal with it straight away.
+      const stock = await store.reserveStock({ orderPath: `orders/${orderId}`, listingPath: `marketPrices/${payment.listingId}`, quantity });
+      if (stock.applied && stock.oversold) {
+        await notify(payment.sellerId, {
+          title: "Order needs your attention",
+          body: `Only ${stock.available} of ${what} were left when this order was paid, so it cannot be filled in full. Contact the buyer, or ask for a refund.`,
           link: "/track-orders",
         });
       }

@@ -18,6 +18,7 @@ export function priceBoard(listings) {
     const price = num(l.price);
     const product = norm(l.product);
     if (!product || price == null || price < 0) continue; // skip incomplete listings
+    if (typeof l.quantity === "number" && l.quantity <= 0) continue; // sold out: nobody can buy at that price
     const unit = norm(l.unit) || "unit";
     const key = `${product}|${unit}`;
     const row = rows.get(key) || { product: titleCase(l.product), unit, listings: 0, sellers: new Set(), prices: [] };

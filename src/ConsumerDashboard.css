@@ -158,10 +158,11 @@
   margin-bottom: 8px;
 }
 
-.price-qty {
+.price-card .price-qty {
   font-size: 12px;
+  font-weight: 500;
   color: var(--aaf-text-muted);
-  margin: -8px 0 8px;
+  margin: 0 0 4px;
 }
 
 .price-own-badge {
@@ -274,10 +275,11 @@
   color: var(--aaf-danger);
 }
 
-.price-card p {
+.price-card .price-line {
   color: var(--aaf-baobab);
   font-size: 22px;
   font-weight: 800;
+  margin: 0 0 6px;
 }
 
 .price-unit {
@@ -286,11 +288,11 @@
   color: var(--aaf-text-muted);
 }
 
-.price-seller {
+.price-card .price-seller {
   font-size: 12px;
   font-weight: 500;
-  color: var(--aaf-text-muted) !important;
-  margin: -8px 0 8px;
+  color: var(--aaf-text-muted);
+  margin: 0 0 8px;
 }
 
 .buy-btn {
@@ -458,4 +460,107 @@
   color: var(--aaf-primary);
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* ---- Marketplace: quantity picker and stock ------------------------------------ */
+
+.buy-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.buy-row .buy-btn {
+  flex: 1 1 auto;
+  min-width: 0;
+  margin-top: 0;
+}
+
+.qty-box {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-surface);
+  overflow: hidden;
+}
+
+.qty-box button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 34px;
+  border: 0;
+  background: var(--aaf-mist);
+  color: var(--aaf-text);
+  cursor: pointer;
+}
+
+.qty-box button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.qty-box input {
+  width: 44px;
+  height: 34px;
+  border: 0;
+  text-align: center;
+  font: inherit;
+  font-weight: 600;
+  background: transparent;
+  -moz-appearance: textfield;
+}
+
+.qty-box input::-webkit-outer-spin-button,
+.qty-box input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.price-card .price-qty.low {
+  color: var(--aaf-warning);
+  font-weight: 600;
+}
+
+.price-card.sold-out {
+  opacity: 0.75;
+}
+
+.price-card.sold-out .price-card-image {
+  filter: grayscale(1);
+}
+
+.price-soldout-badge {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.listing-qty.sold-out {
+  color: var(--aaf-danger);
+  font-weight: 600;
+}
+
+.order-qty {
+  color: var(--aaf-text-muted);
+  font-size: 0.85em;
+}
+
+.ot-oversold {
+  margin: 10px 0;
+  padding: 9px 12px;
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-warning-bg);
+  color: var(--aaf-warning);
+  font-size: 0.85rem;
+  font-weight: 600;
 }

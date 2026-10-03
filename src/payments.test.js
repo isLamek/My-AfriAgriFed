@@ -53,6 +53,12 @@ describe("starting a payment", () => {
     expect(logTelemetryEvent).toHaveBeenCalledWith("payment_initiated", expect.objectContaining({ listingId: "L1" }));
   });
 
+  it("sends the quantity when buying several, and only then", async () => {
+    global.fetch.mockResolvedValue(reply(200, { link: "https://pay.test/abc" }));
+    await payments.startCheckout({ listingId: "L1", quantity: 3 });
+    expect(JSON.parse(global.fetch.mock.calls[0][1].body)).toEqual({ kind: "order", listingId: "L1", quantity: 3 });
+  });
+
   it("shows the server's message and stays put when the server refuses", async () => {
     global.fetch.mockResolvedValue(reply(409, { error: "seller_not_ready", message: "Sam hasn't set up payouts yet." }));
     await payments.startCheckout({ listingId: "L1" });

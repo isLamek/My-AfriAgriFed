@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { Check, ChevronDown, ChevronUp, Package, ShoppingBag, Store } from "lucide-react";
+import { quantityText } from "./purchase";
 import { auth, db } from "./firebaseConfig";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
@@ -49,12 +50,21 @@ export function OrderCard({ order, uid, side, busy, onAdvance }) {
           <p className="ot-sub">
             {side === "selling" ? "Buyer" : "Seller"}: <strong>{other}</strong>
             {" · "}
+            {quantityText(order) ? `${quantityText(order)} · ` : ""}
             {order.currency || "NAD"} {order.amount}
             {createdMs(order) ? ` · ${new Date(createdMs(order)).toLocaleDateString()}` : ""}
           </p>
         </div>
         <span className={`ot-badge ${status}`}>{STATUS_LABELS[status]}</span>
       </header>
+
+      {order.oversold && (
+        <p className="ot-oversold" role="alert">
+          {side === "selling"
+            ? "You did not have enough stock to fill this order in full. Contact the buyer to agree what to do, or ask for a refund."
+            : "The seller did not have enough stock to fill this order in full. They will contact you, or you can ask for a refund."}
+        </p>
+      )}
 
       {status === "cancelled" ? (
         <p className="ot-wait">This order was cancelled. Contact support if you have questions about a refund.</p>

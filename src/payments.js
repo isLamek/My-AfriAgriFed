@@ -66,16 +66,17 @@ async function startPayment(body, telemetry) {
 }
 
 /**
- * Buy one unit of a marketplace listing. The price and the seller's payout
- * account come from the listing on the server, not from this call.
+ * Buy `quantity` units (default 1) of a marketplace listing. The price and the
+ * seller's payout account come from the listing on the server, not from this call.
  */
-export async function startCheckout({ listingId, product, sellerId }) {
+export async function startCheckout({ listingId, quantity, product, sellerId }) {
   if (!auth.currentUser) {
     toast.error("Please sign in before buying.");
     return;
   }
   try {
-    await startPayment({ kind: "order", listingId }, { product, listingId, sellerId });
+    const body = quantity === undefined ? { kind: "order", listingId } : { kind: "order", listingId, quantity };
+    await startPayment(body, { product, listingId, sellerId, quantity });
   } catch (error) {
     toast.error(error.message);
   }

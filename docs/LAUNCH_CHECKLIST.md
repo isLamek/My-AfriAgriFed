@@ -92,8 +92,8 @@ Until the crop thresholds are reviewed, keep the "Indicative only" wording
 
 ## 8. Payments: known gaps after the server-side rewrite
 
-- **Stock is not reduced after a sale.** A listing with "10 available" stays at 10, so the same stock can be sold repeatedly. Sold-out (0) listings are refused. Decrementing needs a seller-facing decision (what if a buyer wants 3 units; there is only a quantity-1 checkout today).
-- **One unit per checkout.** The price charged is the listing's price; buying several units is not built.
+- **Stock and quantities (built).** Buyers choose a quantity; the server charges price x quantity, refuses more than is in stock, and subtracts the units from the listing once the payment is confirmed (atomically, and only once per payment). A listing that reaches zero stays visible as "Sold out" with Buy disabled and drops out of the Data Dashboard price board; the seller restocks by editing the quantity. If two buyers pay for the last units at the same moment, stock never goes below zero: the later order is kept (they have paid), flagged "needs attention" for both people, and the seller is notified to contact the buyer or arrange a refund.
+- **Reserving stock while a buyer is on Flutterwave's page is not built.** Two buyers can both start paying for the last unit; the one who finishes second gets the "needs attention" flag above rather than a polite refusal at the start.
 - **Student self-verification is honour-system.** Any photo unlocks free access (the existing product decision). Paid unlocks, by contrast, can now only be written by the server.
 - **Refunds and cancellations** are still done by hand in the Flutterwave dashboard, and an admin updates the order.
 - **Order-status changes** (confirmed, dispatched, in transit, delivered) are still written by the seller and buyer from the browser under the existing rules, which only allow legal moves.

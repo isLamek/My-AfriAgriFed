@@ -364,6 +364,139 @@ describe("seller payout setup", () => {
   });
 });
 
+// ---- quantities and stock ----------------------------------------------------------------
+describe("buying several units", () => {
+  const buy = async (token, quantity, listingId = "L1") => (await initiate(token, { kind: "order", listingId, quantity })).json;
+
+  it("charges price x quantity and records what one unit cost", async () => {
+    await start();
+    const res = await buy("tok-buyer", 3);
+    expect(res.amount).toBe(360);
+    expect(flwCalls.find((c) => c.path === "/payments").body.amount).toBe(360);
+    expect(flwCalls.find((c) => c.path === "/payments").body.customizations.description).toBe("3 x Mahangu");
+    expect(await store.get(`payments/${res.txRef}`)).toMatchObject({ quantity: 3, unitPrice: 120, amount: 360 });
+  });
+
+  it("treats a missing quantity as one", async () => {
+    await start();
+    expect((await buy("tok-buyer", undefined)).amount).toBe(120);
+  });
+
+  it("refuses silly quantities: zero, negative, fractions, text, or more than the order limit", async () => {
+    await start();
+    for (const q of [0, -2, 1.5, "3", null, 1001, NaN]) {
+      const res = await initiate("tok-buyer", { kind: "order", listingId: "L1", quantity: q });
+      expect([400]).toContain(res.status);
+      expect(res.json.error).toBe("bad_quantity");
+    }
+    expect(flwCalls.filter((c) => c.path === "/payments")).toHaveLength(0);
+  });
+
+  it("refuses more than is in stock, and says how many there are", async () => {
+    await start();
+    const res = await initiate("tok-buyer", { kind: "order", listingId: "L1", quantity: 11 });
+    expect(res.status).toBe(409);
+    expect(res.json).toMatchObject({ error: "not_enough_stock", message: "Only 10 are available." });
+    expect((await buy("tok-buyer", 10)).amount).toBe(1200); // exactly the stock is fine
+  });
+
+  it("lets a listing with no stock limit be bought in any quantity up to the order limit", async () => {
+    await start({ seed: { ...SEED(), "users/seller2": { flutterwaveSubaccountId: "RS2" } } });
+    expect((await buy("tok-buyer", 500, "NOPAY")).amount).toBe(40000);
+  });
+});
+
+describe("stock after a sale", () => {
+  const pay = async (token, id, quantity) => {
+    const { json } = await initiate(token, { kind: "order", listingId: "L1", quantity });
+    paid(String(id), json.txRef, json.amount);
+    return verify(token, id);
+  };
+
+  it("takes the units off the listing and records them on the order", async () => {
+    await start();
+    expect((await pay("tok-buyer", 1001, 3)).json.verified).toBe(true);
+    expect((await store.get("marketPrices/L1")).quantity).toBe(7);
+    expect(await store.get("orders/tx_1001")).toMatchObject({ quantity: 3, unitPrice: 120, amount: 360, stockApplied: true, oversold: false });
+    expect(store.list("notifications")[0].body).toBe("3 x Mahangu was just paid for. Confirm it to start fulfilment.");
+  });
+
+  it("counts the stock once however many times the payment is confirmed", async () => {
+    await start();
+    await pay("tok-buyer", 1002, 4);
+    await verify("tok-buyer", 1002);
+    await webhook({ event: "charge.completed", data: { id: 1002 } });
+    await Promise.all([verify("tok-buyer", 1002), webhook({ event: "charge.completed", data: { id: 1002 } })]);
+    expect((await store.get("marketPrices/L1")).quantity).toBe(6); // 10 - 4, not 10 - 4 - 4 - ...
+    expect(store.list("orders")).toHaveLength(1);
+  });
+
+  it("finishes the job on a retry if the server stopped after creating the order but before counting stock", async () => {
+    await start();
+    const { json } = await initiate("tok-buyer", { kind: "order", listingId: "L1", quantity: 2 });
+    paid("1003", json.txRef, json.amount);
+    const realReserve = store.reserveStock;
+    store.reserveStock = async () => { throw new Error("crash"); };
+    expect((await verify("tok-buyer", 1003)).status).toBe(500);
+    expect((await store.get("orders/tx_1003")).stockApplied).toBe(false); // order exists, stock not yet counted
+    expect((await store.get("marketPrices/L1")).quantity).toBe(10);
+
+    store.reserveStock = realReserve; // the webhook retries
+    expect((await webhook({ event: "charge.completed", data: { id: 1003 } })).status).toBe(200);
+    expect((await store.get("marketPrices/L1")).quantity).toBe(8);
+    expect(store.list("orders")).toHaveLength(1);
+    expect(store.list("notifications")).toHaveLength(1); // the seller was not told twice
+  });
+
+  it("never lets stock go negative when two buyers pay for the last units, and flags the later order", async () => {
+    await start({ seed: { ...SEED(), "marketPrices/L1": { ...SEED()["marketPrices/L1"], quantity: 3 } } });
+    // both started paying while 3 were available
+    const a = (await initiate("tok-buyer", { kind: "order", listingId: "L1", quantity: 2 })).json;
+    const b = (await initiate("tok-other", { kind: "order", listingId: "L1", quantity: 2 })).json;
+    paid("1101", a.txRef, a.amount);
+    paid("1102", b.txRef, b.amount);
+
+    await verify("tok-buyer", 1101);
+    await verify("tok-other", 1102);
+
+    expect((await store.get("marketPrices/L1")).quantity).toBe(0);
+    expect(await store.get("orders/tx_1101")).toMatchObject({ oversold: false });
+    expect(await store.get("orders/tx_1102")).toMatchObject({ oversold: true, status: "paid" }); // the buyer did pay: kept, not lost
+    const warning = store.list("notifications").find((n) => n.title === "Order needs your attention");
+    expect(warning).toMatchObject({ userId: "seller1" });
+    expect(warning.body).toContain("Only 1 of 2 x Mahangu were left");
+  });
+
+  it("leaves a listing with no stock limit alone", async () => {
+    await start({ seed: { ...SEED(), "users/seller2": { flutterwaveSubaccountId: "RS2" } } });
+    const { json } = await initiate("tok-buyer", { kind: "order", listingId: "NOPAY", quantity: 5 });
+    paid("1201", json.txRef, json.amount);
+    await verify("tok-buyer", 1201);
+    expect((await store.get("marketPrices/NOPAY")).quantity).toBeUndefined();
+    expect(await store.get("orders/tx_1201")).toMatchObject({ quantity: 5, stockApplied: true, oversold: false });
+  });
+
+  it("refuses to sell once the last unit has gone", async () => {
+    await start({ seed: { ...SEED(), "marketPrices/L1": { ...SEED()["marketPrices/L1"], quantity: 1 } } });
+    await pay("tok-buyer", 1301, 1);
+    expect((await store.get("marketPrices/L1")).quantity).toBe(0);
+    expect((await initiate("tok-other", { kind: "order", listingId: "L1", quantity: 1 })).json.error).toBe("sold_out");
+  });
+
+  it("still handles a payment that was started before quantities existed", async () => {
+    await start({
+      seed: {
+        ...SEED(),
+        "payments/aaf-old-1": { kind: "order", buyerId: "buyer1", buyerName: "Bea", amount: 120, currency: "NAD", status: "pending", listingId: "L1", sellerId: "seller1", sellerName: "Sam", product: "Mahangu" },
+      },
+    });
+    paid("1401", "aaf-old-1", 120);
+    expect((await verify("tok-buyer", 1401)).json.verified).toBe(true);
+    expect(await store.get("orders/tx_1401")).toMatchObject({ quantity: 1, unitPrice: 120 });
+    expect((await store.get("marketPrices/L1")).quantity).toBe(9);
+  });
+});
+
 // ---- helpers ------------------------------------------------------------------------------
 describe("countWorkingDays", () => {
   it("counts Monday to Friday only", () => {

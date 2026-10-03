@@ -7,6 +7,8 @@
 //   set(path, data, opts)  -> write (opts.merge supported)
 //   update(path, data)     -> change fields of an existing document
 //   add(collection, data)  -> new document id
+//   reserveStock({orderPath, listingPath, quantity})
+//                          -> subtract an order's units from its listing, once (atomic)
 //   now()                  -> a server timestamp value
 
 function adminStore(db, FieldValue) {
@@ -35,8 +37,47 @@ function adminStore(db, FieldValue) {
       const ref = await db.collection(collection).add(data);
       return ref.id;
     },
+    async reserveStock({ orderPath, listingPath, quantity }) {
+      // One transaction: take the units off the listing AND mark the order as
+      // counted, so two requests for the same order can never both subtract.
+      return db.runTransaction(async (tx) => {
+        const orderRef = db.doc(orderPath);
+        const listingRef = db.doc(listingPath);
+        const [orderSnap, listingSnap] = await Promise.all([tx.get(orderRef), tx.get(listingRef)]);
+        return applyStock({
+          order: orderSnap.exists ? orderSnap.data() : null,
+          listing: listingSnap.exists ? listingSnap.data() : null,
+          quantity,
+          writeOrder: (data) => tx.update(orderRef, data),
+          writeListing: (data) => tx.update(listingRef, data),
+        });
+      });
+    },
     now: () => FieldValue.serverTimestamp(),
   };
+}
+
+/**
+ * The stock rule, shared by the real database and the test double.
+ * - already counted for this order: do nothing
+ * - listing has no quantity (unlimited) or is gone: nothing to subtract
+ * - otherwise subtract, never below zero; if there were fewer than ordered the
+ *   order is flagged `oversold` so the seller can sort it out with the buyer.
+ */
+function applyStock({ order, listing, quantity, writeOrder, writeListing }) {
+  if (!order) throw new Error("Order not found while counting stock");
+  if (order.stockApplied) return { applied: false };
+
+  const stock = listing && typeof listing.quantity === "number" ? listing.quantity : null;
+  if (stock === null) {
+    writeOrder({ stockApplied: true });
+    return { applied: true, oversold: false, remaining: null };
+  }
+  const oversold = stock < quantity;
+  const remaining = Math.max(0, stock - quantity);
+  writeListing({ quantity: remaining });
+  writeOrder({ stockApplied: true, oversold });
+  return { applied: true, oversold, remaining, available: stock };
 }
 
 // A JSON round trip: like a real database, only plain data survives.
@@ -67,6 +108,15 @@ function memoryStore(seed = {}) {
       const id = `auto${++counter}`;
       docs.set(`${collection}/${id}`, clone(data));
       return id;
+    },
+    async reserveStock({ orderPath, listingPath, quantity }) {
+      return applyStock({
+        order: docs.has(orderPath) ? docs.get(orderPath) : null,
+        listing: docs.has(listingPath) ? docs.get(listingPath) : null,
+        quantity,
+        writeOrder: (data) => docs.set(orderPath, { ...docs.get(orderPath), ...data }),
+        writeListing: (data) => docs.set(listingPath, { ...docs.get(listingPath), ...data }),
+      });
     },
     now: clock,
     /** All documents directly inside a collection, for assertions. */

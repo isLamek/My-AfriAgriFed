@@ -38,6 +38,7 @@ import toast from "react-hot-toast";
 import { buildNavSections } from "./navConfig";
 import { useLocation, useNavigate } from "react-router-dom";
 import CommunitySpaces from "./CommunitySpaces";
+import ListingCard from "./ListingCard";
 import AppShell from "./AppShell";
 import {
   Heart,
@@ -516,42 +517,16 @@ export default function ConsumerDashboard({ role = "consumer" }) {
 
             return (
               <div className="market-grid">
-                {filtered.map(price => {
-                  const isOwn = price.sellerId === auth.currentUser?.uid;
-                  return (
-                    <div key={price.id} className="price-card">
-                      {price.imageUrl && <img src={price.imageUrl} alt={price.product} className="price-card-image" />}
-                      <h3>{price.product}</h3>
-
-                      <p>
-                        N${price.price}
-                        {price.unit && <span className="price-unit"> / {price.unit}</span>}
-                      </p>
-
-                      {price.quantity != null && <p className="price-qty">{price.quantity} available</p>}
-                      {price.sellerName && <p className="price-seller">Sold by {price.sellerName}</p>}
-
-                      {isOwn ? (
-                        <span className="price-own-badge">Your listing</span>
-                      ) : (
-                        <button
-                          className="buy-btn"
-                          disabled={!price.sellerSubaccountId}
-                          onClick={() =>
-                            startCheckout({
-                              listingId: price.id,
-                              product: price.product,
-                              sellerId: price.sellerId,
-                            })
-                          }
-                          title={price.sellerSubaccountId ? "" : "This seller hasn't set up payouts yet"}
-                        >
-                          Buy
-                        </button>
-                      )}
-                    </div>
-                  );
-                })}
+                {filtered.map((price) => (
+                  <ListingCard
+                    key={price.id}
+                    listing={price}
+                    isOwn={price.sellerId === auth.currentUser?.uid}
+                    onBuy={(listing, quantity) =>
+                      startCheckout({ listingId: listing.id, quantity, product: listing.product, sellerId: listing.sellerId })
+                    }
+                  />
+                ))}
               </div>
             );
           })()}

@@ -8,6 +8,7 @@ import { buildNavSections } from "./navConfig";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import { normaliseStatus, STATUS_LABELS } from "./orderStatus";
+import { quantityText } from "./purchase";
 import "./MyOrders.css";
 
 export default function MyOrders() {
@@ -88,7 +89,10 @@ export default function MyOrders() {
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td>{order.product}</td>
+                  <td>
+                    {order.product}
+                    {quantityText(order) && <span className="order-qty"> · {quantityText(order)}</span>}
+                  </td>
                   <td>
                     {order.currency || "NAD"} {order.amount}
                   </td>

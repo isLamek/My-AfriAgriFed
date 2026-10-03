@@ -137,7 +137,7 @@ export default function MyListings() {
 
   const startEdit = (listing) => {
     setEditingId(listing.id);
-    setFormData({ product: listing.product, price: listing.price, unit: listing.unit || "kg", quantity: listing.quantity || "" });
+    setFormData({ product: listing.product, price: listing.price, unit: listing.unit || "kg", quantity: listing.quantity ?? "" });
     setExistingImageUrl(listing.imageUrl || null);
     setImageFile(null);
     setImagePreview(null);
@@ -179,7 +179,7 @@ export default function MyListings() {
         product: formData.product.trim(),
         price: Number(formData.price),
         unit: formData.unit,
-        quantity: formData.quantity ? Number(formData.quantity) : null,
+        quantity: formData.quantity === "" || formData.quantity == null ? null : Math.max(0, Math.floor(Number(formData.quantity))),
         imageUrl,
         sellerId: user.uid,
         sellerName: user.displayName || user.email,
@@ -379,7 +379,11 @@ export default function MyListings() {
                 <p className="listing-price">
                   N${listing.price} <span>/ {listing.unit || "kg"}</span>
                 </p>
-                {listing.quantity != null && <p className="listing-qty">{listing.quantity} available</p>}
+                {listing.quantity != null && (
+                  <p className={`listing-qty ${listing.quantity <= 0 ? "sold-out" : ""}`}>
+                    {listing.quantity <= 0 ? "Sold out. Edit the quantity to restock." : `${listing.quantity} available`}
+                  </p>
+                )}
               </div>
               <div className="listing-actions">
                 <button onClick={() => startEdit(listing)} aria-label="Edit">
