@@ -199,3 +199,8 @@
 .listing-actions button:hover {
   background: var(--aaf-border);
 }
+
+/* an empty-state message should use the whole row, not one narrow column */
+.listings-grid .dashboard-empty-state {
+  grid-column: 1 / -1;
+}

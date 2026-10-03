@@ -129,11 +129,12 @@ real Firebase project, and the Firestore rules could not be tested in the emulat
 ## 8. What I am doing without you
 
 Already built and pushed: Map with verified regions, live weather, satellite and fire layers;
-farmer farms and input log; Order Tracker; clear Community Feed / Demand Board /
-Marketplace; rebuilt Data, Statistics and Promotions pages; cached weather backend;
-server-side payments; quantities and stock; the admin self-approval fix; and
-e-mail verification (this change).
+farmer farms and input log; Order Tracker (now also flags orders the seller could not
+fill in full); clear Community Feed / Demand Board / Marketplace; rebuilt Data,
+Statistics and Promotions pages; Research, Training and Internships moved into the app
+(sidebar, brand colours); cached weather backend; server-side payments; quantities and
+stock; the admin self-approval fix; e-mail verification; tighter notification and
+listing rules.
 
-Next, unless you redirect me: tighten notification and listing rules, a seller
-"orders needing attention" view, and a pass over the remaining signed-in pages
-(Research, Training, Internships, Profile, Admin) for layout and wording.
+Next, unless you redirect me: a review pass over the Admin Dashboard and the three
+questionnaires (wording, layout, phone view), and the Realtime Database rules for posts.

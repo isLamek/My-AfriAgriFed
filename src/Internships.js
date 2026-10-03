@@ -10,18 +10,17 @@ import {
   serverTimestamp,
   updateDoc,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
 import { MapPin } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import { notifyUser } from "./notifications";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
+import InsightsFrame from "./InsightsFrame";
 import "./Internships.css";
 
 const emptyForm = { title: "", description: "", location: "", slots: 1 };
 
 export default function Internships() {
-  const navigate = useNavigate();
   const [userType, setUserType] = useState(null);
   const [internships, setInternships] = useState([]);
   const [formData, setFormData] = useState(emptyForm);
@@ -188,19 +187,12 @@ export default function Internships() {
   };
 
   return (
-    <div className="internships-page">
-      <header className="internships-header">
-        <div>
-          <p className="eyebrow">Producers &amp; institutions</p>
-          <h1>Internships</h1>
-          <p>Farmers offer placements, institutions request them - farmers give the final approval.</p>
-        </div>
-
-        <div className="internships-actions">
-          <button onClick={() => navigate(-1)}>Back</button>
-        </div>
-      </header>
-
+    <InsightsFrame
+      eyebrow="Producers &amp; institutions"
+      title="Internships"
+      subtitle="Farmers offer placements, institutions request them. Farmers give the final approval."
+      activePath="/internships"
+    >
       <main className="internships-layout">
         {canPost && (
           <section className="internships-form-card">
@@ -255,6 +247,6 @@ export default function Internships() {
           )}
         </section>
       </main>
-    </div>
+    </InsightsFrame>
   );
 }

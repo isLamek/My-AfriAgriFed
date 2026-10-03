@@ -11,11 +11,11 @@ import {
 } from "firebase/firestore";
 import { ref, push } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
 import { MapPin, Video } from "lucide-react";
 import { auth, db, database } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
+import InsightsFrame from "./InsightsFrame";
 import "./TrainingPrograms.css";
 
 const emptyProgram = {
@@ -28,7 +28,6 @@ const emptyProgram = {
 };
 
 export default function TrainingPrograms() {
-  const navigate = useNavigate();
   const [programs, setPrograms] = useState([]);
   const [formData, setFormData] = useState(emptyProgram);
   const [posting, setPosting] = useState(false);
@@ -108,19 +107,12 @@ export default function TrainingPrograms() {
   };
 
   return (
-    <div className="training-page">
-      <header className="training-header">
-        <div>
-          <p className="eyebrow">Education &amp; producers</p>
-          <h1>Training Programs</h1>
-          <p>Programs institutions run for farmers, shared to the community feed.</p>
-        </div>
-
-        <div className="training-actions">
-          <button onClick={() => navigate(-1)}>Back</button>
-        </div>
-      </header>
-
+    <InsightsFrame
+      eyebrow="Education &amp; producers"
+      title="Training Programs"
+      subtitle="Programs institutions run for farmers, shared to the community feed."
+      activePath="/training"
+    >
       <main className="training-layout">
         {canPost && (
           <section className="training-form-card">
@@ -205,6 +197,6 @@ export default function TrainingPrograms() {
           )}
         </section>
       </main>
-    </div>
+    </InsightsFrame>
   );
 }

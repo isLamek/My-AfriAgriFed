@@ -10,13 +10,12 @@ import {
   serverTimestamp,
   where,
 } from "firebase/firestore";
-import { useNavigate } from "react-router-dom";
 import { auth, db } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
+import InsightsFrame from "./InsightsFrame";
 import "./Research.css";
 
 export default function Research() {
-  const navigate = useNavigate();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState(null);
@@ -108,22 +107,12 @@ export default function Research() {
     articles.find((article) => article.id === problem.answeredArticleId);
 
   return (
-    <div className="research-page">
-      <header className="research-header">
-        <div>
-          <p className="eyebrow">Institution research</p>
-          <h1>Farming Research Articles</h1>
-          <p>Read agricultural reports, links and PDFs shared by institutions.</p>
-        </div>
-
-        <div className="research-actions">
-          <button onClick={() => navigate(-1)}>Back</button>
-          <button className="primary" onClick={() => navigate("/prices")}>
-            Prices
-          </button>
-        </div>
-      </header>
-
+    <InsightsFrame
+      eyebrow="Institution research"
+      title="Farming Research Articles"
+      subtitle="Read agricultural reports, links and PDFs shared by institutions."
+      activePath="/research"
+    >
       {userType === "farmer" && (
         <section className="research-problems">
           <h2>Submit a Problem for Research</h2>
@@ -240,6 +229,6 @@ export default function Research() {
           ))}
         </section>
       </main>
-    </div>
+    </InsightsFrame>
   );
 }
