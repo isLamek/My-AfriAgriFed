@@ -186,7 +186,7 @@ function App() {
       <Route path="/" element={<Home />} />
       <Route path="/signin" element={<SignIn />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/quick-access" element={<QuickAccess />} />
+      {process.env.NODE_ENV !== "production" && <Route path="/quick-access" element={<QuickAccess />} />}
       <Route path="/forgot-password" element={<ForgotPassword />} />
 
       <Route

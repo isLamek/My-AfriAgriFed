@@ -98,3 +98,17 @@ Until the crop thresholds are reviewed, keep the "Indicative only" wording
 - **Refunds and cancellations** are still done by hand in the Flutterwave dashboard, and an admin updates the order.
 - **Order-status changes** (confirmed, dispatched, in transit, delivered) are still written by the seller and buyer from the browser under the existing rules, which only allow legal moves.
 - **Test it before going live**: with Flutterwave *test* keys, make a purchase as buyer A from seller B (who has saved bank details), check one order appears for both, reload the return page and confirm no second order, then try the same with the buyer closing the tab before returning (the webhook must still create it).
+
+## 9. Account security: what was fixed and what you must confirm
+
+**Fixed (in `firestore.rules`, needs deploying):**
+- Anyone could write `approved: true` into their own profile and skip the admin Verification Queue, so a fake "farmer" or "institution" could get in with no documents checked. New profiles must now start unapproved and pending, and an owner can no longer change `approved`, `status`, `accountStatus` or `userType`. Only admins can.
+- The public **Quick Access** page created accounts that wrote `userType: "admin"` and `approved: true` into their own profile. It is now development-only (the route and the sign-in link do not exist in production builds) and writes no profile.
+
+**Please confirm (I cannot see your live database):**
+1. **The founder seat is already claimed.** While no founder exists, the rules let the first signed-in person make themselves founder. In the Firebase console open Firestore, then `system`, then `bootstrap`: it should show `founderClaimed: true`. If it does not, sign in as the real founder and claim it now.
+2. **Admin e-mails are not verified by Firebase.** Admin rights are given to an e-mail address. Firebase lets anyone sign up with any e-mail address without proving they own it. So if you grant admin access to a teammate's e-mail *before* they have created their account, someone else could register that address first and become admin. **Procedure until e-mail verification is added:** grant admin access only after the teammate has created their account and signed in once. The proper fix is to send a verification e-mail at sign-up and require `email_verified` in the rules; it is not built because switching it on would lock out any existing admin whose e-mail was never verified.
+3. **Existing accounts.** Profiles created before this change keep whatever they have. In the Admin Dashboard's Verification Queue, spot-check farmers and institutions that show as approved but have no reviewer recorded (`reviewedBy` empty): those may have approved themselves.
+
+**Still open (not changed):** anyone signed in can create notifications for anyone (spam risk), and the per-listing "verified farmer" status is not enforced when creating listings or demands (the dashboards check it in the browser only). Both are worth tightening once the first real users are on board.
+

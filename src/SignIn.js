@@ -195,8 +195,13 @@ const navigate = useNavigate()
           </form>
 
           <p className="signin-footnote">
-            Need an account? <Link to="/register">Register</Link> or use{" "}
-            <Link to="/quick-access">Quick Access</Link>.
+            Need an account? <Link to="/register">Register</Link>
+            {process.env.NODE_ENV !== "production" && (
+              <>
+                {" "}or use <Link to="/quick-access">Quick Access</Link> (development only)
+              </>
+            )}
+            .
           </p>
         </div>
       </div>

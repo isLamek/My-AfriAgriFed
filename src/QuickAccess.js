@@ -3,19 +3,19 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { doc, serverTimestamp, setDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "./firebaseConfig";
+import { auth } from "./firebaseConfig";
 import { autoClaimPresetAdmin, isAdmin } from "./admin";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import appIcon from "./images/seed-mark.png";
 import "./SignIn.css";
 
-// A minimal email+password account creator that skips the full Register.js
-// wizard (questionnaire, ID/document upload, admin approval wait) entirely.
-// Useful for admins/developers who don't need a farmer/consumer/institution
-// profile - just an authenticated account. Regular users should still go
-// through /register so their farmer/institution documents get verified.
+// DEVELOPMENT ONLY (the route and the sign-in link are not available in
+// production builds). A minimal email+password account creator that skips the
+// Register.js wizard, for developers testing locally. It creates only a login:
+// no profile, and nothing is marked approved. To make a real admin in
+// production, create the user in Firebase console (Authentication, Add user)
+// and have a founder grant that email in the Admin Dashboard.
 export default function QuickAccess() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
@@ -48,20 +48,8 @@ export default function QuickAccess() {
         logTelemetryEvent(TELEMETRY_EVENTS.SIGN_IN, {});
       }
 
-      // Minimal profile so pages that read `users/{uid}` for a userType
-      // don't choke on a missing document. No questionnaire, no documents,
-      // no approval wait - this account isn't a farmer/consumer/institution.
-      await setDoc(
-        doc(db, "users", user.uid),
-        {
-          personalInfo: { email: user.email },
-          userType: "admin",
-          approved: true,
-          status: "verified",
-          createdAt: serverTimestamp(),
-        },
-        { merge: true }
-      );
+      // No profile is written here: admins do not need one (sign-in checks the admin
+      // list first), and a profile that approves itself would defeat verification.
 
       const claimResult = await autoClaimPresetAdmin(user);
       const alreadyAdmin = claimResult.claimed || (await isAdmin(user));

@@ -96,9 +96,25 @@ service cloud.firestore {
     }
 
     // ---- application data ----
+    // Approval is an admin decision (the Verification Queue). Until now an owner
+    // could write approved:true into their own profile and skip verification, so:
+    //  - a new profile must start unapproved and pending (Register.js does this);
+    //  - an owner can edit their details but never approved / status / accountStatus /
+    //    userType (so a consumer cannot turn themselves into a verified farmer);
+    //  - only admins change those.
     match /users/{uid} {
-      allow create: if signedIn() && request.auth.uid == uid;
-      allow read, update: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.get('approved', false) != true
+        && request.resource.data.get('status', 'pending') == 'pending'
+        && request.resource.data.get('accountStatus', {}).get('registrationStatus', 'pending') == 'pending'
+        && request.resource.data.get('accountStatus', {}).get('documentStatus', 'submitted') in ['submitted', 'not_required', 'pending']
+        && request.resource.data.get('userType', 'consumer') in ['farmer', 'consumer', 'institution'];
+      allow read: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
+      allow update: if signedIn() && (
+        (request.auth.uid == uid
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['approved', 'status', 'accountStatus', 'userType', 'reviewedAt', 'reviewedBy']))
+        || isSignedInAdmin()
+      );
       allow delete: if isSignedInAdmin();
     }
 

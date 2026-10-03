@@ -319,7 +319,7 @@ export default function Home() {
         </h1>
 
         <p ref={subtitleRef} className="hero-subtitle">
-          Afriagrified combats Africa's food insecurity by boosting food production through data driven agricultural innovation.
+          AfriAgriFed combats Africa's food insecurity by boosting food production through data driven agricultural innovation.
         </p>
 
         {/* Prominent Call-to-Action Buttons */}
