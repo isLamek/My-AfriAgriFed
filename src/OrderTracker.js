@@ -14,6 +14,7 @@ import {
   allowedNext,
   buildTimeline,
   isActive,
+  needsAttention,
   normaliseStatus,
   waitingOn,
 } from "./orderStatus";
@@ -154,12 +155,12 @@ export default function OrderTracker() {
   useEffect(() => {
     if (autoPicked || buying === null || selling === null) return;
     setAutoPicked(true);
-    if (selling.some((o) => allowedNext(o, uid).length > 0)) setSide("selling");
+    if (selling.some((o) => allowedNext(o, uid).length > 0 || needsAttention(o))) setSide("selling");
     else if (buying.length === 0 && selling.length > 0) setSide("selling");
   }, [autoPicked, buying, selling, uid]);
 
   const list = side === "buying" ? buying : selling;
-  const needsAction = (orders) => (orders || []).filter((o) => allowedNext(o, uid).length > 0).length;
+  const needsAction = (orders) => (orders || []).filter((o) => allowedNext(o, uid).length > 0 || needsAttention(o)).length;
 
   const visible = useMemo(() => {
     if (!list) return [];

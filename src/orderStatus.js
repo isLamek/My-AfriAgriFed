@@ -112,6 +112,12 @@ export function isActive(order) {
   return status !== "delivered" && status !== "cancelled";
 }
 
+// An order the seller could not fill in full (another buyer took the last units
+// first). The buyer has paid, so it stays open and is flagged for both people.
+export function needsAttention(order) {
+  return order?.oversold === true && isActive(order);
+}
+
 // Who needs to act next, in plain words - shown on each card.
 export function waitingOn(order) {
   switch (normaliseStatus(order?.status)) {

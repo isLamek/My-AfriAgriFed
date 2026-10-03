@@ -8,6 +8,7 @@ import {
   normaliseStatus,
   rolesFor,
   timeReached,
+  needsAttention,
 } from "./orderStatus";
 
 const order = (status, extra = {}) => ({ id: "o1", buyerId: "buyer1", sellerId: "seller1", status, ...extra });
@@ -110,5 +111,19 @@ describe("history and timeline", () => {
     expect(isActive(order("cancelled"))).toBe(false);
     expect(isActive(order("delivered"))).toBe(false);
     expect(isActive(order("in_transit"))).toBe(true);
+  });
+});
+
+describe("needsAttention", () => {
+  it("flags an open order that could not be filled in full", () => {
+    expect(needsAttention(order("paid", { oversold: true }))).toBe(true);
+    expect(needsAttention(order("in_transit", { oversold: true }))).toBe(true);
+  });
+  it("does not flag normal orders, finished orders, or missing data", () => {
+    expect(needsAttention(order("paid"))).toBe(false);
+    expect(needsAttention(order("paid", { oversold: false }))).toBe(false);
+    expect(needsAttention(order("delivered", { oversold: true }))).toBe(false);
+    expect(needsAttention(order("cancelled", { oversold: true }))).toBe(false);
+    expect(needsAttention(undefined)).toBe(false);
   });
 });
