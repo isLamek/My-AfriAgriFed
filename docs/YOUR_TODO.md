@@ -86,6 +86,11 @@ real Firebase project, and the Firestore rules could not be tested in the emulat
 - [ ] **Order steps:** seller confirms, dispatches, marks in transit; buyer confirms
       delivery. Check the notification bell each time.
 - [ ] **Promotion:** a farmer pays for one; it appears as active afterwards.
+- [ ] **Your real farmers can still post listings.** The rules now let only *approved*
+      farmers create marketplace listings. Sign in as one of your genuine approved
+      farmers and post a listing. If it is refused, tell me the account's approval
+      fields (Firestore, `users`, that farmer's document) and I will adjust.
+- [ ] **A farmer still waiting for approval cannot post a listing** (try a new one).
 - [ ] **Rules (staging project):** try, from the browser console, to write
       `approved: true` on your own profile and to create an order. Both must be refused.
 - [ ] **Farmer tools:** add a farm on the Map, log inputs, check totals, delete a record.

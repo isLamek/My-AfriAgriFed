@@ -126,9 +126,24 @@ service cloud.firestore {
       allow delete: if isSignedInAdmin();
     }
 
+    // Same approval test the app uses (see isApprovedStatus in src/App.js). Users can no
+    // longer write these fields themselves (see /users below), only admins can.
+    function isApprovedFarmer() {
+      let me = get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+      return signedIn()
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid))
+        && me.get('userType', '') == 'farmer'
+        && (
+          me.get('approved', false) == true
+          || me.get('status', '') in ['approved', 'verified']
+          || me.get('accountStatus', {}).get('registrationStatus', '') == 'verified'
+          || me.get('accountStatus', {}).get('documentStatus', '') == 'approved'
+        );
+    }
+
     match /marketPrices/{id} {
       allow read: if true;
-      allow create: if signedIn() && request.resource.data.sellerId == request.auth.uid;
+      allow create: if signedIn() && isApprovedFarmer() && request.resource.data.sellerId == request.auth.uid;
       allow update, delete: if signedIn() && (resource.data.sellerId == request.auth.uid || isSignedInAdmin());
     }
 
@@ -187,9 +202,22 @@ service cloud.firestore {
       allow delete: if signedIn() && (resource.data.farmerId == request.auth.uid || isSignedInAdmin());
     }
 
+    // Shape matches src/notifications.js (and the server's own notifications, which
+    // bypass these rules). Anyone signed in may still notify someone else, as the
+    // app's flows need (a pledge, an internship decision), but not with arbitrary
+    // fields or oversized text, and a recipient can only mark one as read.
     match /notifications/{id} {
-      allow create: if signedIn();
-      allow read, update: if signedIn() && resource.data.userId == request.auth.uid;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['userId', 'title', 'body', 'link', 'read', 'createdAt'])
+        && request.resource.data.userId is string && request.resource.data.userId.size() > 0 && request.resource.data.userId.size() <= 128
+        && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120
+        && request.resource.data.get('body', '') is string && request.resource.data.get('body', '').size() <= 400
+        && request.resource.data.get('link', '/') is string && request.resource.data.get('link', '/').matches('^/[A-Za-z0-9/_-]{0,80}$')
+        && request.resource.data.get('read', false) == false
+        && request.resource.data.createdAt == request.time;
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow update: if signedIn() && resource.data.userId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
       allow delete: if false;
     }
 
