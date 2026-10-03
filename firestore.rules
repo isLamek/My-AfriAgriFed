@@ -23,6 +23,13 @@ service cloud.firestore {
       return request.auth.token.email.lower();
     }
 
+    // Firebase lets anyone sign up with any e-mail address without proving they own
+    // it, so admin rights only count for a VERIFIED address (the app's Admin area
+    // makes people verify first; see src/VerifyEmail.js).
+    function emailVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
     function isAdminEmail(email) {
       return exists(/databases/$(database)/documents/admins/$(email));
     }
@@ -36,11 +43,11 @@ service cloud.firestore {
     }
 
     function isSignedInAdmin() {
-      return signedIn() && isAdminEmail(myEmail());
+      return signedIn() && emailVerified() && isAdminEmail(myEmail());
     }
 
     function isSignedInFounder() {
-      return signedIn() && isFounderEmail(myEmail());
+      return signedIn() && emailVerified() && isFounderEmail(myEmail());
     }
 
     function founderSeatUnclaimed() {
@@ -82,6 +89,7 @@ service cloud.firestore {
       allow create: if isSignedInFounder()
         || (
           signedIn()
+          && emailVerified()
           && myEmail() == email
           && request.resource.data.role == 'founder'
           && founderSeatUnclaimed()

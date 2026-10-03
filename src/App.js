@@ -31,6 +31,8 @@ import PaymentCallback from "./PaymentCallback";
 
 import { auth, db } from "./firebaseConfig";
 import { isAdmin } from "./admin";
+import { needsVerification } from "./emailVerification";
+import { VerifyEmailGate } from "./VerifyEmail";
 
 // Lazy-loaded so the map library only downloads when someone opens the map.
 const MapPage = React.lazy(() => import("./MapPage"));
@@ -139,6 +141,7 @@ function InstitutionRoute({ children }) {
 function AdminRoute({ children }) {
   const [user, setUser] = React.useState(auth.currentUser);
   const [allowed, setAllowed] = React.useState(null);
+  const [, refresh] = React.useState(0); // re-render after the e-mail gets verified
 
   React.useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
@@ -162,6 +165,19 @@ function AdminRoute({ children }) {
 
   if (allowed === null) {
     return <p>Checking admin...</p>;
+  }
+
+  // Admin rights belong to an e-mail address, so the address must be proven first
+  // (the database rules require it too).
+  if (allowed && needsVerification(user)) {
+    return (
+      <VerifyEmailGate
+        user={user}
+        onVerified={() => refresh((n) => n + 1)}
+        title="Verify your e-mail to open the Admin area"
+        reason="Admin access is tied to your e-mail address, so we need to confirm it is yours."
+      />
+    );
   }
 
   return allowed ? children : <Navigate to="/" replace />;

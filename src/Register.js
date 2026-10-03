@@ -11,6 +11,7 @@ import InstitutionQuestionnaire from "./InstitutionQuestionnaire";
 import { useNavigate } from "react-router-dom";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
+import { sendVerification } from "./emailVerification";
 
 
 import {
@@ -177,6 +178,9 @@ const handleSubmit = async (completeRegistration = false) => {
     );
 
     user = userCredential.user;
+
+    // Ask them to verify the address (never blocks registration if it fails).
+    sendVerification(user);
 
     // Posts/comments/listings elsewhere fall back to auth.currentUser's
     // displayName (and to the account email when it's unset) rather than
