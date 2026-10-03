@@ -116,11 +116,12 @@ service cloud.firestore {
         && request.resource.data.get('status', 'pending') == 'pending'
         && request.resource.data.get('accountStatus', {}).get('registrationStatus', 'pending') == 'pending'
         && request.resource.data.get('accountStatus', {}).get('documentStatus', 'submitted') in ['submitted', 'not_required', 'pending']
-        && request.resource.data.get('userType', 'consumer') in ['farmer', 'consumer', 'institution'];
+        && request.resource.data.get('userType', 'consumer') in ['farmer', 'consumer', 'institution']
+        && !('adminReview' in request.resource.data);
       allow read: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
       allow update: if signedIn() && (
         (request.auth.uid == uid
-          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['approved', 'status', 'accountStatus', 'userType', 'reviewedAt', 'reviewedBy']))
+          && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['approved', 'status', 'accountStatus', 'userType', 'reviewedAt', 'reviewedBy', 'adminReview']))
         || isSignedInAdmin()
       );
       allow delete: if isSignedInAdmin();
@@ -221,8 +222,18 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // Product analytics (src/telemetry.js). Used to be open to the whole internet,
+    // so anyone could fill the database with junk at your expense. Now: signed in
+    // (anonymous visitors count), logged under your own uid, fixed fields, small.
     match /telemetry/{id} {
-      allow create: if true;
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['eventType', 'uid', 'email', 'meta', 'path', 'createdAt'])
+        && request.resource.data.eventType is string && request.resource.data.eventType.size() <= 60
+        && request.resource.data.uid == request.auth.uid
+        && (request.resource.data.get('email', null) == null || (request.resource.data.email is string && request.resource.data.email.size() <= 200))
+        && request.resource.data.get('meta', {}) is map && request.resource.data.get('meta', {}).size() <= 20
+        && (request.resource.data.get('path', null) == null || (request.resource.data.path is string && request.resource.data.path.size() <= 200))
+        && request.resource.data.createdAt == request.time;
       allow read: if isSignedInAdmin();
     }
 

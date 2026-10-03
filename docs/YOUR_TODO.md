@@ -47,7 +47,7 @@ Do these **in this order**:
 - [ ] Put the backend address in `.env` as `REACT_APP_API_URL=https://YOUR-BACKEND`.
 - [ ] `npm run build`, then deploy the website and database rules together:
       `npx firebase-tools login` (first time only), then
-      `npx firebase-tools deploy --only "hosting,firestore:rules" --project afriagrifed-ebc30`
+      `npx firebase-tools deploy --only "hosting,firestore:rules,database" --project afriagrifed-ebc30`
       (the PDF has a fallback command if `npx` cannot download the tool).
 - [ ] In Flutterwave, set the webhook address to
       `https://YOUR-BACKEND/api/payments/webhook` and the Secret hash to the same
@@ -64,7 +64,8 @@ Do these **in this order**:
       `bootstrap`: it must say `founderClaimed: true`. If it does not, claim it now
       while signed in as yourself, before anyone else can.
 - [ ] **Spot-check existing accounts** in the Verification Queue. Anyone shown as
-      approved with no reviewer recorded may have approved themselves before the fix.
+      approved with no `adminReview.reviewedBy` on their profile (Firestore, `users`) may have
+      approved themselves before the fix.
 - [ ] **Delete the downloaded Firebase key file** from your Downloads folder.
 
 ## 5. Test before any real money moves (use Flutterwave TEST keys)
@@ -91,6 +92,10 @@ real Firebase project, and the Firestore rules could not be tested in the emulat
       farmers and post a listing. If it is refused, tell me the account's approval
       fields (Firestore, `users`, that farmer's document) and I will adjust.
 - [ ] **A farmer still waiting for approval cannot post a listing** (try a new one).
+- [ ] **Community posts still work after the new Realtime Database rules:** as a normal
+      user create a post (with and without a photo), comment, reply, like, then delete
+      your own post. All must work. (Trying to post "as" someone else, or with a picture
+      from another website, is now refused.)
 - [ ] **Rules (staging project):** try, from the browser console, to write
       `approved: true` on your own profile and to create an order. Both must be refused.
 - [ ] **Farmer tools:** add a farm on the Map, log inputs, check totals, delete a record.

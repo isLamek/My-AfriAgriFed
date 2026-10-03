@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from "react";
 import {
   collection,
-  deleteDoc,
   doc,
   onSnapshot,
   serverTimestamp,
@@ -9,22 +8,13 @@ import {
 } from "firebase/firestore";
 import { ref, onValue } from "firebase/database";
 import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import InsightsFrame from "./InsightsFrame";
 import { auth, db, database } from "./firebaseConfig";
 import { isAdmin } from "./admin";
 import { notifyUser } from "./notifications";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import "./adminBlock.css";
-
-const adminPages = [
-  { label: "Admin Dashboard", path: "/admin/dashboard" },
-  { label: "Home", path: "/" },
-  { label: "Register", path: "/register" },
-  { label: "Consumer Dashboard", path: "/dashboard" },
-  { label: "Farmer Dashboard", path: "/farmerdashboard" },
-  { label: "Institution Dashboard", path: "/institutiondashboard" },
-  { label: "Prices", path: "/prices" },
-  { label: "Profile", path: "/profile" },
-];
 
 const isPendingReview = (user) => {
   const documentStatus = user.accountStatus?.documentStatus || user.documentStatus;
@@ -46,6 +36,24 @@ export default function Admin() {
   const [documentUsers, setDocumentUsers] = useState([]);
   const [applications, setApplications] = useState([]);
   const adminId = auth.currentUser?.uid;
+  const [busyId, setBusyId] = useState(null);
+
+  // Every action reports success or failure (before, a refused write failed silently).
+  const run = async (id, successText, action) => {
+    setBusyId(id);
+    try {
+      await action();
+      toast.success(successText);
+    } catch (error) {
+      toast.error(
+        error.code === "permission-denied"
+          ? "You do not have permission to do that. Check that your e-mail is verified."
+          : error.message || "Something went wrong."
+      );
+    } finally {
+      setBusyId(null);
+    }
+  };
 
   useEffect(() => {
     const verifyAdmin = async () => {
@@ -106,7 +114,7 @@ export default function Admin() {
     return () => unsubscribe();
   }, []);
 
-  const approveUser = async (userId) => {
+  const doApproveUser = async (userId) => {
     await updateDoc(doc(db, "users", userId), {
       approved: true,
       status: "verified",
@@ -126,11 +134,7 @@ export default function Admin() {
     logTelemetryEvent(TELEMETRY_EVENTS.ADMIN_USER_APPROVED, { userId });
   };
 
-  const rejectUser = async (userId) => {
-    const reason = prompt("Reason for rejection:");
-
-    if (!reason) return;
-
+  const doRejectUser = async (userId, reason) => {
     await updateDoc(doc(db, "users", userId), {
       approved: false,
       status: "rejected",
@@ -150,7 +154,7 @@ export default function Admin() {
     logTelemetryEvent(TELEMETRY_EVENTS.ADMIN_USER_REJECTED, { userId, reason });
   };
 
-  const approveFarmer = async (userId) => {
+  const doApproveFarmer = async (userId) => {
     await updateDoc(doc(db, "users", userId), {
       approved: true,
       status: "verified",
@@ -169,21 +173,52 @@ export default function Admin() {
     logTelemetryEvent(TELEMETRY_EVENTS.ADMIN_USER_APPROVED, { userId });
   };
 
-  const rejectFarmer = async (userId) => {
-    await deleteDoc(doc(db, "users", userId));
+  // Legacy applications carry an id that anyone signed in could have chosen, so
+  // rejecting one must never delete a profile (it used to). It marks the profile
+  // rejected instead, which an admin can reverse.
+  const doRejectFarmer = async (userId) => {
+    await updateDoc(doc(db, "users", userId), {
+      approved: false,
+      status: "rejected",
+      "accountStatus.registrationStatus": "rejected",
+      "adminReview.reviewedBy": adminId,
+      "adminReview.reviewedAt": serverTimestamp(),
+      "adminReview.notes": "Legacy farmer application rejected",
+    });
+  };
+
+  const nameOf = (user) =>
+    [user.personalInfo?.firstName, user.personalInfo?.lastName].filter(Boolean).join(" ") || user.personalInfo?.email || "this account";
+
+  const approveUser = (user) => {
+    if (!window.confirm(`Approve ${nameOf(user)} (${user.userType})? They get access straight away.`)) return;
+    run(user.id, `${nameOf(user)} approved.`, () => doApproveUser(user.id));
+  };
+
+  const rejectUser = (user) => {
+    const reason = (window.prompt(`Reason for rejecting ${nameOf(user)} (they will see this):`) || "").trim();
+    if (!reason) return;
+    run(user.id, `${nameOf(user)} rejected.`, () => doRejectUser(user.id, reason));
+  };
+
+  const approveFarmer = (app) => {
+    if (!window.confirm(`Approve the application from ${app.email || app.id}?`)) return;
+    run(app.id, "Application approved.", () => doApproveFarmer(app.id));
+  };
+
+  const rejectFarmer = (app) => {
+    if (!window.confirm(`Reject the application from ${app.email || app.id}? Their account is marked rejected (not deleted).`)) return;
+    run(app.id, "Application rejected.", () => doRejectFarmer(app.id));
   };
 
   return (
-    <div className="admin-container">
-      <div className="admin-nav">
-        {adminPages.map((page) => (
-          <button key={page.path} onClick={() => navigate(page.path)}>
-            {page.label}
-          </button>
-        ))}
-      </div>
-
-      <h1 className="admin-title">Pending Verifications</h1>
+    <InsightsFrame
+      eyebrow="Admin"
+      title="Verification Queue"
+      subtitle="Check the documents, then approve or reject new farmer and institution accounts."
+      activePath="/admin"
+    >
+      <h2 className="admin-subtitle first">Pending verifications</h2>
 
       {loading ? (
         <p>Loading pending users...</p>
@@ -218,10 +253,10 @@ export default function Admin() {
             </div>
 
             <div className="admin-actions">
-              <button className="approve-btn" onClick={() => approveUser(user.id)}>
+              <button className="approve-btn" disabled={busyId === user.id} onClick={() => approveUser(user)}>
                 Approve
               </button>
-              <button className="reject-btn" onClick={() => rejectUser(user.id)}>
+              <button className="reject-btn" disabled={busyId === user.id} onClick={() => rejectUser(user)}>
                 Reject
               </button>
             </div>
@@ -229,7 +264,7 @@ export default function Admin() {
         ))
       )}
 
-      <h2 className="admin-subtitle">Farmer Applications</h2>
+      <h2 className="admin-subtitle">Legacy farmer applications</h2>
 
       {applications.length === 0 ? (
         <p>No farmer applications found.</p>
@@ -253,10 +288,10 @@ export default function Admin() {
             </div>
 
             <div className="admin-actions">
-              <button className="approve-btn" onClick={() => approveFarmer(app.id)}>
+              <button className="approve-btn" disabled={busyId === app.id} onClick={() => approveFarmer(app)}>
                 Approve
               </button>
-              <button className="reject-btn" onClick={() => rejectFarmer(app.id)}>
+              <button className="reject-btn" disabled={busyId === app.id} onClick={() => rejectFarmer(app)}>
                 Reject
               </button>
             </div>
@@ -264,7 +299,7 @@ export default function Admin() {
         ))
       )}
 
-      <h2 className="admin-subtitle">All Farmer and Institution Documents</h2>
+      <h2 className="admin-subtitle">All farmer and institution documents</h2>
 
       {documentUsers.length === 0 ? (
         <p>No farmer or institution documents found.</p>
@@ -304,6 +339,6 @@ export default function Admin() {
           ))}
         </div>
       )}
-    </div>
+    </InsightsFrame>
   );
 }

@@ -1,46 +1,14 @@
 /* ===== Admin Dashboard ===== */
 
-.admin-container {
-  padding: 2rem;
-  background: #f7f9fc;
-  min-height: 100vh;
-  font-family: "Inter", sans-serif;
-}
-
-.admin-title {
-  font-size: 1.8rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
-  color: #1f2937;
-}
-
 .admin-subtitle {
   margin: 2rem 0 1rem;
-  color: #1f2937;
-}
-
-.admin-nav {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-bottom: 1.5rem;
-}
-
-.admin-nav button {
-  border: none;
-  border-radius: 8px;
-  padding: 0.7rem 1rem;
-  background: #ffffff;
-  color: #166534;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  color: var(--aaf-text);
 }
 
 /* ===== User Card ===== */
 
 .user-card {
-  background: #ffffff;
+  background: var(--aaf-surface);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.25rem;
@@ -49,7 +17,7 @@
 }
 
 .application-card {
-  background: #ffffff;
+  background: var(--aaf-surface);
   border-radius: 12px;
   padding: 1.5rem;
   margin-bottom: 1.25rem;
@@ -64,7 +32,7 @@
 }
 
 .document-review-card {
-  background: #ffffff;
+  background: var(--aaf-surface);
   border-radius: 12px;
   padding: 1.25rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
@@ -98,7 +66,7 @@
 
 .user-email {
   font-size: 0.9rem;
-  color: #6b7280;
+  color: var(--aaf-text-muted);
 }
 
 /* ===== Documents ===== */
@@ -139,12 +107,12 @@
 
 .approve-btn {
   background: #16a34a;
-  color: #ffffff;
+  color: var(--aaf-surface);
 }
 
 .reject-btn {
   background: #dc2626;
-  color: #ffffff;
+  color: var(--aaf-surface);
 }
 
 .admin-actions button:hover {
@@ -157,8 +125,18 @@
 .admin-notes {
   margin-top: 0.8rem;
   font-size: 0.9rem;
-  color: #374151;
+  color: var(--aaf-text);
   background: #f1f5f9;
   padding: 0.75rem;
   border-radius: 6px;
+}
+
+.admin-subtitle.first {
+  margin-top: 0.5rem;
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
 }
