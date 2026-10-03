@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import { sendVerification } from "./emailVerification";
+import { friendlyAuthError } from "./authErrors";
 
 
 import {
@@ -311,7 +312,7 @@ const handleSubmit = async (completeRegistration = false) => {
       await user.delete().catch(() => {});
     }
 
-    toast.error(error.message || "Registration failed");
+    toast.error(friendlyAuthError(error, "Registration failed. Please check your details and try again."));
   } finally {
     setIsSubmitting(false);
   }

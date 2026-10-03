@@ -6,6 +6,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
 import { autoClaimPresetAdmin, isAdmin } from "./admin";
+import { friendlyAuthError } from "./authErrors";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
@@ -119,18 +120,7 @@ const navigate = useNavigate()
   } catch (err) {
     console.error(err);
 
-    let msg = "Login failed.";
-
-    if (err.code === "auth/user-not-found")
-      msg = "No account found.";
-
-    if (err.code === "auth/wrong-password")
-      msg = "Incorrect password.";
-
-    if (err.code === "auth/invalid-email")
-      msg = "Invalid email.";
-
-    toast.error(msg);
+    toast.error(friendlyAuthError(err, "Login failed. Please try again."));
 
   } finally {
     setIsSubmitting(false);
