@@ -4,7 +4,7 @@
 // the map keeps working; set REACT_APP_WEATHER_DIRECT_FALLBACK=false to forbid
 // that once you are on a commercial plan.
 
-const BASE = (process.env.REACT_APP_API_URL || "").replace(/\/+$/, "");
+const BASE = (process.env.REACT_APP_API_URL || "").trim().replace(/\/+$/, "");
 const DOWN_FOR_MS = 60 * 1000;
 let downUntil = 0; // after a network failure, stop trying the server for a minute
 

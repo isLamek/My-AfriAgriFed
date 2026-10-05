@@ -9,6 +9,28 @@ Never paste a key into a chat, email, screenshot or GitHub.
 
 ---
 
+## 0. DEPLOYED on 5 October 2026: do these two things NOW
+
+The website, the main database rules and the community-posts rules went live at
+**https://afriagrifed-ebc30.web.app** (built with no backend address, so nothing points at
+localhost). Because the new rules are live:
+
+- [ ] **Verify your own e-mail, today.** Sign in as the founder and open the Admin area. You
+      will see "Verify your e-mail": open the link in the e-mail (check spam), then press
+      **I have verified my e-mail**. Until you do, the Admin Dashboard will not open.
+- [ ] **Confirm the founder seat is claimed** (Firestore, `system`, `bootstrap`,
+      `founderClaimed: true`).
+
+**What works on the live site right now:** the Map (weather loads straight from Open-Meteo's
+free tier, so it is non-commercial until you buy a plan), Community Feed, Demand Board,
+Marketplace browsing, Data/Statistics/Promotions pages, Research/Training/Internships,
+sign-in and registration for consumers.
+
+**What does NOT work yet, by design, until the backend is online (sections 2 and 3):**
+payments and promotions ("Payments are being set up"), seller payout setup, photo and
+document uploads (so new farmer and institution registrations, which need documents, and
+post photos cannot complete), fire hotspots, and the shared weather cache.
+
 ## 1. Today (about 15 minutes)
 
 - [ ] **Sign the GitHub tool in.** Open a **new** terminal window and run:

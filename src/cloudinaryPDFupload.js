@@ -1,11 +1,12 @@
-const API_URL =
-  process.env.REACT_APP_API_URL ||
-  "http://localhost:3000";
+import { API_BASE_URL as API_URL, NO_BACKEND_MESSAGE } from "./apiBase";
 
 export const uploadPdfToCloudinary = async (
   file,
   folder = "farmer-documents"
 ) => {
+  if (!API_URL) {
+    throw new Error(NO_BACKEND_MESSAGE); // no backend configured yet
+  }
 
   const signatureResponse = await fetch(
     `${API_URL}/api/cloudinary-signature?folder=${folder}`

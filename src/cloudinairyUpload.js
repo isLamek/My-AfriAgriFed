@@ -1,12 +1,11 @@
-// Set REACT_APP_API_URL in your frontend .env, e.g.
-//   REACT_APP_API_URL=http://localhost:5000
-// In production point it at your deployed server.
-const API_URL =
-  process.env.REACT_APP_API_URL || "http://localhost:5000";
+import { API_BASE_URL as API_URL, NO_BACKEND_MESSAGE } from "./apiBase";
 
 export const uploadToCloudinary = async (file, folder = "posts") => {
   if (!file) {
     throw new Error("No file provided");
+  }
+  if (!API_URL) {
+    throw new Error(NO_BACKEND_MESSAGE); // no backend configured yet
   }
 
   // 1) Ask our server for a signed upload payload
