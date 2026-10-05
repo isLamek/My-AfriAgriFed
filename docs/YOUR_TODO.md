@@ -15,20 +15,12 @@ Never paste a key into a chat, email, screenshot or GitHub.
       `gh auth login` (choose GitHub.com, HTTPS, then sign in through the browser).
       I installed it (version 2.102.0) but it needs your account to log in. After that I
       can open pull requests for you.
-- [ ] **Decide how GitHub's `main` gets this work (a pull request is NOT possible).**
-      `main` and `ui-overhaul-and-commerce` have **no shared history**: `main` is an older,
-      flat upload from June 2026 (files at the top level, no `src/` folder) and this branch
-      is the project as it is now, so GitHub refuses to compare them. The link I gave
-      earlier will say "entirely different commit histories". Your choices:
-      1. **Recommended: make this branch the new `main`.** First keep the old `main`
-         as a backup branch (for example `archive/june-upload`), then point `main` at
-         this branch. Nothing is lost, and there is one clean history. It overwrites what
-         people see on `main`, so only do it if nobody else relies on it.
-      2. **Keep `main` as it is** and treat `ui-overhaul-and-commerce` as the real project
-         branch (set it as GitHub's default branch in Settings, Branches).
-      3. **Merge the two histories** (`--allow-unrelated-histories`). Messy: it adds the
-         old top-level files next to `src/`. Not recommended.
-      Tell me which one and I will do it (with `gh` signed in, or from here with git).
+- [x] **GitHub `main` now holds this project (done 5 Oct 2026).** `main` and the old
+      working branch shared no history, so a pull request was impossible. At your choice
+      I saved the old June upload as the branch `archive/june-upload` and pointed `main`
+      at the current work. The branch `ui-overhaul-and-commerce` is the same commit and
+      can be deleted on GitHub whenever you like. Render and any other host should use
+      the branch `main`.
 
 ## 2. Get the keys and accounts (SETUP_GUIDE sections 2 to 4)
 
