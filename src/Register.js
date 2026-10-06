@@ -17,15 +17,6 @@ import { sendVerification } from "./emailVerification";
 import { friendlyAuthError } from "./authErrors";
 
 
-import {
-  ref,
-  push,
-  set
-} from "firebase/database";
-
-import {
-  database
-} from "./firebaseConfig";
 
 import { checkFile, uploadDocumentToCloudinary } from "./cloudinaryUpload";
 

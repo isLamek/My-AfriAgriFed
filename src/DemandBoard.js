@@ -12,7 +12,10 @@ import {
 } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { CalendarClock, CheckCircle2, MessageSquare, Plus, Send, Users, X } from "lucide-react";
-import { auth, db } from "./firebaseConfig";
+import { db } from "./firebaseConfig";
+import { useNavigate } from "react-router-dom";
+import { openConversation } from "./conversations";
+import { demandLabelFor } from "./navConfig";
 import { notifyUser } from "./notifications";
 import useAccountContext from "./useAccountContext";
 import AppShell from "./AppShell";
@@ -43,8 +46,9 @@ function FieldError({ children }) {
 }
 
 export default function DemandBoard() {
-  const { userType, isAdminUser, theme, navSections, logout } = useAccountContext("/demand-board");
-  const uid = auth.currentUser?.uid;
+  const { userType, isAdminUser, navSections, logout, user, publicName, sellerName } = useAccountContext("/demand-board");
+  const navigate = useNavigate();
+  const uid = user?.uid;
   const isFarmer = userType === "farmer";
 
   const [demands, setDemands] = useState([]);
@@ -82,7 +86,6 @@ export default function DemandBoard() {
     setErrors(found);
     if (Object.keys(found).length) return;
 
-    const user = auth.currentUser;
     setSaving(true);
     try {
       await addDoc(collection(db, "demandRequests"), {
@@ -93,7 +96,7 @@ export default function DemandBoard() {
         deadline: formData.deadline || null,
         notes: formData.notes.trim(),
         buyerId: user.uid,
-        buyerName: user.displayName || user.email,
+        buyerName: sellerName || publicName,
         buyerType: userType,
         status: "open",
         createdAt: serverTimestamp(),
@@ -127,28 +130,26 @@ export default function DemandBoard() {
 
   return (
     <AppShell
-      eyebrow="Community"
-      title="Demand Board"
-      subtitle="Buyers post what they need in bulk. Producers pledge to supply it."
+      title={demandLabelFor(userType)}
+      subtitle={
+        isFarmer
+          ? "Buyers who need large quantities. Pledge what you can supply; several producers can share one request."
+          : "Need a large quantity? Post it here and producers pledge to supply it, together if needed."
+      }
       navSections={navSections}
+      actions={
+        !isFarmer && (
+          <button className="aaf-btn aaf-btn-primary aaf-btn-sm" onClick={() => setShowForm((prev) => !prev)}>
+            {showForm ? <><X size={15} aria-hidden="true" /> Cancel</> : <><Plus size={15} aria-hidden="true" /> Post a request</>}
+          </button>
+        )
+      }
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={theme}
     >
 
-      <section className="aaf-card demand-intro">
-        <div className="demand-intro-head">
-          <div>
-            <h3>How the Demand Board works</h3>
-            <p>
-              This is for <strong>bulk requests that need several producers</strong>. For a chat or a question, use the
-              Community Feed. For something already listed for sale, use the Marketplace.
-            </p>
-          </div>
-          <button className="aaf-btn aaf-btn-primary" onClick={() => setShowForm((prev) => !prev)}>
-            {showForm ? <><X size={16} /> Cancel</> : <><Plus size={16} /> Post a request</>}
-          </button>
-        </div>
+      <details className="demand-how">
+        <summary>How bulk requests work</summary>
         <ol className="demand-steps">
           {STEPS.map((step) => (
             <li key={step.n}>
@@ -160,7 +161,7 @@ export default function DemandBoard() {
             </li>
           ))}
         </ol>
-      </section>
+      </details>
 
       {showForm && (
         <section className="aaf-card">
@@ -241,7 +242,19 @@ export default function DemandBoard() {
             onToggleThread={() => setOpenDemandId((prev) => (prev === demand.id ? null : demand.id))}
             onMarkFulfilled={markFulfilled}
             currentUid={uid}
-            currentName={auth.currentUser?.displayName || auth.currentUser?.email}
+            currentName={isFarmer ? sellerName || publicName : publicName}
+            onMessage={async (otherUid, otherName) => {
+              try {
+                const id = await openConversation({
+                  me: { uid, name: isFarmer ? sellerName || publicName : publicName },
+                  other: { uid: otherUid, name: otherName },
+                  topic: { kind: "demand", id: demand.id, title: demand.title, ownerId: demand.buyerId },
+                });
+                navigate(`/messages/${id}`);
+              } catch (error) {
+                toast.error(error.code === "permission-denied" ? "You can't message this person about this request." : error.message);
+              }
+            }}
             canPledge={isFarmer}
             isAdminUser={isAdminUser}
           />
@@ -251,7 +264,7 @@ export default function DemandBoard() {
   );
 }
 
-function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, currentUid, currentName, canPledge, isAdminUser }) {
+function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, currentUid, currentName, canPledge, isAdminUser, onMessage }) {
   const [pledges, setPledges] = useState([]);
   const [pledgeQty, setPledgeQty] = useState("");
   const [pledgeNote, setPledgeNote] = useState("");
@@ -350,10 +363,10 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
               <span className="demand-deadline"><CalendarClock size={13} /> by {demand.deadline}</span>
             )}
           </p>
-          <p className="demand-buyer">Posted by {demand.buyerName}</p>
+          <p className="demand-buyer">Posted by {demand.buyerName && !demand.buyerName.includes("@") ? demand.buyerName : "a buyer"}</p>
         </div>
         {canMarkFulfilled && (
-          <button className="aaf-btn aaf-btn-ghost" onClick={() => onMarkFulfilled(demand)}>
+          <button className="aaf-btn aaf-btn-secondary aaf-btn-sm" onClick={() => onMarkFulfilled(demand)}>
             <CheckCircle2 size={16} /> Mark fulfilled
           </button>
         )}
@@ -377,9 +390,12 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
           {pledges.map((p) => (
             <li key={p.id}>
               <span>
-                <strong>{p.farmerName}</strong> · {p.quantity} {demand.unit}
+                <strong>{p.farmerName && !p.farmerName.includes("@") ? p.farmerName : "A producer"}</strong> · {p.quantity} {demand.unit}
                 {p.note ? <em> · {p.note}</em> : null}
               </span>
+              {isOwnDemand && p.farmerId !== currentUid && (
+                <button type="button" onClick={() => onMessage(p.farmerId, p.farmerName)}>Message</button>
+              )}
               {p.farmerId === currentUid && !fulfilled && (
                 <button type="button" onClick={() => withdrawPledge(p)} aria-label="Withdraw pledge">Withdraw</button>
               )}
@@ -412,22 +428,31 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
             />
             <FieldError>{pledgeErrors.note}</FieldError>
           </div>
-          <button className="aaf-btn aaf-btn-accent" type="submit">Pledge</button>
+          <button className="aaf-btn aaf-btn-primary" type="submit">Pledge</button>
         </form>
       )}
       {!canPledge && !isOwnDemand && !fulfilled && (
-        <p className="demand-hint">Only producer accounts can pledge. Use the discussion to ask the buyer a question.</p>
+        <p className="demand-hint">Only producer accounts can pledge to supply a request.</p>
       )}
 
-      <button className="demand-thread-toggle" onClick={onToggleThread}>
-        <MessageSquare size={15} /> {isOpenThread ? "Hide discussion" : "Open discussion"}
-      </button>
+      <div className="demand-card-actions">
+        <button className="demand-thread-toggle" onClick={onToggleThread} aria-expanded={isOpenThread}>
+          <MessageSquare size={15} aria-hidden="true" /> {isOpenThread ? "Hide public questions" : "Public questions"}
+        </button>
+        {canPledge && !isOwnDemand && (
+          <button className="aaf-btn aaf-btn-secondary aaf-btn-sm" onClick={() => onMessage(demand.buyerId, demand.buyerName)}>
+            <Send size={14} aria-hidden="true" /> Message buyer privately
+          </button>
+        )}
+      </div>
 
       {isOpenThread && (
         <div className="demand-thread">
           <div className="demand-thread-messages">
             {messages.length === 0 ? (
-              <p className="dashboard-empty-state">No messages yet. Start coordinating.</p>
+              <p className="dashboard-empty-state">
+                Everyone signed in can read these. Agree price, delivery address and phone numbers in a private message instead.
+              </p>
             ) : (
               messages.map((msg) => (
                 <div key={msg.id} className={`demand-message ${msg.authorId === currentUid ? "own" : ""}`}>
@@ -439,7 +464,8 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
           </div>
           <form onSubmit={sendMessage} className="demand-thread-input">
             <input
-              placeholder="Coordinate on quantities, delivery, timing..."
+              placeholder="Ask a question everyone can see…"
+              aria-label="Public question or answer"
               value={messageText}
               maxLength={500}
               onChange={(e) => setMessageText(e.target.value)}

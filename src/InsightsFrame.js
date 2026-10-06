@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { ArrowLeft, LogIn } from "lucide-react";
 import { auth } from "./firebaseConfig";
 import useAccountContext from "./useAccountContext";
+import SiteFooter from "./SiteFooter";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import seedMark from "./images/app-icon.png";
@@ -37,7 +38,7 @@ export default function InsightsFrame({ eyebrow, title, subtitle, activePath, ch
 }
 
 function MemberFrame({ eyebrow, title, subtitle, activePath, children }) {
-  const { theme, navSections, logout } = useAccountContext(activePath);
+  const { navSections, logout } = useAccountContext(activePath);
   return (
     <AppShell
       eyebrow={eyebrow}
@@ -46,7 +47,6 @@ function MemberFrame({ eyebrow, title, subtitle, activePath, children }) {
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={theme}
     >
       {children}
     </AppShell>
@@ -77,6 +77,7 @@ function PublicFrame({ eyebrow, title, subtitle, children }) {
         {subtitle && <p>{subtitle}</p>}
       </div>
       <main className="insights-public-body">{children}</main>
+      <SiteFooter />
     </div>
   );
 }

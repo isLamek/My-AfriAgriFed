@@ -152,7 +152,7 @@
   margin-top: 1rem;
   background: none;
   border: none;
-  color: var(--aaf-shoot-dark);
+  color: var(--aaf-baobab);
   font-weight: 600;
   font-size: 0.85rem;
   cursor: pointer;
@@ -380,4 +380,36 @@
   margin: 0.9rem 0 0;
   font-size: 0.8rem;
   color: var(--aaf-text-muted);
+}
+
+.demand-how {
+  margin-bottom: 1rem;
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-md);
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+}
+
+.demand-how summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--aaf-baobab);
+}
+
+.demand-how .demand-steps {
+  margin-top: 0.75rem;
+}
+
+.demand-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.75rem;
+}
+
+.demand-pledges li button {
+  margin-left: 0.5rem;
 }

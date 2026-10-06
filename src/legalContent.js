@@ -39,6 +39,7 @@ export const LEGAL_PAGES = {
           "Signed-in members: posts and comments in the Community feed.",
           "Only the two people in a conversation can read its messages. Our administrators can read them to investigate a reported problem or fraud.",
           "A buyer and a seller see each other's name on their shared orders.",
+          "Institutions' account e-mail address is shown on the training programmes they publish, so producers can ask to join.",
           "Our administrators see your profile and verification documents to approve your account.",
           "We never sell your personal information.",
         ],

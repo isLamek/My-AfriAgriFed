@@ -418,8 +418,12 @@ service cloud.firestore {
                                   get(/databases/$(database)/documents/orders/$(d.topic.id)).data.sellerId]
           && other in [get(/databases/$(database)/documents/orders/$(d.topic.id)).data.buyerId,
                        get(/databases/$(database)/documents/orders/$(d.topic.id)).data.sellerId])
+        // A producer messaging the buyer who posted a request, or that buyer
+        // replying to a producer (who must be a producer account).
         || (kind == 'demand'
-          && get(/databases/$(database)/documents/demandRequests/$(d.topic.id)).data.buyerId == other);
+          && (get(/databases/$(database)/documents/demandRequests/$(d.topic.id)).data.buyerId == other
+            || (get(/databases/$(database)/documents/demandRequests/$(d.topic.id)).data.buyerId == request.auth.uid
+              && get(/databases/$(database)/documents/users/$(other)).data.get('userType', '') == 'farmer')));
     }
 
     function validConversation(d) {

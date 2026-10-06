@@ -195,16 +195,14 @@ export default function InstitutionDashboard() {
 
   return (
     <AppShell
-      eyebrow="Institution dashboard"
-      title="Farming Research Desk"
-      subtitle="Publish agricultural research, field reports, links and PDFs."
+      title="Research desk"
+      subtitle="Publish research for producers, and answer the problems they bring to you."
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={isAdminUser ? "admin" : "institution"}
     >
       <section className="farmer-problems aaf-card">
-        <h2>Farmer Problems Awaiting Research</h2>
+        <h2>Questions from producers</h2>
 
         {openProblems.length === 0 ? (
           <p className="empty-state">No open problems from farmers right now.</p>
@@ -224,7 +222,7 @@ export default function InstitutionDashboard() {
 
       <main className="institution-layout">
         <section className="research-publisher aaf-card">
-          <h2>{respondingTo ? `Respond to: ${respondingTo.title}` : "Upload Research"}</h2>
+          <h2>{respondingTo ? `Respond to: ${respondingTo.title}` : "Publish research"}</h2>
           {respondingTo && (
             <button type="button" className="cancel-response-btn" onClick={() => {
               setRespondingTo(null);
@@ -323,7 +321,7 @@ export default function InstitutionDashboard() {
         <section className="research-feed aaf-card">
           <div className="feed-heading">
             <p className="eyebrow">Research news</p>
-            <h2>Agricultural Articles</h2>
+            <h2>Published articles</h2>
           </div>
 
           {articles.length === 0 ? (
@@ -338,7 +336,7 @@ export default function InstitutionDashboard() {
                 <div className="research-card-content">
                   <div className="article-meta">
                     <span>{article.category || "Research"}</span>
-                    <span>{article.sourceName || article.authorEmail}</span>
+                    <span>{article.sourceName || "Institution research"}</span>
                   </div>
 
                   <h3>{article.title}</h3>

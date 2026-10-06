@@ -19,7 +19,7 @@ export default function Marketplace() {
   const navigate = useNavigate();
   const [params, setParams] = useSearchParams();
   const [listings, setListings] = useState(null);
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(params.get("q") || "");
 
   const region = REGIONS.includes(params.get("region")) ? params.get("region") : "";
   const category = CATEGORIES.some((c) => c.id === params.get("category")) ? params.get("category") : "";

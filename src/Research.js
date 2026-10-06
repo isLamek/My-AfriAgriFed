@@ -11,11 +11,13 @@ import {
   where,
 } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
+import { useAccount } from "./AccountContext";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import InsightsFrame from "./InsightsFrame";
 import "./Research.css";
 
 export default function Research() {
+  const { sellerName: myName } = useAccount();
   const [articles, setArticles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userType, setUserType] = useState(null);
@@ -87,7 +89,7 @@ export default function Research() {
         title: problemForm.title,
         description: problemForm.description,
         farmerId: user?.uid || "",
-        farmerName: user?.displayName || user?.email || "Farmer",
+        farmerName: myName,
         farmerEmail: user?.email || "",
         status: "open",
         createdAt: serverTimestamp(),
@@ -108,9 +110,8 @@ export default function Research() {
 
   return (
     <InsightsFrame
-      eyebrow="Institution research"
-      title="Farming Research Articles"
-      subtitle="Read agricultural reports, links and PDFs shared by institutions."
+      title="Research"
+      subtitle={userType === "farmer" ? "Articles from institutions, and a place to ask them about a problem on your farm." : "Agricultural reports, links and PDFs shared by institutions."}
       activePath="/research"
     >
       {userType === "farmer" && (
@@ -172,7 +173,7 @@ export default function Research() {
             <div className="research-lead-content">
               <div className="article-meta">
                 <span>{articles[0].category || "Research"}</span>
-                <span>{articles[0].sourceName || articles[0].authorEmail}</span>
+                <span>{articles[0].sourceName || "Institution research"}</span>
               </div>
               <h2>{articles[0].title}</h2>
               <p>{articles[0].summary}</p>
@@ -207,7 +208,7 @@ export default function Research() {
               <div>
                 <div className="article-meta">
                   <span>{article.category || "Research"}</span>
-                  <span>{article.sourceName || article.authorEmail}</span>
+                  <span>{article.sourceName || "Institution research"}</span>
                 </div>
                 <h3>{article.title}</h3>
                 <p>{article.summary}</p>

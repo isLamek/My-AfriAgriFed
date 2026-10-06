@@ -2,15 +2,16 @@ import React, { useEffect, useState } from "react";
 import {
   addDoc,
   collection,
-  doc,
-  getDoc,
+
   onSnapshot,
   orderBy,
   query,
   serverTimestamp,
 } from "firebase/firestore";
-import { onAuthStateChanged } from "firebase/auth";
-import { auth, db } from "./firebaseConfig";
+import { useNavigate } from "react-router-dom";
+import { db } from "./firebaseConfig";
+import { useAccount } from "./AccountContext";
+import { promotionsLabelFor } from "./navConfig";
 import { uploadToCloudinary } from "./cloudinaryUpload";
 import { startPromotionCheckout } from "./payments";
 import { RATE_PER_WORKING_DAY, countWorkingDays } from "./promoPricing";
@@ -37,21 +38,9 @@ export default function Promotions() {
   const [promotions, setPromotions] = useState([]);
   const [formData, setFormData] = useState(emptyPromo);
   const [imageFile, setImageFile] = useState(null);
-  const [userType, setUserType] = useState(null);
+  const { userType, user: account, sellerName, publicName } = useAccount();
+  const navigate = useNavigate();
   const [posting, setPosting] = useState(false);
-
-  useEffect(() => {
-    // onAuthStateChanged (not auth.currentUser, which can still be null right
-    // after a fresh page load/refresh while the session restores) so this
-    // reliably fires once the signed-in user is actually known.
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) return;
-      const snap = await getDoc(doc(db, "users", user.uid));
-      setUserType(snap.exists() ? snap.data().userType : null);
-    });
-
-    return () => unsubscribe();
-  }, []);
 
   useEffect(() => {
     const promoQuery = query(collection(db, "promotions"), orderBy("createdAt", "desc"));
@@ -99,7 +88,7 @@ export default function Promotions() {
     setPosting(true);
 
     try {
-      const user = auth.currentUser;
+      const user = account;
       let imageUrl = "";
 
       if (imageFile) {
@@ -111,7 +100,7 @@ export default function Promotions() {
         ...formData,
         imageUrl,
         farmerId: user?.uid || "",
-        farmerName: user?.displayName || user?.email || "Farmer",
+        farmerName: sellerName || publicName,
         workingDays,
         cost,
         status: "pending_payment",
@@ -135,16 +124,20 @@ export default function Promotions() {
   };
 
   const activePromotions = promotions.filter((promo) => promo.status !== "pending_payment" && isActive(promo));
+  // Buyers see deals running now; a producer also sees their own (paid or not, past or future).
   const visiblePromotions = promotions.filter(
-    (promo) => promo.status !== "pending_payment" || promo.farmerId === auth.currentUser?.uid
+    (promo) => (promo.status !== "pending_payment" && isActive(promo)) || promo.farmerId === account?.uid
   );
   const canPost = userType === "farmer";
 
   return (
     <InsightsFrame
-      eyebrow="Visible to producers, consumers & institutions"
-      title="Promotions"
-      subtitle="Farmers spotlight products here to reach preferential customers."
+      title={promotionsLabelFor(userType)}
+      subtitle={
+        canPost
+          ? "Put a product at the top of everyone's Deals page for the days you choose."
+          : "Products producers are featuring right now."
+      }
       activePath="/promotions"
     >
       <div className="promo-ticker" aria-label="Active promotions">
@@ -167,9 +160,10 @@ export default function Promotions() {
       <div className="promo-layout">
         {canPost && (
           <section className="aaf-card">
-            <h2 style={{ margin: "0 0 4px", fontSize: "1.05rem" }}>Promote a product</h2>
+            <h2 style={{ margin: "0 0 4px", fontSize: "1.05rem" }}>New promotion</h2>
             <p className="insight-foot" style={{ margin: "0 0 12px" }}>
-              N${RATE_PER_WORKING_DAY} per working day (weekends excluded).
+              N${RATE_PER_WORKING_DAY} per working day (weekends are free). You pay once, by card, before it goes live. Make
+              sure the product is also listed in My listings so buyers can order it.
             </p>
             <form className="promo-form" onSubmit={postPromotion}>
               <label>
@@ -208,7 +202,7 @@ export default function Promotions() {
 
         <section className="promo-list">
           {visiblePromotions.length === 0 ? (
-            <p className="insight-empty">No promotions yet.</p>
+            <p className="insight-empty">{canPost ? "You have no promotions yet." : "No deals running right now."}</p>
           ) : (
             visiblePromotions.map((promo) => (
               <article className="aaf-card promo-card" key={promo.id}>
@@ -220,7 +214,16 @@ export default function Promotions() {
                     {promo.startDate || "-"} to {promo.endDate || "-"} ·{" "}
                     {promo.status === "pending_payment" ? "Awaiting payment" : isActive(promo) ? "Active" : "Expired"}
                   </p>
-                  <p className="promo-meta">By {promo.farmerName}</p>
+                  <p className="promo-meta">By {promo.farmerName && !promo.farmerName.includes("@") ? promo.farmerName : "a producer"}</p>
+                  {account && promo.farmerId !== account.uid && (
+                    <button
+                      type="button"
+                      className="aaf-text-btn"
+                      onClick={() => navigate(`/marketplace?q=${encodeURIComponent(promo.productName || "")}`)}
+                    >
+                      Find it in the Marketplace
+                    </button>
+                  )}
                 </div>
               </article>
             ))

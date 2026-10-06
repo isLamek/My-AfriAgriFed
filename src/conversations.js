@@ -26,12 +26,15 @@ export const MAX_MESSAGE = 1000;
 export const TOPIC_KINDS = ["listing", "order", "demand"];
 
 /**
- * listing: the buyer asking; order: nobody (an order already pairs two people);
- * demand: the producer talking to the buyer who posted it.
+ * The thread id. An order already pairs two people, so it is just the order.
+ * A listing or bulk request has an owner (the seller, or the buyer who posted
+ * it) and many possible counterparts, so the id also names the counterpart:
+ * whichever of the two people is not the owner. Either side opening the
+ * thread therefore lands in the same conversation.
  */
-export function conversationId({ kind, topicId, askerId }) {
+export function conversationId({ kind, topicId, counterpartId }) {
   if (!TOPIC_KINDS.includes(kind) || !topicId) throw new Error("Unknown conversation topic.");
-  return kind === "order" ? `order_${topicId}` : `${kind}_${topicId}_${askerId}`;
+  return kind === "order" ? `order_${topicId}` : `${kind}_${topicId}_${counterpartId}`;
 }
 
 export const otherParticipant = (conversation, uid) => (conversation.participants || []).find((p) => p !== uid) || null;
@@ -52,14 +55,16 @@ export function validateMessage(text) {
 
 /**
  * Opens (creating if needed) the conversation about a topic and returns its id.
- * me / other: { uid, name }. topic: { kind, id, title }.
+ * me / other: { uid, name }. topic: { kind, id, title, ownerId? } where ownerId
+ * is the listing's seller or the request's buyer (defaults to `other`).
  */
 export async function openConversation({ me, other, topic }) {
   if (!me?.uid || !other?.uid) throw new Error("Please sign in first.");
   if (me.uid === other.uid) throw new Error("This is your own listing.");
 
-  const askerId = topic.kind === "order" ? null : me.uid;
-  const id = conversationId({ kind: topic.kind, topicId: topic.id, askerId });
+  const ownerId = topic.ownerId || other.uid;
+  const counterpartId = me.uid === ownerId ? other.uid : me.uid;
+  const id = conversationId({ kind: topic.kind, topicId: topic.id, counterpartId });
   const refDoc = doc(db, "conversations", id);
   const existing = await getDoc(refDoc);
   if (!existing.exists()) {

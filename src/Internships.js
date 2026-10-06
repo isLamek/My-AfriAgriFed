@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { MapPin } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
+import { useAccount } from "./AccountContext";
 import { notifyUser } from "./notifications";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
@@ -21,6 +22,7 @@ import "./Internships.css";
 const emptyForm = { title: "", description: "", location: "", slots: 1 };
 
 export default function Internships() {
+  const { sellerName: myName } = useAccount();
   const [userType, setUserType] = useState(null);
   const [internships, setInternships] = useState([]);
   const [formData, setFormData] = useState(emptyForm);
@@ -73,7 +75,7 @@ export default function Internships() {
         type: postType,
         postedByRole: userType,
         postedById: user?.uid || "",
-        postedByName: user?.displayName || user?.email || userType,
+        postedByName: myName,
         postedByEmail: user?.email || "",
         status: "open",
         createdAt: serverTimestamp(),
@@ -96,13 +98,13 @@ export default function Internships() {
     await updateDoc(doc(db, "internships", item.id), {
       status: "approved",
       approvedById: user?.uid || "",
-      approvedByName: user?.displayName || user?.email || "Farmer",
+      approvedByName: myName,
       approvedAt: serverTimestamp(),
     });
 
     await notifyUser(item.postedById, {
       title: "Internship request approved",
-      body: `${user?.email || "A farmer"} approved your request: ${item.title}`,
+      body: `${myName} approved your request: ${item.title}`,
       link: "/internships",
     });
 
@@ -116,13 +118,13 @@ export default function Internships() {
     await updateDoc(doc(db, "internships", item.id), {
       status: "claimed",
       claimedById: user?.uid || "",
-      claimedByName: user?.displayName || user?.email || "Institution",
+      claimedByName: myName,
       claimedAt: serverTimestamp(),
     });
 
     await notifyUser(item.postedById, {
       title: "Internship offer claimed",
-      body: `${user?.email || "An institution"} wants to fill: ${item.title}. Please approve.`,
+      body: `${myName} wants to fill: ${item.title}. Please approve.`,
       link: "/internships",
     });
 
@@ -135,7 +137,7 @@ export default function Internships() {
     await updateDoc(doc(db, "internships", item.id), {
       status: "approved",
       approvedById: user?.uid || "",
-      approvedByName: user?.displayName || user?.email || "Farmer",
+      approvedByName: myName,
       approvedAt: serverTimestamp(),
     });
 
@@ -188,9 +190,8 @@ export default function Internships() {
 
   return (
     <InsightsFrame
-      eyebrow="Producers &amp; institutions"
       title="Internships"
-      subtitle="Farmers offer placements, institutions request them. Farmers give the final approval."
+      subtitle={userType === "farmer" ? "Offer placements on your farm, and approve students institutions put forward." : userType === "institution" ? "Request placements for your students, or fill the ones producers offer." : "Placements producers offer and institutions request."}
       activePath="/internships"
     >
       <main className="internships-layout">

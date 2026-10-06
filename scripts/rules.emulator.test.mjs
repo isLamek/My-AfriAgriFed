@@ -18,6 +18,8 @@ await env.withSecurityRulesDisabled(async (ctx) => {
   await setDoc(doc(db, "marketPrices/L1"), { product: "Tomatoes", sellerId: "seller", price: 10 });
   await setDoc(doc(db, "orders/O1"), { buyerId: "buyer", sellerId: "seller", status: "paid" });
   await setDoc(doc(db, "demandRequests/D1"), { buyerId: "school", status: "open" });
+  await setDoc(doc(db, "users/seller"), { userType: "farmer" });
+  await setDoc(doc(db, "users/buyer"), { userType: "consumer" });
 });
 
 const as = (uid) => env.authenticatedContext(uid).firestore();
@@ -53,6 +55,13 @@ await check("only the order's buyer and seller can open its thread", async () =>
 
 await check("a producer can message the buyer who posted a bulk request", () =>
   assertSucceeds(setDoc(doc(seller, "conversations/demand_D1_seller"), conv(["seller", "school"], { kind: "demand", id: "D1", title: "Maize" }))));
+
+await check("the buyer who posted a request can reply to a producer, but not cold-message a non-producer", async () => {
+  const school = as("school");
+  await assertSucceeds(setDoc(doc(school, "conversations/demand_D1_seller2"), conv(["school", "seller"], { kind: "demand", id: "D1", title: "Maize" })));
+  await assertFails(setDoc(doc(school, "conversations/demand_D1_buyer"), conv(["school", "buyer"], { kind: "demand", id: "D1", title: "Maize" })));
+  await assertFails(setDoc(doc(stranger, "conversations/demand_D1_stranger"), conv(["stranger", "buyer"], { kind: "demand", id: "D1", title: "Maize" })));
+});
 
 await check("extra fields are refused", () =>
   assertFails(setDoc(doc(buyer, "conversations/listing_L1_b2"), conv(["buyer", "seller"], { kind: "listing", id: "L1", title: "x" }, { admin: true }))));

@@ -13,6 +13,7 @@ import { ref, push } from "firebase/database";
 import { onAuthStateChanged } from "firebase/auth";
 import { MapPin, Video } from "lucide-react";
 import { auth, db, database } from "./firebaseConfig";
+import { useAccount } from "./AccountContext";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import InsightsFrame from "./InsightsFrame";
@@ -28,6 +29,7 @@ const emptyProgram = {
 };
 
 export default function TrainingPrograms() {
+  const { sellerName: myName } = useAccount();
   const [programs, setPrograms] = useState([]);
   const [formData, setFormData] = useState(emptyProgram);
   const [posting, setPosting] = useState(false);
@@ -79,7 +81,7 @@ export default function TrainingPrograms() {
       await addDoc(collection(db, "trainingPrograms"), {
         ...formData,
         institutionId: user?.uid || "",
-        institutionName: user?.displayName || user?.email || "Institution",
+        institutionName: myName,
         institutionEmail: user?.email || "",
         createdAt: serverTimestamp(),
       });
@@ -87,7 +89,7 @@ export default function TrainingPrograms() {
       // Surface it in the shared community feed too, per the training-program flow.
       await push(ref(database, "posts"), {
         userId: user?.uid || "",
-        userName: user?.email || "Institution",
+        userName: myName,
         authorRole: "Institution",
         content: `New training program: ${formData.title} (${formData.mode}, starts ${formData.startDate}). See Training Programs for details.`,
         imageUrl: "",
@@ -108,9 +110,8 @@ export default function TrainingPrograms() {
 
   return (
     <InsightsFrame
-      eyebrow="Education &amp; producers"
-      title="Training Programs"
-      subtitle="Programs institutions run for farmers, shared to the community feed."
+      title="Training"
+      subtitle={canPost ? "Announce a course or workshop. It also appears in the Community feed." : "Courses and workshops run by institutions for producers."}
       activePath="/training"
     >
       <main className="training-layout">
@@ -191,7 +192,15 @@ export default function TrainingPrograms() {
                     </a>
                   </p>
                 )}
-                <p className="training-host">Hosted by {program.institutionName}</p>
+                <p className="training-host">
+                  Hosted by {program.institutionName && !program.institutionName.includes("@") ? program.institutionName : "an institution"}
+                  {program.institutionEmail && (
+                    <>
+                      {" · "}
+                      <a href={`mailto:${program.institutionEmail}?subject=${encodeURIComponent(`Training: ${program.title}`)}`}>Ask to join</a>
+                    </>
+                  )}
+                </p>
               </article>
             ))
           )}
