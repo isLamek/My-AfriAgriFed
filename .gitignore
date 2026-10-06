@@ -9,3 +9,6 @@ npm-debug.log*
 .firebase/
 
 .cache/
+
+# Firebase emulator logs
+*-debug.log
