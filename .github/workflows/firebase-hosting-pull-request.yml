@@ -12,6 +12,9 @@ jobs:
   build_and_preview:
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
+    env:
+      # Previews need the deploy key; without it the code is still tested and built.
+      HAS_DEPLOY_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AFRIAGRIFED_EBC30 != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -27,7 +30,11 @@ jobs:
           REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
           REACT_APP_CLOUDINARY_CLOUD_NAME: ${{ vars.REACT_APP_CLOUDINARY_CLOUD_NAME }}
           REACT_APP_CLOUDINARY_UPLOAD_PRESET: ${{ vars.REACT_APP_CLOUDINARY_UPLOAD_PRESET }}
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - if: env.HAS_DEPLOY_KEY != 'true'
+        run: |
+          echo "::warning::No preview - the secret FIREBASE_SERVICE_ACCOUNT_AFRIAGRIFED_EBC30 is not set. Run 'npx firebase-tools init hosting:github' to create it."
+      - if: env.HAS_DEPLOY_KEY == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AFRIAGRIFED_EBC30 }}
