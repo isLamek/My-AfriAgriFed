@@ -10,11 +10,13 @@ import {
   query,
   serverTimestamp,
   setDoc,
+  updateDoc,
+  where,
 } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
-import { Store, Wheat, Microscope, CheckCircle2 } from "lucide-react";
+import { Store, Newspaper, Microscope, CheckCircle2 } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import { ADMIN_ROLES, canManageAdmins, claimFounderSeat, getAdminProfile } from "./admin";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
@@ -25,11 +27,74 @@ import appIcon from "./images/seed-mark.png";
 import "./AdminDashboard.css";
 
 const JUMP_TO_DASHBOARDS = [
-  { label: "Consumer Dashboard", path: "/dashboard", icon: <Store size={20} /> },
-  { label: "Farmer Dashboard", path: "/farmerdashboard", icon: <Wheat size={20} /> },
-  { label: "Institution Dashboard", path: "/institutiondashboard", icon: <Microscope size={20} /> },
+  { label: "Marketplace", path: "/marketplace", icon: <Store size={20} /> },
+  { label: "Community feed", path: "/feed", icon: <Newspaper size={20} /> },
+  { label: "Research desk", path: "/institutiondashboard", icon: <Microscope size={20} /> },
   { label: "Verification Queue", path: "/admin", icon: <CheckCircle2 size={20} /> },
 ];
+
+/** Account deletion requests from Profile -> Privacy, oldest first. */
+function DeletionRequests() {
+  const [requests, setRequests] = useState(null);
+
+  useEffect(
+    () =>
+      onSnapshot(
+        query(collection(db, "deletionRequests"), where("status", "==", "open")),
+        (snap) => setRequests(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+        () => setRequests([])
+      ),
+    []
+  );
+
+  const markDone = async (request) => {
+    if (!window.confirm(`Have you deleted ${request.email || request.uid}'s profile, listings, posts and documents (keeping order records)?`)) return;
+    try {
+      await updateDoc(doc(db, "deletionRequests", request.id), { status: "done" });
+      toast.success("Marked as done. Remember to delete the sign-in in Firebase Authentication and e-mail them.");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  return (
+    <section className="admin-panel">
+      <h2>Account deletion requests</h2>
+      <p>
+        Delete the person's profile (users), listings, posts and uploaded documents, then their sign-in in Firebase
+        Authentication. Keep orders and payments. Then e-mail them and mark the request done.
+      </p>
+      {requests === null && <p>Loading…</p>}
+      {requests && requests.length === 0 && <p>No open requests.</p>}
+      {requests && requests.length > 0 && (
+        <table className="admin-table">
+          <thead>
+            <tr>
+              <th>E-mail</th>
+              <th>User id</th>
+              <th>Requested</th>
+              <th>Reason</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            {requests.map((r) => (
+              <tr key={r.id}>
+                <td>{r.email}</td>
+                <td><code>{r.uid}</code></td>
+                <td>{r.requestedAt?.toDate ? r.requestedAt.toDate().toLocaleDateString() : "—"}</td>
+                <td>{r.reason || "—"}</td>
+                <td>
+                  <button className="remove-admin-btn" onClick={() => markDone(r)}>Mark done</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+  );
+}
 
 const COUNTED_COLLECTIONS = [
   { key: "users", label: "Registered Users", collection: "users" },
@@ -277,13 +342,11 @@ export default function AdminDashboard() {
 
   return (
     <AppShell
-      eyebrow="Founders & Developers"
-      title="Admin Dashboard"
+      title="Admin dashboard"
       subtitle={`Signed in as ${auth.currentUser?.email} · role: ${profile.role}`}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme="admin"
     >
       <section className="jump-to-dashboards">
         <p className="aaf-eyebrow">Jump to a dashboard</p>
@@ -340,6 +403,8 @@ export default function AdminDashboard() {
           )}
         </div>
       </section>
+
+      <DeletionRequests />
 
       <section className="admin-panel">
         <h2>Admin access control</h2>

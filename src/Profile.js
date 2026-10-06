@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { sendPasswordResetEmail, signOut, updateProfile } from "firebase/auth";
-import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { collection, doc, getDoc, getDocs, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
-import { LayoutDashboard, FileText, Lock, Pencil, Paperclip, Check, X } from "lucide-react";
+import { LayoutDashboard, FileText, Lock, Pencil, Paperclip, Check, X, ShieldCheck, Download, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import { auth, db } from "./firebaseConfig";
 import { uploadToCloudinary } from "./cloudinaryUpload";
 import { getAdminProfile } from "./admin";
-import { buildNavSections } from "./navConfig";
+import { buildNavSections, roleLabel } from "./navConfig";
+import { BUSINESS } from "./business";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import appIcon from "./images/app-icon.png";
@@ -60,7 +62,125 @@ const TABS = [
   { key: "overview", label: "Overview", icon: <LayoutDashboard size={16} /> },
   { key: "documents", label: "Documents", icon: <FileText size={16} /> },
   { key: "security", label: "Security", icon: <Lock size={16} /> },
+  { key: "privacy", label: "Privacy", icon: <ShieldCheck size={16} /> },
 ];
+
+/** Everything we hold that is directly about this person, as one JSON file. */
+async function exportMyData(uid, profile) {
+  const mine = async (name, field, op = "==") => {
+    try {
+      const snap = await getDocs(query(collection(db, name), where(field, op, uid)));
+      return snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+    } catch {
+      return [];
+    }
+  };
+  const data = {
+    exportedAt: new Date().toISOString(),
+    profile,
+    listings: await mine("marketPrices", "sellerId"),
+    purchases: await mine("orders", "buyerId"),
+    sales: await mine("orders", "sellerId"),
+    bulkRequests: await mine("demandRequests", "buyerId"),
+    conversations: await mine("conversations", "participants", "array-contains"),
+    farms: profile?.userType === "farmer" ? await mine("farms", "ownerId") : [],
+  };
+  const replacer = (key, value) => (value && typeof value.toDate === "function" ? value.toDate().toISOString() : value);
+  const blob = new Blob([JSON.stringify(data, replacer, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `afriagrifed-my-data-${new Date().toISOString().slice(0, 10)}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function PrivacyPanel({ profile }) {
+  const uid = auth.currentUser?.uid;
+  const [exporting, setExporting] = useState(false);
+  const [request, setRequest] = useState(undefined); // undefined = loading, null = none
+  const [reason, setReason] = useState("");
+  const [sending, setSending] = useState(false);
+
+  useEffect(() => {
+    if (!uid) return;
+    getDoc(doc(db, "deletionRequests", uid))
+      .then((snap) => setRequest(snap.exists() ? snap.data() : null))
+      .catch(() => setRequest(null));
+  }, [uid]);
+
+  const download = async () => {
+    setExporting(true);
+    try {
+      await exportMyData(uid, profile);
+    } catch (error) {
+      toast.error(`Could not prepare your data: ${error.message}`);
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const requestDeletion = async () => {
+    if (!window.confirm("Ask us to delete your account and personal data? You will not be able to sign in once it is done.")) return;
+    setSending(true);
+    try {
+      const data = { uid, email: auth.currentUser.email || "", reason: reason.trim().slice(0, 500), status: "open", requestedAt: serverTimestamp() };
+      await setDoc(doc(db, "deletionRequests", uid), data);
+      setRequest({ ...data, requestedAt: null });
+      toast.success("Request received. We will confirm by e-mail when your account has been deleted.");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  return (
+    <div className="profile-panels">
+      <section className="aaf-card profile-section">
+        <h3>Download your data</h3>
+        <p className="profile-note">A copy of your profile, listings, orders, bulk requests, conversations and farms, as a JSON file.</p>
+        <button className="aaf-btn aaf-btn-secondary" onClick={download} disabled={exporting}>
+          <Download size={15} aria-hidden="true" /> {exporting ? "Preparing…" : "Download my data"}
+        </button>
+      </section>
+
+      <section className="aaf-card profile-section">
+        <h3>Analytics and cookies</h3>
+        <p className="profile-note">
+          Choose whether we may record anonymous usage events. Change it any time on the <Link to="/cookies">Cookie policy</Link> page.
+        </p>
+      </section>
+
+      <section className="aaf-card profile-section">
+        <h3>Delete your account</h3>
+        {request === undefined ? (
+          <p className="profile-note">Loading…</p>
+        ) : request ? (
+          <p className="profile-note">
+            We have your deletion request{request.status === "done" ? " and it has been completed" : " and are working on it"}. Questions?
+            E-mail <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>.
+          </p>
+        ) : (
+          <>
+            <p className="profile-note">
+              We delete your profile, listings, posts and documents. Order and payment records are kept for as long as the law
+              requires (see the <Link to="/privacy">Privacy policy</Link>). Orders still in progress must be completed or
+              cancelled first.
+            </p>
+            <label className="aaf-field">
+              Anything you'd like to tell us? <span className="aaf-muted">(optional)</span>
+              <textarea rows={2} maxLength={500} value={reason} onChange={(e) => setReason(e.target.value)} />
+            </label>
+            <button className="aaf-btn aaf-btn-danger" onClick={requestDeletion} disabled={sending} style={{ marginTop: "0.75rem" }}>
+              <Trash2 size={15} aria-hidden="true" /> {sending ? "Sending…" : "Request account deletion"}
+            </button>
+          </>
+        )}
+      </section>
+    </div>
+  );
+}
 
 export default function Profile() {
   const navigate = useNavigate();
@@ -194,7 +314,7 @@ export default function Profile() {
 
   const logout = async () => {
     await signOut(auth);
-    navigate("/");
+    window.location.href = "/";
   };
 
   if (loading) {
@@ -212,24 +332,23 @@ export default function Profile() {
     userType === "consumer" &&
     (profile?.isOrganization === true ||
       (!!profile?.questionnaireData?.consumerType && profile.questionnaireData.consumerType !== "Individual Buyer"));
-  const theme = isOrganization ? "organization" : userType;
-
-  const navSections = buildNavSections({ userType, isAdmin, activePath: "/profile" });
+  const memberType = profile?.userType || null;
+  const navSections = buildNavSections({ userType: memberType, isAdmin, activePath: "/profile" });
+  const tabs = TABS.filter((t) => t.key !== "documents" || memberType === "farmer" || memberType === "institution");
 
   return (
     <AppShell
-      eyebrow="Account"
-      title="My Profile"
+      title="Profile"
+      subtitle="Your details, documents, password and privacy choices."
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={theme}
     >
       <div className="profile-hero aaf-card">
         <div className="profile-identity">
           <div className="profile-photo-wrap">
-            <img src={profile?.profilePicture?.url || appIcon} alt="Profile" className="profile-photo" />
-            <label className="profile-photo-edit">
+            <img src={profile?.profilePicture?.url || appIcon} alt={profile?.profilePicture?.url ? "Your profile photo" : ""} className="profile-photo" />
+            <label className="profile-photo-edit" aria-label="Change profile photo" title="Change profile photo">
               {uploading ? "…" : <Pencil size={14} />}
               <input type="file" accept="image/*" onChange={uploadProfilePicture} disabled={uploading} hidden />
             </label>
@@ -237,16 +356,17 @@ export default function Profile() {
 
           <div>
             <h2>{name || profile?.personalInfo?.email || "AfriAgriFed User"}</h2>
-            <span className="aaf-pill aaf-pill-success">{userType || "account"}</span>
+            <span className="aaf-pill aaf-pill-success">{roleLabel({ userType: memberType, isOrganization, isAdmin })}</span>
           </div>
         </div>
       </div>
 
       <div className="profile-tabs">
-        {TABS.map((t) => (
+        {tabs.map((t) => (
           <button
             key={t.key}
             className={`profile-tab ${tab === t.key ? "active" : ""}`}
+            aria-pressed={tab === t.key}
             onClick={() => setTab(t.key)}
           >
             <span>{t.icon}</span> {t.label}
@@ -258,7 +378,7 @@ export default function Profile() {
         <div className="profile-panels">
           <section className="aaf-card profile-section">
             <div className="profile-section-header">
-              <h3>Personal Information</h3>
+              <h3>Personal information</h3>
               {!editingProfile && (
                 <button className="aaf-btn aaf-btn-ghost" onClick={startEditProfile}>
                   <Pencil size={14} /> Edit
@@ -317,12 +437,12 @@ export default function Profile() {
           </section>
 
           <section className="aaf-card profile-section">
-            <h3>Account Status</h3>
+            <h3>Account status</h3>
             <InfoGrid data={profile.accountStatus} />
           </section>
 
           <section className="aaf-card profile-section">
-            <h3>Questionnaire Information</h3>
+            <h3>Registration answers</h3>
             <InfoGrid data={profile.questionnaireData} />
           </section>
         </div>
@@ -351,6 +471,8 @@ export default function Profile() {
         </section>
       )}
 
+      {tab === "privacy" && <PrivacyPanel profile={profile} />}
+
       {tab === "security" && (
         <section className="aaf-card profile-section">
           <h3>Security</h3>
@@ -363,7 +485,7 @@ export default function Profile() {
             Send yourself a password reset link by email.
           </p>
           <button className="aaf-btn aaf-btn-primary" onClick={sendReset}>
-            Send Password Reset Email
+            Send password reset e-mail
           </button>
           {resetStatus && <p className="profile-reset-status">{resetStatus}</p>}
         </section>

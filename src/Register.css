@@ -720,3 +720,27 @@
     font-size: 14px;
   }
 }
+.optional {
+  font-weight: 400;
+  color: #5e6b64;
+}
+
+.field-hint {
+  display: block;
+  margin-top: 6px;
+  font-size: 0.82rem;
+  color: #5e6b64;
+}
+
+.terms-summary {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #5e6b64;
+}
+
+.terms-label a,
+.registration-note a {
+  color: #044d3a;
+  font-weight: 600;
+}

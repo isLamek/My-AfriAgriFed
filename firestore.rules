@@ -388,6 +388,21 @@ service cloud.firestore {
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
 
+    // ---- Account deletion requests (Profile -> Privacy) -----------------------
+    // One per person, keyed by uid. Only admins can mark it done.
+    match /deletionRequests/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'reason', 'status', 'requestedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.reason is string && request.resource.data.reason.size() <= 500
+        && request.resource.data.requestedAt == request.time;
+      allow read: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
+      allow list: if isSignedInAdmin();
+      allow update: if isSignedInAdmin();
+      allow delete: if false;
+    }
+
     // ---- Private messages between a buyer and a seller ----------------------
     // Mirrors src/conversations.js. A conversation is always about one listing, order
     // or bulk request, and the other person must be that thing's counterpart:

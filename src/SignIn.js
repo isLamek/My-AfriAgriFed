@@ -9,6 +9,7 @@ import { autoClaimPresetAdmin, isAdmin } from "./admin";
 import { friendlyAuthError } from "./authErrors";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import { Link, useNavigate } from "react-router-dom";
+import { BUSINESS } from "./business";
 import toast from "react-hot-toast";
 
 export default function SignIn() {
@@ -92,7 +93,7 @@ const navigate = useNavigate()
         userData.accountStatus?.documentStatus === "approved";
 
       if (approved) {
-        navigate("/farmerdashboard");
+        navigate("/dashboard");
       } else {
         toast.error("Your farmer account is still awaiting admin approval.");
         await auth.signOut();
@@ -135,9 +136,9 @@ const navigate = useNavigate()
           <button className="nav-btn" onClick={handleHomeClick}>
             Home
           </button>
-          <button className="nav-btn primary">
-            Contact Us
-          </button>
+          <a className="nav-btn primary" href={`mailto:${BUSINESS.email}`}>
+            Contact us
+          </a>
         </div>
       </nav>
 
@@ -148,14 +149,18 @@ const navigate = useNavigate()
             <span className="signin-brand">AfriAgriFed</span>
           </div>
 
-          <h1 className="signin-title">Sign In</h1>
+          <h1 className="signin-title">Sign in</h1>
 
           <form onSubmit={handleSubmit} className="signin-form">
             <div className="form-group">
-              <label>Email *</label>
+              <label htmlFor="signin-email">E-mail address</label>
               <input
+                id="signin-email"
                 type="email"
                 name="loginId"
+                autoComplete="email"
+                required
+                aria-invalid={!!errors.loginId}
                 value={formData.loginId}
                 onChange={handleInputChange}
                 className={errors.loginId ? "error" : ""}
@@ -164,10 +169,14 @@ const navigate = useNavigate()
             </div>
 
             <div className="form-group">
-              <label>Password *</label>
+              <label htmlFor="signin-password">Password</label>
               <input
+                id="signin-password"
                 type="password"
                 name="password"
+                autoComplete="current-password"
+                required
+                aria-invalid={!!errors.password}
                 value={formData.password}
                 onChange={handleInputChange}
                 className={errors.password ? "error" : ""}
@@ -180,7 +189,7 @@ const navigate = useNavigate()
             </Link>
 
             <button className="btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? "Signing In..." : "Sign In"}
+              {isSubmitting ? "Signing in…" : "Sign in"}
             </button>
           </form>
 

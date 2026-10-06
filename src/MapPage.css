@@ -883,3 +883,81 @@ p.fv-error {
   background: var(--aaf-danger-bg);
   color: var(--aaf-danger);
 }
+
+/* ---- buyers: produce for sale ---- */
+
+.fv-produce {
+  margin-bottom: 0.75rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--aaf-border);
+}
+
+.fv-produce-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+.fv-produce-list button {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0.35rem;
+  border-radius: var(--aaf-radius-sm);
+  font: inherit;
+  font-size: 0.85rem;
+  color: var(--aaf-ink);
+  cursor: pointer;
+}
+
+.fv-produce-list button:hover {
+  background: var(--aaf-mist);
+}
+
+.fv-count {
+  color: var(--aaf-text-muted);
+  font-size: 0.78rem;
+}
+
+.fv-region-produce {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+}
+
+.fv-region-produce h4 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 0.5rem;
+  font-size: 0.92rem;
+}
+
+.fv-region-produce ul {
+  list-style: none;
+  margin: 0 0 0.6rem;
+  padding: 0;
+}
+
+.fv-region-produce li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.3rem 0;
+  font-size: 0.85rem;
+  border-top: 1px solid var(--aaf-border);
+}
+
+.fv-region-produce li:first-child {
+  border-top: none;
+}
+
+.fv-region-produce em {
+  font-style: normal;
+  color: var(--aaf-text-muted);
+}

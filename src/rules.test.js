@@ -125,3 +125,19 @@ describe("database.rules.json: community posts", () => {
     expect(rtdb.farmerVerification.$applicationId[".write"]).toMatch(/!data\.exists\(\)/);
   });
 });
+
+describe("firestore.rules: private messages", () => {
+  const conversations = () => block(firestore, "match /conversations/{id}");
+  it("a thread must be about a real listing, order or bulk request with that counterpart", () => {
+    expect(block(firestore, "function validConversation(d)")).toMatch(/conversationTopicOk\(d\)/);
+    expect(block(firestore, "function conversationTopicOk(d)")).toMatch(/marketPrices\/\$\(d\.topic\.id\)\)\.data\.sellerId == other/);
+  });
+  it("messages can never be edited or deleted, and are sent as yourself", () => {
+    const b = conversations();
+    expect(b).toMatch(/allow update, delete: if false;/);
+    expect(b).toMatch(/senderId == request\.auth\.uid/);
+  });
+  it("you can only move your own read marker", () => {
+    expect(conversations()).toMatch(/readAt\.diff\(resource\.data\.get\('readAt', \{\}\)\)\.affectedKeys\(\)\.hasOnly\(\[request\.auth\.uid\]\)/);
+  });
+});

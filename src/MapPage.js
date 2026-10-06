@@ -1,5 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Flame, Layers, MapPin, Pause, Play, Wind } from "lucide-react";
+import { Flame, Layers, MapPin, Pause, Play, ShoppingBasket, Wind } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { collection, onSnapshot } from "firebase/firestore";
 // The "!" prefix skips Create React App's Babel pass over the library. Babel
 // rewrites the functions MapLibre ships to its web worker and breaks the
 // production build; the library is already compiled, so leave it alone.
@@ -13,7 +15,10 @@ import PointDetails from "./MapDetails";
 import { FarmDetails, FarmForm, FarmsSection } from "./MapFarms";
 import { fetchFires, firesNear, fireLevel, toGeoJson } from "./farmview/fires";
 import { fetchFeatures } from "./farmview/serverApi";
-import { auth } from "./firebaseConfig";
+import { auth, db } from "./firebaseConfig";
+import { mapCopyFor } from "./navConfig";
+import { countByRegion } from "./listingRules";
+import { formatNad } from "./purchase";
 import { subscribeFarms } from "./farms";
 import { BASEMAPS, NAMIBIA_BOUNDS, TIMEZONE, TOWNS, VIEWS, WEATHER_LAYERS } from "./farmview/config";
 import { fetchClimate, fetchFlood, fetchPointWeather } from "./farmview/dataClients";
@@ -23,6 +28,31 @@ import { fetchSatelliteTimes, frameTimes, satelliteTileUrl } from "./farmview/sa
 import { REGIONS_URL, findRegion, labelPoint, regionLabel } from "./farmview/regions";
 import WindParticles from "./farmview/windParticles";
 import "./MapPage.css";
+
+/** Buyers: what is for sale in the tapped region, with a way into the Marketplace. */
+function RegionProduce({ region, listings, onOpen }) {
+  const here = listings.filter((l) => l.region === region && l.quantity !== 0);
+  return (
+    <div className="fv-region-produce">
+      <h4><ShoppingBasket size={15} /> For sale in {regionLabel(region)}</h4>
+      {here.length === 0 ? (
+        <p className="fv-muted">Nothing is listed in this region right now.</p>
+      ) : (
+        <ul>
+          {here.slice(0, 5).map((l) => (
+            <li key={l.id}>
+              <span>{l.product}{l.sellerName ? <em> · {l.sellerName}</em> : null}</span>
+              <strong>{formatNad(l.price)}</strong>
+            </li>
+          ))}
+        </ul>
+      )}
+      <button className="fv-btn primary" onClick={onOpen}>
+        {here.length ? `See ${here.length === 1 ? "it" : `all ${here.length}`} in the Marketplace` : "Browse the Marketplace"}
+      </button>
+    </div>
+  );
+}
 
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const SAT_FRAMES = 12;
@@ -60,8 +90,13 @@ export default function MapPage() {
   const placingRef = useRef(false);
   const farmMarkersRef = useRef([]);
 
-  const { theme, navSections, logout, userType } = useAccountContext("/map");
+  const { navSections, logout, userType } = useAccountContext("/map");
+  const navigate = useNavigate();
   const isFarmer = userType === "farmer";
+  // Buyers come to the map to find produce; growers and institutions to plan.
+  const isBuyer = !isFarmer && userType !== "institution";
+  const copy = mapCopyFor(userType);
+  const [listings, setListings] = useState([]);
 
   const [mapReady, setMapReady] = useState(false);
   const [overlaysReady, setOverlaysReady] = useState(false); // region layers exist; weather can slot under them
@@ -114,6 +149,21 @@ export default function MapPage() {
       cancelled = true;
     };
   }, []);
+
+  // ---- buyers: what is for sale, per region ---------------------------------
+  useEffect(() => {
+    if (!isBuyer) return undefined;
+    return onSnapshot(
+      collection(db, "marketPrices"),
+      (snap) => setListings(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => setListings([])
+    );
+  }, [isBuyer]);
+  const produceCounts = useMemo(() => countByRegion(listings), [listings]);
+  const produceRegions = useMemo(
+    () => Object.entries(produceCounts).sort((a, b) => b[1] - a[1]),
+    [produceCounts]
+  );
 
   // ---- create the map once --------------------------------------------------
   useEffect(() => {
@@ -505,9 +555,17 @@ export default function MapPage() {
 
   const flyToBounds = useCallback((bounds) => mapRef.current?.fitBounds(bounds, { padding: framePadding(), duration: 900 }), []);
 
-  const goToRegion = (name) => {
+  const goToRegion = (name, { select = false } = {}) => {
     const feature = regions?.features.find((f) => f.properties.name === name);
-    if (feature) flyToBounds(bboxOf(feature.geometry));
+    if (!feature) return;
+    flyToBounds(bboxOf(feature.geometry));
+    if (select) {
+      const [lng, lat] = labelPoint(feature.geometry);
+      setDraft(null);
+      setSelectedFarmId(null);
+      setPicked({ lat, lng });
+      setPanelOpen(true);
+    }
   };
 
   // ---- timeline numbers -------------------------------------------------------
@@ -531,18 +589,36 @@ export default function MapPage() {
 
   return (
     <AppShell
-      eyebrow="Namibia"
-      title="Map"
-      subtitle="Live weather, satellite and farming information, region by region."
+      title={copy.title}
+      subtitle={copy.subtitle}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={theme}
     >
       <div className="fv-wrap">
         <div className="fv-map" data-band="mid" ref={containerRef} />
 
         <div className="fv-controls aaf-card">
+          {isBuyer && (
+            <div className="fv-produce">
+              <p className="fv-label"><ShoppingBasket size={14} /> Produce for sale</p>
+              {produceRegions.length === 0 ? (
+                <p className="fv-muted">Nothing is listed yet. Regions with produce for sale will appear here.</p>
+              ) : (
+                <ul className="fv-produce-list">
+                  {produceRegions.map(([name, count]) => (
+                    <li key={name}>
+                      <button onClick={() => goToRegion(name, { select: true })}>
+                        <span>{regionLabel(name)}</span>
+                        <span className="fv-count">{count} listing{count === 1 ? "" : "s"}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          )}
+
           <div className="fv-seg" role="group" aria-label="Map type">
             {Object.entries(BASEMAPS).map(([id, b]) => (
               <button key={id} className={basemap === id ? "on" : ""} onClick={() => setBasemap(id)}>
@@ -644,7 +720,13 @@ export default function MapPage() {
               ))}
             </select>
           </div>
-          <p className="fv-muted fv-tip">Tap anywhere on the map for that spot's weather and crop information.</p>
+          <p className="fv-muted fv-tip">
+            {isBuyer
+              ? "Tap a region to see what is for sale there, and the weather where it grows."
+              : isFarmer
+              ? "Tap anywhere for that spot's weather and crop information, or add your farm."
+              : "Tap anywhere for that spot's weather, climate and crop suitability."}
+          </p>
         </div>
 
         {showTimeline && timelineLength > 0 && (
@@ -696,7 +778,17 @@ export default function MapPage() {
                 {selectedFarm && panelTab === "farm" ? (
                   <FarmDetails key={selectedFarm.id} farm={selectedFarm} fires={features.fires ? fireData : null} onDeleted={() => { setSelectedFarmId(null); setPicked(null); }} />
                 ) : (
-                  picked && <PointDetails picked={picked} region={pickedRegion} details={details} fires={features.fires ? fireData : null} />
+                  picked && (
+                    <PointDetails picked={picked} region={pickedRegion} details={details} fires={features.fires ? fireData : null} showCrops={!isBuyer}>
+                      {isBuyer && pickedRegion && (
+                        <RegionProduce
+                          region={pickedRegion.properties.name}
+                          listings={listings}
+                          onOpen={() => navigate(`/marketplace?region=${encodeURIComponent(pickedRegion.properties.name)}`)}
+                        />
+                      )}
+                    </PointDetails>
+                  )
                 )}
               </>
             )}

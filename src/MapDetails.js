@@ -55,7 +55,12 @@ export function FireWatch({ point, fires, km = 25 }) {
 }
 
 /** Everything we know about one tapped spot. */
-export default function PointDetails({ picked, region, details, fires }) {
+/**
+ * What we know about a tapped spot. `showCrops` is off for buyers (crop
+ * suitability is planning advice for growers); `children` lets the page add
+ * role-specific blocks, such as produce for sale in this region.
+ */
+export default function PointDetails({ picked, region, details, fires, showCrops = true, children }) {
   const town = nearestTown(picked.lat, picked.lng);
   const climate = details?.climate;
   const crops = useMemo(() => {
@@ -73,6 +78,8 @@ export default function PointDetails({ picked, region, details, fires }) {
         {town ? ` · ${town.km <= 1 ? `in ${town.name}` : `about ${town.km} km from ${town.name}`}` : ""}
       </p>
 
+      {children}
+
       <FireWatch point={picked} fires={fires} />
 
       {details?.loading && <p className="fv-muted">Loading conditions…</p>}
@@ -88,7 +95,7 @@ export default function PointDetails({ picked, region, details, fires }) {
             </p>
           )}
 
-          {crops ? (
+          {!showCrops ? null : crops ? (
             <div className="fv-crops">
               <h4><Sprout size={16} /> What suits this area</h4>
               <p className="fv-muted">

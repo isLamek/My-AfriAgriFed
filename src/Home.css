@@ -964,3 +964,13 @@ body {
     padding: 20px 15px 10px;
   }
 }
+.contact-form-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #5e6b64;
+}
+
+.contact-item a {
+  color: inherit;
+}
