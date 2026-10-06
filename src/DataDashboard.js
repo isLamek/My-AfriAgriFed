@@ -55,7 +55,7 @@ export default function DataDashboard() {
           <span className="stat-label">Registered users</span>
           <span className="stat-value">{summary?.users ?? "-"}</span>
           <span className="stat-foot">
-            {summary?.updatedAt?.toDate ? `As of ${summary.updatedAt.toDate().toLocaleDateString()}` : "Updated when an admin opens the Admin Dashboard"}
+            {summary?.updatedAt?.toDate ? `As of ${summary.updatedAt.toDate().toLocaleDateString("en-GB")}` : "Updated when an admin opens the Admin Dashboard"}
           </span>
         </div>
         <Stat label="Marketplace listings" value={count("marketPrices")} />

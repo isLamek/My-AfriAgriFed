@@ -206,16 +206,16 @@ body {
 }
 
 .cta-btn.primary {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  background: #0b6b4f;
   color: white;
-  box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 10px 25px rgba(4, 77, 58, 0.25);
   border: 2px solid #27ae60;
 }
 
 .cta-btn.primary:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(46, 204, 113, 0.6);
-  background: linear-gradient(135deg, #27ae60, #219955);
+  box-shadow: 0 15px 35px rgba(4, 77, 58, 0.35);
+  background: #044d3a;
 }
 
 .cta-btn.secondary {
@@ -316,7 +316,7 @@ body {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 8px 25px rgba(4, 77, 58, 0.25);
   border: 3px solid #2ecc71;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -324,7 +324,7 @@ body {
 
 .ai-bot:hover {
   transform: scale(1.1);
-  box-shadow: 0 12px 35px rgba(46, 204, 113, 0.6);
+  box-shadow: 0 12px 35px rgba(4, 77, 58, 0.35);
 }
 
 .ai-message {
@@ -589,7 +589,7 @@ body {
 .submit-btn {
   width: 100%;
   padding: 18px;
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  background: #0b6b4f;
   color: white;
   border: none;
   border-radius: 10px;
@@ -600,9 +600,9 @@ body {
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #27ae60, #219955);
+  background: #044d3a;
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 10px 25px rgba(4, 77, 58, 0.25);
 }
 
 .submit-btn:disabled {
@@ -973,4 +973,25 @@ body {
 
 .contact-item a {
   color: inherit;
+}
+
+/* The home page background is light, so the outline nav buttons need dark
+   text to be readable (they were white on near-white). */
+.home .nav-btn:not(.primary) {
+  border-color: #044d3a;
+  color: #044d3a;
+  background: rgba(255, 255, 255, 0.85);
+  text-shadow: none;
+}
+
+.home .nav-btn:not(.primary):hover {
+  background: #044d3a;
+  color: #fff;
+}
+
+.home .nav-btn.primary {
+  background: #044d3a;
+  border-color: #044d3a;
+  color: #fff;
+  text-shadow: none;
 }

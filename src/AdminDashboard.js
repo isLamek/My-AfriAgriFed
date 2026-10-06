@@ -82,7 +82,7 @@ function DeletionRequests() {
               <tr key={r.id}>
                 <td>{r.email}</td>
                 <td><code>{r.uid}</code></td>
-                <td>{r.requestedAt?.toDate ? r.requestedAt.toDate().toLocaleDateString() : "—"}</td>
+                <td>{r.requestedAt?.toDate ? r.requestedAt.toDate().toLocaleDateString("en-GB") : "—"}</td>
                 <td>{r.reason || "—"}</td>
                 <td>
                   <button className="remove-admin-btn" onClick={() => markDone(r)}>Mark done</button>

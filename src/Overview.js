@@ -7,7 +7,7 @@ import { db } from "./firebaseConfig";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import useAccountContext from "./useAccountContext";
-import { allowedNext, isActive, needsAttention, normaliseStatus, STATUS_LABELS, waitingOn } from "./orderStatus";
+import { ACTION_LABELS, allowedNext, isActive, needsAttention, normaliseStatus, STATUS_LABELS, waitingOn } from "./orderStatus";
 import { formatNad, quantityText, stockLabel } from "./purchase";
 import { isUnread, subscribeConversations } from "./conversations";
 import { deadlineState } from "./demandRules";
@@ -61,12 +61,19 @@ function OrderList({ orders, uid, empty, onOpen }) {
   return (
     <ul className="aaf-list">
       {orders.slice(0, 5).map((order) => {
-        const mine = allowedNext(order, uid).length > 0 || needsAttention(order);
+        const next = allowedNext(order, uid);
+        const mine = next.length > 0 || needsAttention(order);
+        const status = STATUS_LABELS[normaliseStatus(order.status)];
+        const hint = needsAttention(order)
+          ? "Not enough stock: agree a partial delivery or refund"
+          : next.length
+          ? `${status} · next: ${ACTION_LABELS[next[0]].toLowerCase()}`
+          : waitingOn(order) || status;
         return (
           <li key={order.id}>
             <span>
               {order.product || "Order"} {quantityText(order) && <span className="aaf-muted">· {quantityText(order)}</span>}
-              <span className="aaf-list-sub">{mine ? "Your turn: " : ""}{waitingOn(order) || STATUS_LABELS[normaliseStatus(order.status)]}</span>
+              <span className="aaf-list-sub">{hint}</span>
             </span>
             <button className="aaf-text-btn" onClick={onOpen}>{mine ? "Update" : "View"}</button>
           </li>
@@ -139,7 +146,7 @@ function ProducerOverview({ account }) {
                   {d.title}
                   <span className="aaf-list-sub">
                     {d.quantityNeeded} {d.unit} of {d.product}
-                    {d.deadline ? ` · by ${new Date(d.deadline).toLocaleDateString()}` : ""}
+                    {d.deadline ? ` · by ${new Date(d.deadline).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}` : ""}
                   </span>
                 </span>
                 <button className="aaf-text-btn" onClick={() => navigate("/demand-board")}>Pledge</button>

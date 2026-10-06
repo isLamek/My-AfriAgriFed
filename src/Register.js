@@ -313,10 +313,10 @@ const handleSubmit = async (completeRegistration = false, extraQuestionnaire = n
 
   const renderProgressSteps = () => {
     const steps = [
-      { number: 1, label: 'Personal Info' },
-      { number: 2, label: formData.userType === "farmer" ? "Farm Info" : 
-                        formData.userType === "institution" ? "Institution Info" : 
-                        formData.userType === "consumer" ? "Consumer Info" : "Additional Info" },
+      { number: 1, label: 'About you' },
+      { number: 2, label: formData.userType === "farmer" ? "Your farm" : 
+                        formData.userType === "institution" ? "Your institution" : 
+                        "More about you" },
       { number: 3, label: 'Documents' }
     ];
 
@@ -415,12 +415,12 @@ const handleSubmit = async (completeRegistration = false, extraQuestionnaire = n
           <h1 className="register-title">Create your account</h1>
 
           {/* Show progress steps only if not in questionnaire */}
-          {currentStep !== "questionnaire" && renderProgressSteps()}
+          {currentStep !== "questionnaire" && formData.userType !== "consumer" && renderProgressSteps()}
 
           {/* Phase 1: Personal Information */}
           {currentStep === 1 && (
             <div className="form-phase">
-              <h2>Personal Information</h2>
+              <h2>About you</h2>
               <div className="form-grid">
                 <div className="form-group">
                   <label htmlFor="reg-firstName">First name</label>

@@ -420,3 +420,13 @@ button.aaf-stat:hover {
 .price-meta svg {
   vertical-align: -1px;
 }
+
+.buy-row .aaf-btn {
+  white-space: nowrap;
+}
+
+/* No photo: a slim strip instead of an empty 4:3 box. */
+.price-card-image.placeholder {
+  aspect-ratio: auto;
+  height: 72px;
+}

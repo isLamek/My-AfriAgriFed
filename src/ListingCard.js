@@ -49,7 +49,7 @@ export default function ListingCard({ listing, isOwn, canBuy = true, onBuy, onMe
             {listing.deliveryNote ? ` · ${listing.deliveryNote}` : ""}
           </p>
         )}
-        {stock.text && <p className={`price-qty ${stock.state}`}>{stock.text}</p>}
+        {stock.text && !soldOut && <p className={`price-qty ${stock.state}`}>{stock.text}</p>}
 
         <div className="price-card-actions">
           {isOwn ? (

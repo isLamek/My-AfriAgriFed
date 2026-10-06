@@ -26,7 +26,7 @@ export function formatRelativeTime(timestamp) {
   if (hours < 24) return `${hours} h ago`;
   const days = Math.round(hours / 24);
   if (days < 7) return `${days} d ago`;
-  return new Date(timestamp).toLocaleDateString();
+  return new Date(timestamp).toLocaleDateString("en-GB");
 }
 
 function initials(name) {

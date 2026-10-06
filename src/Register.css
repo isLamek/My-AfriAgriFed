@@ -106,7 +106,7 @@
 .step.active .step-number {
   background: rgba(46, 204, 113, 0.9); /* More transparent */
   transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 0 20px rgba(4, 77, 58, 0.25);
 }
 
 .step.completed .step-number {
@@ -207,7 +207,7 @@
   background: rgba(248, 255, 248, 0.7); /* More transparent */
   padding: 20px;
   border-radius: 12px;
-  border: 2px dashed rgba(46, 204, 113, 0.6); /* More transparent */
+  border: 2px dashed rgba(4, 77, 58, 0.35); /* More transparent */
 }
 
 .document-group label {
@@ -271,7 +271,7 @@
 .btn-primary:hover:not(:disabled) {
   background: rgba(39, 174, 96, 0.9); /* More transparent */
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 6px 20px rgba(4, 77, 58, 0.25);
 }
 
 .btn-secondary {
@@ -406,7 +406,7 @@
   background: rgba(248, 255, 248, 0.7);
   padding: 20px;
   border-radius: 12px;
-  border: 2px solid rgba(46, 204, 113, 0.6);
+  border: 2px solid rgba(4, 77, 58, 0.35);
 }
 
 .terms-label {
@@ -743,4 +743,29 @@
 .registration-note a {
   color: #044d3a;
   font-weight: 600;
+}
+
+.terms-label input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  padding: 0;
+  margin: 3px 0 0;
+  transform: none;
+}
+
+/* The nav sits on a bright photo: give the buttons a solid backing so the
+   white text stays readable. */
+.register-page .nav-btn,
+.signin-page .nav-btn {
+  background: rgba(2, 47, 31, 0.82);
+  color: #fff;
+  border-color: transparent;
+  text-decoration: none;
+}
+
+.register-page .nav-btn.primary,
+.signin-page .nav-btn.primary {
+  background: #044d3a;
+  color: #fff;
 }

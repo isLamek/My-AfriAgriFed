@@ -3,7 +3,7 @@ import { collection, onSnapshot, query, where } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { Check, ChevronDown, ChevronUp, MessageSquare, Package, ShoppingBag, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { quantityText } from "./purchase";
+import { formatNad, quantityText } from "./purchase";
 import { db } from "./firebaseConfig";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
@@ -25,7 +25,7 @@ import "./OrderTracker.css";
 
 const formatWhen = (ms) =>
   ms
-    ? new Date(ms).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    ? new Date(ms).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
     : "";
 
 const createdMs = (order) => (order.createdAt?.toDate ? order.createdAt.toDate().getTime() : 0);
@@ -55,8 +55,8 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
             {side === "selling" ? "Buyer" : "Seller"}: <strong>{other}</strong>
             {" · "}
             {quantityText(order) ? `${quantityText(order)} · ` : ""}
-            {order.currency || "NAD"} {order.amount}
-            {createdMs(order) ? ` · ${new Date(createdMs(order)).toLocaleDateString()}` : ""}
+            {formatNad(order.amount)}
+            {createdMs(order) ? ` · ${new Date(createdMs(order)).toLocaleDateString("en-GB")}` : ""}
           </p>
         </div>
         <span className={`ot-badge ${status}`}>{STATUS_LABELS[status]}</span>
