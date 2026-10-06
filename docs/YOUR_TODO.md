@@ -9,26 +9,40 @@ Never paste a key into a chat, email, screenshot or GitHub.
 
 ---
 
+## 0. DEPLOYED on 5 October 2026: do these two things NOW
+
+The website, the main database rules and the community-posts rules went live at
+**https://afriagrifed-ebc30.web.app** (built with no backend address, so nothing points at
+localhost). Because the new rules are live:
+
+- [ ] **Verify your own e-mail, today.** Sign in as the founder and open the Admin area. You
+      will see "Verify your e-mail": open the link in the e-mail (check spam), then press
+      **I have verified my e-mail**. Until you do, the Admin Dashboard will not open.
+- [ ] **Confirm the founder seat is claimed** (Firestore, `system`, `bootstrap`,
+      `founderClaimed: true`).
+
+**What works on the live site right now:** the Map (weather loads straight from Open-Meteo's
+free tier, so it is non-commercial until you buy a plan), Community Feed, Demand Board,
+Marketplace browsing, Data/Statistics/Promotions pages, Research/Training/Internships,
+sign-in and registration for consumers.
+
+**What does NOT work yet, by design, until the backend is online (sections 2 and 3):**
+payments and promotions ("Payments are being set up"), seller payout setup, photo and
+document uploads (so new farmer and institution registrations, which need documents, and
+post photos cannot complete), fire hotspots, and the shared weather cache.
+
 ## 1. Today (about 15 minutes)
 
 - [ ] **Sign the GitHub tool in.** Open a **new** terminal window and run:
       `gh auth login` (choose GitHub.com, HTTPS, then sign in through the browser).
       I installed it (version 2.102.0) but it needs your account to log in. After that I
       can open pull requests for you.
-- [ ] **Decide how GitHub's `main` gets this work (a pull request is NOT possible).**
-      `main` and `ui-overhaul-and-commerce` have **no shared history**: `main` is an older,
-      flat upload from June 2026 (files at the top level, no `src/` folder) and this branch
-      is the project as it is now, so GitHub refuses to compare them. The link I gave
-      earlier will say "entirely different commit histories". Your choices:
-      1. **Recommended: make this branch the new `main`.** First keep the old `main`
-         as a backup branch (for example `archive/june-upload`), then point `main` at
-         this branch. Nothing is lost, and there is one clean history. It overwrites what
-         people see on `main`, so only do it if nobody else relies on it.
-      2. **Keep `main` as it is** and treat `ui-overhaul-and-commerce` as the real project
-         branch (set it as GitHub's default branch in Settings, Branches).
-      3. **Merge the two histories** (`--allow-unrelated-histories`). Messy: it adds the
-         old top-level files next to `src/`. Not recommended.
-      Tell me which one and I will do it (with `gh` signed in, or from here with git).
+- [x] **GitHub `main` now holds this project (done 5 Oct 2026).** `main` and the old
+      working branch shared no history, so a pull request was impossible. At your choice
+      I saved the old June upload as the branch `archive/june-upload` and pointed `main`
+      at the current work. The branch `ui-overhaul-and-commerce` is the same commit and
+      can be deleted on GitHub whenever you like. Render and any other host should use
+      the branch `main`.
 
 ## 2. Get the keys and accounts (SETUP_GUIDE sections 2 to 4)
 

@@ -20,12 +20,13 @@ import { auth, db } from "./firebaseConfig";
 import { getAdminProfile } from "./admin";
 import { buildNavSections } from "./navConfig";
 import { uploadToCloudinary } from "./cloudinairyUpload";
+import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import "./MyListings.css";
 import "./MyOrders.css";
 
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+const API_URL = API_BASE_URL;
 const emptyListing = { product: "", price: "", unit: "kg", quantity: "" };
 
 export default function MyListings() {
@@ -61,6 +62,10 @@ export default function MyListings() {
   }, []);
 
   useEffect(() => {
+    if (!API_URL) {
+      setBanks([]); // no backend configured yet
+      return;
+    }
     fetch(`${API_URL}/api/payments/banks?country=NA`)
       .then((res) => res.json())
       .then((data) => setBanks(data.banks || []))
@@ -106,24 +111,30 @@ export default function MyListings() {
       return;
     }
 
+    if (!API_URL) {
+      toast.error(NO_BACKEND_MESSAGE);
+      return;
+    }
+
     setSettingUpPayouts(true);
 
     try {
+      // The server checks who is asking from this token; it takes the seller's identity
+      // and e-mail from it, not from the form.
+      const token = await user.getIdToken();
       const response = await fetch(`${API_URL}/api/payments/subaccounts`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify({
           businessName: payoutForm.businessName,
-          businessEmail: user.email,
           accountBank: payoutForm.accountBank,
           accountNumber: payoutForm.accountNumber,
-          sellerId: user.uid,
         }),
       });
 
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
 
-      if (!response.ok) throw new Error(data.error || "Could not set up payouts");
+      if (!response.ok) throw new Error(data.message || "Could not set up payouts");
 
       await setDoc(doc(db, "users", user.uid), { flutterwaveSubaccountId: data.subaccountId }, { merge: true });
       setSubaccountId(data.subaccountId);

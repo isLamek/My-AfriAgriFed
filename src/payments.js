@@ -12,8 +12,7 @@ import toast from "react-hot-toast";
 import { auth } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 
-// Same variable cloudinairyUpload.js uses for the backend URL.
-const API_BASE_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
 
 /** The backend's own words if it gave any, otherwise something plain. */
 function messageFrom(data, fallback) {
@@ -22,6 +21,7 @@ function messageFrom(data, fallback) {
 
 /** Call the backend as the signed-in user (anonymous visitors count: they have an identity too). */
 async function authedFetch(path, options = {}) {
+  if (!API_BASE_URL) throw new Error("Payments are being set up. Please try again soon."); // no backend configured yet
   await auth.authStateReady(); // on a fresh page load the session is restored asynchronously
   const user = auth.currentUser;
   if (!user) throw new Error("Please sign in first.");
