@@ -1,13 +1,16 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { Check, ChevronDown, ChevronUp, Package, ShoppingBag, Store } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, MessageSquare, Package, ShoppingBag, Store } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { quantityText } from "./purchase";
-import { auth, db } from "./firebaseConfig";
+import { db } from "./firebaseConfig";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import useAccountContext from "./useAccountContext";
 import { advanceOrder } from "./orders";
+import { openConversation } from "./conversations";
+import { SUPPORT_EMAIL } from "./business";
 import {
   ACTION_LABELS,
   STATUS_LABELS,
@@ -28,7 +31,7 @@ const formatWhen = (ms) =>
 const createdMs = (order) => (order.createdAt?.toDate ? order.createdAt.toDate().getTime() : 0);
 
 /** One order: summary, step-by-step progress, and the buttons this person may press. */
-export function OrderCard({ order, uid, side, busy, onAdvance }) {
+export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
   const [note, setNote] = useState("");
   const [showLog, setShowLog] = useState(false);
 
@@ -62,13 +65,13 @@ export function OrderCard({ order, uid, side, busy, onAdvance }) {
       {order.oversold && (
         <p className="ot-oversold" role="alert">
           {side === "selling"
-            ? "You did not have enough stock to fill this order in full. Contact the buyer to agree what to do, or ask for a refund."
-            : "The seller did not have enough stock to fill this order in full. They will contact you, or you can ask for a refund."}
+            ? "You did not have enough stock to fill this order in full. Message the buyer to agree what to do: a partial delivery or a refund."
+            : `The seller did not have enough stock to fill this order in full. Message them to agree what to do, or ask ${SUPPORT_EMAIL} for a refund.`}
         </p>
       )}
 
       {status === "cancelled" ? (
-        <p className="ot-wait">This order was cancelled. Contact support if you have questions about a refund.</p>
+        <p className="ot-wait">This order was cancelled. For questions about your refund, e-mail {SUPPORT_EMAIL}.</p>
       ) : (
         <ol className="ot-steps" aria-label="Order progress">
           {timeline.map((step) => (
@@ -120,14 +123,27 @@ export function OrderCard({ order, uid, side, busy, onAdvance }) {
         </div>
       )}
 
-      {order.transactionId && <p className="ot-ref">Ref {order.transactionId}</p>}
+      <div className="ot-foot">
+        {order.transactionId && <p className="ot-ref">Payment ref {order.transactionId}</p>}
+        {onMessage && (
+          <button type="button" className="aaf-btn aaf-btn-secondary aaf-btn-sm" onClick={() => onMessage(order)}>
+            <MessageSquare size={14} aria-hidden="true" /> Message {side === "selling" ? "buyer" : "seller"}
+          </button>
+        )}
+      </div>
     </article>
   );
 }
 
+const showSellingTabTitle = (userType) =>
+  userType === "farmer"
+    ? "Orders from your buyers, and anything you have bought. Follow each one from payment to delivery."
+    : "Everything you have bought, from payment to delivery.";
+
 export default function OrderTracker() {
-  const { theme, navSections, logout, userType } = useAccountContext("/track-orders");
-  const uid = auth.currentUser?.uid;
+  const { navSections, logout, userType, user, publicName } = useAccountContext("/orders");
+  const navigate = useNavigate();
+  const uid = user?.uid;
 
   const [buying, setBuying] = useState(null); // null = still loading
   const [selling, setSelling] = useState(null);
@@ -181,28 +197,42 @@ export default function OrderTracker() {
     }
   };
 
+  const messageOther = async (order) => {
+    const buyerSide = order.buyerId === uid;
+    try {
+      const id = await openConversation({
+        me: { uid, name: publicName },
+        other: buyerSide
+          ? { uid: order.sellerId, name: order.sellerName || "Seller" }
+          : { uid: order.buyerId, name: order.buyerName && !order.buyerName.includes("@") ? order.buyerName : "Buyer" },
+        topic: { kind: "order", id: order.id, title: order.product || "Order" },
+      });
+      navigate(`/messages/${id}`);
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
   const loading = buying === null || selling === null;
   const showSellingTab = userType === "farmer" || (selling && selling.length > 0);
 
   return (
     <AppShell
-      eyebrow="Fulfilment"
-      title="Order Tracker"
-      subtitle="Follow every order from payment to delivery."
+      title="Orders"
+      subtitle={showSellingTabTitle(userType)}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
-      theme={theme}
     >
       <div className="ot-toolbar">
         <div className="ot-tabs" role="tablist">
           <button role="tab" aria-selected={side === "buying"} className={side === "buying" ? "on" : ""} onClick={() => setSide("buying")}>
-            <ShoppingBag size={16} /> Buying
+            <ShoppingBag size={16} aria-hidden="true" /> Purchases
             {needsAction(buying) > 0 && <span className="ot-count">{needsAction(buying)}</span>}
           </button>
           {showSellingTab && (
             <button role="tab" aria-selected={side === "selling"} className={side === "selling" ? "on" : ""} onClick={() => setSide("selling")}>
-              <Store size={16} /> Selling
+              <Store size={16} aria-hidden="true" /> Sales
               {needsAction(selling) > 0 && <span className="ot-count">{needsAction(selling)}</span>}
             </button>
           )}
@@ -232,7 +262,7 @@ export default function OrderTracker() {
 
       <div className="ot-list">
         {visible.map((order) => (
-          <OrderCard key={order.id} order={order} uid={uid} side={side} busy={busyId === order.id} onAdvance={handleAdvance} />
+          <OrderCard key={order.id} order={order} uid={uid} side={side} busy={busyId === order.id} onAdvance={handleAdvance} onMessage={messageOther} />
         ))}
       </div>
     </AppShell>

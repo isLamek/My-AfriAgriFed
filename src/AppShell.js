@@ -1,8 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Menu, LogOut, PanelLeftClose, PanelLeftOpen, X } from "lucide-react";
 import seedMark from "./images/seed-mark-reversed.png";
 import { VerifyEmailBanner } from "./VerifyEmail";
+import { useAccount } from "./AccountContext";
+import { roleLabel } from "./navConfig";
 import "./AppShell.css";
 
 function readStoredCollapsed() {
@@ -14,23 +16,14 @@ function readStoredCollapsed() {
 }
 
 /**
- * Shared sidebar + topbar layout for every signed-in area of the app
- * (dashboards, profile, admin). Keeps navigation, branding and page
- * headers consistent instead of every page rolling its own header bar.
+ * Shared sidebar + top bar for every signed-in page.
  *
- * navSections: [{ heading?: string, items: [{ label, icon, path?, onClick?, active? }] }]
+ * navSections: [{ heading?: string, items: [{ label, icon, path?, state?, onClick?, active? }] }]
+ * actions: optional buttons shown beside the page title (the page's main action).
  */
-export default function AppShell({
-  eyebrow,
-  title,
-  subtitle,
-  navSections = [],
-  headerRight,
-  onLogout,
-  theme,
-  children,
-}) {
+export default function AppShell({ title, subtitle, navSections = [], headerRight, actions, onLogout, children }) {
   const navigate = useNavigate();
+  const account = useAccount();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(readStoredCollapsed);
 
@@ -40,58 +33,76 @@ export default function AppShell({
       try {
         localStorage.setItem("aaf_sidebar_collapsed", next ? "1" : "0");
       } catch {
-        // ignore - private browsing / storage disabled
+        // private browsing or storage disabled
       }
       return next;
     });
   };
 
-  const go = (item) => {
+  const go = (entry) => {
     setMobileOpen(false);
-    if (item.onClick) return item.onClick();
-    if (item.path) navigate(item.path, item.state ? { state: item.state } : undefined);
+    if (entry.onClick) return entry.onClick();
+    if (entry.path) navigate(entry.path, entry.state ? { state: entry.state } : undefined);
   };
 
+  const name = account.user ? account.publicName : "";
+  const role = account.user ? roleLabel(account) : "";
+
   return (
-    <div className={`aaf-shell ${theme ? `aaf-theme-${theme}` : ""}`}>
+    <div className="aaf-shell">
+      <a className="aaf-skip-link" href="#main-content">Skip to main content</a>
+
       <button
         className="aaf-mobile-toggle"
         onClick={() => setMobileOpen((prev) => !prev)}
-        aria-label="Toggle navigation"
+        aria-label={mobileOpen ? "Close menu" : "Open menu"}
+        aria-expanded={mobileOpen}
       >
-        <Menu size={20} />
+        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
 
       <aside className={`aaf-sidebar ${mobileOpen ? "open" : ""} ${desktopCollapsed ? "collapsed" : ""}`}>
-        <div className="aaf-sidebar-brand" onClick={() => navigate("/")}>
-          <img src={seedMark} alt="AfriAgriFed" />
+        <button type="button" className="aaf-sidebar-brand" onClick={() => navigate("/")} aria-label="AfriAgriFed home page">
+          <img src={seedMark} alt="" />
           <span>AfriAgriFed</span>
-        </div>
+        </button>
 
-        <nav className="aaf-sidebar-nav">
+        <nav className="aaf-sidebar-nav" aria-label="Main">
           {navSections.map((section, sIndex) => (
             <div className="aaf-sidebar-section" key={section.heading || sIndex}>
               {section.heading && <p className="aaf-sidebar-heading">{section.heading}</p>}
-              {section.items.map((item) => (
+              {section.items.map((entry) => (
                 <button
-                  key={item.label}
-                  className={`aaf-sidebar-link ${item.active ? "active" : ""}`}
-                  title={item.hint}
-                  onClick={() => go(item)}
+                  key={entry.label}
+                  className={`aaf-sidebar-link ${entry.active ? "active" : ""}`}
+                  aria-current={entry.active ? "page" : undefined}
+                  onClick={() => go(entry)}
                 >
-                  <span className="aaf-sidebar-icon">{item.icon}</span>
-                  {item.label}
+                  <span className="aaf-sidebar-icon" aria-hidden="true">{entry.icon}</span>
+                  <span className="aaf-sidebar-label">{entry.label}</span>
+                  {entry.badge ? <span className="aaf-sidebar-badge">{entry.badge}</span> : null}
                 </button>
               ))}
             </div>
           ))}
         </nav>
 
-        {onLogout && (
-          <button className="aaf-sidebar-logout" onClick={onLogout}>
-            <span className="aaf-sidebar-icon"><LogOut size={18} /></span> Logout
-          </button>
-        )}
+        <div className="aaf-sidebar-footer">
+          {name && (
+            <button type="button" className="aaf-sidebar-user" onClick={() => go({ path: "/profile" })}>
+              <span className="aaf-sidebar-avatar" aria-hidden="true">{name.trim()[0]?.toUpperCase() || "?"}</span>
+              <span className="aaf-sidebar-user-text">
+                <strong>{name}</strong>
+                <span>{role}</span>
+              </span>
+            </button>
+          )}
+          {onLogout && (
+            <button className="aaf-sidebar-logout" onClick={onLogout}>
+              <LogOut size={16} aria-hidden="true" /> Sign out
+            </button>
+          )}
+        </div>
       </aside>
 
       {mobileOpen && <div className="aaf-mobile-backdrop" onClick={() => setMobileOpen(false)} />}
@@ -107,18 +118,24 @@ export default function AppShell({
             >
               {desktopCollapsed ? <PanelLeftOpen size={18} /> : <PanelLeftClose size={18} />}
             </button>
-            <div>
-              {eyebrow && <p className="aaf-eyebrow">{eyebrow}</p>}
+            <div className="aaf-shell-heading">
               <h1>{title}</h1>
               {subtitle && <p className="aaf-shell-subtitle">{subtitle}</p>}
             </div>
           </div>
 
-          {headerRight && <div className="aaf-shell-topbar-right">{headerRight}</div>}
+          {(actions || headerRight) && (
+            <div className="aaf-shell-topbar-right">
+              {actions}
+              {headerRight}
+            </div>
+          )}
         </header>
 
         <VerifyEmailBanner />
-        <main className="aaf-shell-content aaf-animate-in">{children}</main>
+        <main id="main-content" className="aaf-shell-content" tabIndex={-1}>
+          {children}
+        </main>
       </div>
     </div>
   );

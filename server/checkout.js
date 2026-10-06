@@ -155,7 +155,7 @@ function register(app, deps) {
     // The payout account comes from the seller's own record, never from the browser.
     const seller = await store.get(`users/${listing.sellerId}`);
     const subaccount = seller && seller.flutterwaveSubaccountId;
-    if (!subaccount) throw new HttpError(409, "seller_not_ready", `${listing.sellerName || "This seller"} hasn't set up payouts yet. Please contact them directly.`);
+    if (!subaccount) throw new HttpError(409, "seller_not_ready", `${listing.sellerName || "This seller"} hasn't set up online payment yet. Use \"Message seller\" on the listing to ask them to set it up.`);
 
     return {
       amount: round2(price * quantity),
@@ -314,7 +314,7 @@ function register(app, deps) {
       if (stock.applied && stock.oversold) {
         await notify(payment.sellerId, {
           title: "Order needs your attention",
-          body: `Only ${stock.available} of ${what} were left when this order was paid, so it cannot be filled in full. Contact the buyer, or ask for a refund.`,
+          body: `Only ${stock.available} of ${what} were left when this order was paid, so it cannot be filled in full. Message the buyer from Orders to agree a partial delivery or a refund.`,
           link: "/track-orders",
         });
       }

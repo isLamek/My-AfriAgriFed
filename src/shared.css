@@ -1,0 +1,422 @@
+/* Pieces used on several signed-in pages: segmented toggles, form fields,
+   stat tiles, listing cards and small status labels. Loaded once in index.js. */
+
+.aaf-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-mist);
+  border: 1px solid var(--aaf-border);
+}
+
+.aaf-segmented button {
+  border: none;
+  background: transparent;
+  padding: 0.35rem 0.8rem;
+  border-radius: 4px;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--aaf-slate);
+  cursor: pointer;
+}
+
+.aaf-segmented button.on {
+  background: var(--aaf-white);
+  color: var(--aaf-canopy);
+  box-shadow: var(--aaf-shadow-sm);
+}
+
+.aaf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--aaf-ink);
+}
+
+.aaf-field input,
+.aaf-field select,
+.aaf-field textarea,
+.aaf-input {
+  border: 1px solid var(--aaf-border-strong);
+  border-radius: var(--aaf-radius-sm);
+  padding: 0.55rem 0.7rem;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 400;
+  background: var(--aaf-white);
+  color: var(--aaf-ink);
+}
+
+.aaf-field small {
+  font-weight: 400;
+  color: var(--aaf-text-muted);
+}
+
+/* ---- stat tiles (overview pages) ---- */
+
+.aaf-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
+}
+
+.aaf-stat {
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-md);
+  padding: 1rem 1.15rem;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+}
+
+button.aaf-stat {
+  cursor: pointer;
+}
+
+button.aaf-stat:hover {
+  border-color: var(--aaf-border-strong);
+}
+
+.aaf-stat-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--aaf-text-muted);
+}
+
+.aaf-stat-value {
+  display: block;
+  font-size: 1.6rem;
+  font-weight: 600;
+  color: var(--aaf-canopy);
+  margin-top: 0.2rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.aaf-stat-note {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--aaf-text-muted);
+  margin-top: 0.15rem;
+}
+
+.aaf-stat.attention .aaf-stat-value {
+  color: var(--aaf-laterite);
+}
+
+/* ---- notices ---- */
+
+.aaf-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  border-radius: var(--aaf-radius-md);
+  border: 1px solid var(--aaf-border);
+  background: var(--aaf-surface);
+  margin-bottom: 1.25rem;
+  font-size: 0.9rem;
+}
+
+.aaf-notice.warning {
+  background: var(--aaf-warning-bg);
+  border-color: #f0d9ad;
+  color: #7a4f12;
+}
+
+.aaf-notice p {
+  margin: 0;
+}
+
+.aaf-notice .aaf-btn {
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+/* ---- simple lists inside cards ---- */
+
+.aaf-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.aaf-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0;
+  border-top: 1px solid var(--aaf-border);
+  font-size: 0.9rem;
+}
+
+.aaf-list li:first-child {
+  border-top: none;
+}
+
+.aaf-list-sub {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--aaf-text-muted);
+}
+
+.aaf-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+  align-items: start;
+}
+
+.aaf-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+}
+
+.aaf-card-head .aaf-section-title {
+  margin: 0;
+}
+
+.aaf-text-btn {
+  border: none;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--aaf-baobab);
+  cursor: pointer;
+}
+
+.aaf-text-btn:hover {
+  text-decoration: underline;
+}
+
+/* ---- listing cards (Marketplace) ---- */
+
+.market-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 1rem;
+}
+
+.price-card {
+  display: flex;
+  flex-direction: column;
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-md);
+  overflow: hidden;
+}
+
+.price-card-image {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--aaf-mist);
+  display: block;
+}
+
+.price-card-image.placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--aaf-border-strong);
+}
+
+.price-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0.9rem 1rem 1rem;
+  flex: 1;
+}
+
+.price-card h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--aaf-ink);
+}
+
+.price-line {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--aaf-canopy);
+}
+
+.price-unit {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--aaf-text-muted);
+}
+
+.price-meta {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--aaf-text-muted);
+}
+
+.price-qty {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--aaf-text-muted);
+}
+
+.price-qty.low {
+  color: var(--aaf-warning);
+  font-weight: 500;
+}
+
+.price-card-actions {
+  margin-top: auto;
+  padding-top: 0.6rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.price-own-badge,
+.price-soldout-badge {
+  align-self: flex-start;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: var(--aaf-mist);
+  color: var(--aaf-slate);
+}
+
+.price-soldout-badge {
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+}
+
+.price-card.sold-out .price-card-image {
+  filter: grayscale(0.8);
+  opacity: 0.7;
+}
+
+.price-note {
+  margin: 0;
+  font-size: 0.75rem;
+  color: var(--aaf-text-muted);
+}
+
+.buy-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+}
+
+.buy-row .aaf-btn {
+  flex: 1;
+}
+
+.qty-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid var(--aaf-border-strong);
+  border-radius: var(--aaf-radius-sm);
+  overflow: hidden;
+  background: var(--aaf-white);
+}
+
+.qty-box button {
+  width: 30px;
+  height: 100%;
+  min-height: 34px;
+  border: none;
+  background: transparent;
+  color: var(--aaf-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.qty-box button:disabled {
+  color: var(--aaf-border-strong);
+  cursor: default;
+}
+
+.qty-box input {
+  width: 40px;
+  border: none;
+  text-align: center;
+  font: inherit;
+  font-size: 0.88rem;
+  -moz-appearance: textfield;
+}
+
+.qty-box input::-webkit-outer-spin-button,
+.qty-box input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* ---- small labels used by orders and listings ---- */
+
+.dashboard-empty-state {
+  color: var(--aaf-text-muted);
+  font-size: 0.92rem;
+  padding: 1.25rem 0;
+  text-align: center;
+}
+
+.listing-qty.sold-out {
+  color: var(--aaf-danger);
+  font-weight: 600;
+}
+
+.order-qty {
+  color: var(--aaf-text-muted);
+  font-size: 0.85em;
+}
+
+.ot-oversold {
+  margin: 10px 0;
+  padding: 9px 12px;
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-warning-bg);
+  color: var(--aaf-warning);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.market-search {
+  border: 1px solid var(--aaf-border-strong);
+  border-radius: var(--aaf-radius-sm);
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  font-size: 0.88rem;
+  background: var(--aaf-white);
+  min-width: 220px;
+}
+
+.market-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.market-count {
+  margin-left: auto;
+  font-size: 0.82rem;
+  color: var(--aaf-text-muted);
+}
+
+.price-meta svg {
+  vertical-align: -1px;
+}

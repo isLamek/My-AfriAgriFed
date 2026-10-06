@@ -388,6 +388,72 @@ service cloud.firestore {
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
     }
 
+    // ---- Private messages between a buyer and a seller ----------------------
+    // Mirrors src/conversations.js. A conversation is always about one listing, order
+    // or bulk request, and the other person must be that thing's counterpart:
+    // the listing's seller, the order's other party, or the request's buyer.
+    // So nobody can open a thread with a stranger.
+    function conversationTopicOk(d) {
+      let kind = d.topic.kind;
+      let other = d.participants[0] == request.auth.uid ? d.participants[1] : d.participants[0];
+      return (kind == 'listing'
+          && get(/databases/$(database)/documents/marketPrices/$(d.topic.id)).data.sellerId == other)
+        || (kind == 'order'
+          && request.auth.uid in [get(/databases/$(database)/documents/orders/$(d.topic.id)).data.buyerId,
+                                  get(/databases/$(database)/documents/orders/$(d.topic.id)).data.sellerId]
+          && other in [get(/databases/$(database)/documents/orders/$(d.topic.id)).data.buyerId,
+                       get(/databases/$(database)/documents/orders/$(d.topic.id)).data.sellerId])
+        || (kind == 'demand'
+          && get(/databases/$(database)/documents/demandRequests/$(d.topic.id)).data.buyerId == other);
+    }
+
+    function validConversation(d) {
+      return d.keys().hasOnly(['participants', 'names', 'topic', 'createdAt'])
+        && d.participants is list && d.participants.size() == 2
+        && d.participants[0] != d.participants[1]
+        && request.auth.uid in d.participants
+        && d.names is map && d.names.size() <= 2
+        && d.topic is map && d.topic.keys().hasOnly(['kind', 'id', 'title'])
+        && d.topic.kind in ['listing', 'order', 'demand']
+        && d.topic.id is string && d.topic.id.size() > 0 && d.topic.id.size() <= 40
+        && d.topic.title is string && d.topic.title.size() <= 120
+        && d.createdAt == request.time
+        && conversationTopicOk(d);
+    }
+
+    function isParticipant(conversationId) {
+      return signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    match /conversations/{id} {
+      // `resource == null` lets the app check whether a thread exists before creating it.
+      allow get: if signedIn() && (resource == null || request.auth.uid in resource.data.participants || isSignedInAdmin());
+      allow list: if signedIn() && request.auth.uid in resource.data.participants;
+      allow create: if signedIn() && validConversation(request.resource.data);
+      // Participants only move the "last message" summary and their OWN read marker.
+      allow update: if signedIn() && request.auth.uid in resource.data.participants
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage', 'lastMessageAt', 'lastSenderId', 'readAt'])
+        && (!('lastMessage' in request.resource.data)
+          || (request.resource.data.lastMessage is string && request.resource.data.lastMessage.size() <= 200))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastSenderId'])
+          || request.resource.data.lastSenderId == request.auth.uid)
+        && (!('readAt' in request.resource.data)
+          || request.resource.data.readAt.diff(resource.data.get('readAt', {})).affectedKeys().hasOnly([request.auth.uid]));
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isParticipant(id) || isSignedInAdmin();
+        allow create: if isParticipant(id)
+          && request.resource.data.keys().hasOnly(['senderId', 'text', 'createdAt'])
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
+    }
+
     match /orders/{id} {
       // Created by the server once a payment is confirmed (server/checkout.js), never by a browser.
       allow create: if false;

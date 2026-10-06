@@ -6,6 +6,7 @@
 
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
 import { db, auth } from "./firebaseConfig";
+import { analyticsAllowed } from "./consent";
 
 export const TELEMETRY_EVENTS = {
   SIGN_UP: "sign_up",
@@ -33,13 +34,19 @@ export const TELEMETRY_EVENTS = {
  * block the user-facing action it is attached to.
  */
 export const logTelemetryEvent = (eventType, meta = {}) => {
+  // Usage analytics need the visitor's consent (see consent.js). Admin actions
+  // are an audit record of decisions about other people's accounts, not
+  // analytics, so they are always kept.
+  if (!eventType.startsWith("admin_") && !analyticsAllowed()) return;
   try {
     const user = auth.currentUser;
 
     addDoc(collection(db, "telemetry"), {
       eventType,
       uid: user?.uid || null,
-      email: user?.email || null,
+      // No e-mail address: the uid is enough to count events, and we keep
+      // as little personal data as possible.
+      email: null,
       meta,
       path: typeof window !== "undefined" ? window.location.pathname : null,
       createdAt: serverTimestamp(),

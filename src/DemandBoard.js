@@ -17,7 +17,6 @@ import { notifyUser } from "./notifications";
 import useAccountContext from "./useAccountContext";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
-import CommunitySpaces from "./CommunitySpaces";
 import {
   DEMAND_UNITS,
   FILTERS,
@@ -136,7 +135,6 @@ export default function DemandBoard() {
       onLogout={logout}
       theme={theme}
     >
-      <CommunitySpaces active="demand" userType={userType} />
 
       <section className="aaf-card demand-intro">
         <div className="demand-intro-head">

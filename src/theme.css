@@ -17,7 +17,8 @@
   --aaf-laterite: #c3602b; /* warm accent - warnings, badges */
 
   --aaf-white: #ffffff;
-  --aaf-border: #e2e8e4;
+  --aaf-border: #dfe5e0;
+  --aaf-border-strong: #c9d2cb;
   --aaf-danger: #c0392b;
   --aaf-danger-bg: #fdecea;
   --aaf-success: #1f8a4c;
@@ -26,7 +27,7 @@
   --aaf-warning-bg: #fdf3e0;
 
   /* Semantic aliases used across components */
-  --aaf-bg: var(--aaf-mist);
+  --aaf-bg: #f6f7f4;
   --aaf-surface: var(--aaf-white);
   --aaf-text: var(--aaf-ink);
   --aaf-text-muted: var(--aaf-slate);
@@ -40,46 +41,17 @@
   --aaf-font: "Poppins", "Calibri", "Arial", sans-serif;
 
   /* Shape + elevation */
-  --aaf-radius-sm: 8px;
-  --aaf-radius-md: 12px;
-  --aaf-radius-lg: 20px;
-  --aaf-shadow-sm: 0 2px 8px rgba(2, 47, 31, 0.06);
-  --aaf-shadow-md: 0 10px 30px rgba(2, 47, 31, 0.1);
-  --aaf-shadow-lg: 0 20px 50px rgba(2, 47, 31, 0.16);
+  --aaf-radius-sm: 6px;
+  --aaf-radius-md: 10px;
+  --aaf-radius-lg: 14px;
+  /* Flat surfaces with a hairline border; shadows only for things that float
+     (menus, dialogs, the mobile sidebar). */
+  --aaf-shadow-sm: 0 1px 2px rgba(2, 47, 31, 0.05);
+  --aaf-shadow-md: 0 4px 16px rgba(2, 47, 31, 0.08);
+  --aaf-shadow-lg: 0 12px 32px rgba(2, 47, 31, 0.14);
+  --aaf-focus: 0 0 0 3px rgba(123, 177, 65, 0.45);
 
   --aaf-sidebar-width: 248px;
-}
-
-/*
-  Per-role accent theming. The consumer dashboard keeps the default brand
-  green above untouched; other dashboards get their own accent so it's
-  obvious at a glance which workspace you're in. Scoped to a class on the
-  AppShell root (`theme` prop) so it only retints the accent/highlight
-  tokens - not the whole brand palette (sidebar bg, primary buttons stay
-  the same everywhere for cohesion).
-*/
-.aaf-theme-farmer {
-  --aaf-shoot: var(--aaf-laterite);
-  --aaf-shoot-dark: #9c4c22;
-  --aaf-accent-contrast: var(--aaf-white);
-}
-
-.aaf-theme-institution {
-  --aaf-shoot: #2f6fb0;
-  --aaf-shoot-dark: #204f80;
-  --aaf-accent-contrast: var(--aaf-white);
-}
-
-.aaf-theme-admin {
-  --aaf-shoot: #7c4fd1;
-  --aaf-shoot-dark: #5c37a8;
-  --aaf-accent-contrast: var(--aaf-white);
-}
-
-.aaf-theme-organization {
-  --aaf-shoot: #0f9488;
-  --aaf-shoot-dark: #0c766c;
-  --aaf-accent-contrast: var(--aaf-white);
 }
 
 * {
@@ -105,12 +77,9 @@ body {
   font-family: var(--aaf-font);
   font-weight: 600;
   font-size: 0.9rem;
+  line-height: 1.2;
   cursor: pointer;
-  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease;
-}
-
-.aaf-btn:active {
-  transform: translateY(1px);
+  transition: background 0.15s ease, border-color 0.15s ease;
 }
 
 .aaf-btn-primary {
@@ -134,7 +103,7 @@ body {
 .aaf-btn-ghost {
   background: var(--aaf-white);
   color: var(--aaf-baobab);
-  box-shadow: var(--aaf-shadow-sm);
+  border: 1px solid var(--aaf-border-strong);
 }
 
 .aaf-btn-ghost:hover {
@@ -154,9 +123,9 @@ body {
 
 .aaf-card {
   background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
   border-radius: var(--aaf-radius-md);
-  box-shadow: var(--aaf-shadow-sm);
-  padding: 1.5rem;
+  padding: 1.25rem 1.5rem;
 }
 
 .aaf-pill {
@@ -165,8 +134,7 @@ body {
   padding: 3px 12px;
   border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  font-weight: 600;
 }
 
 .aaf-pill-success {
@@ -185,12 +153,10 @@ body {
 }
 
 .aaf-eyebrow {
-  text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--aaf-shoot-dark);
-  font-weight: 700;
-  font-size: 0.72rem;
-  margin: 0 0 0.3rem;
+  color: var(--aaf-text-muted);
+  font-weight: 500;
+  font-size: 0.8rem;
+  margin: 0 0 0.25rem;
 }
 
 /* Fast, GPU-friendly fade-in used instead of layout-affecting transitions */
@@ -213,4 +179,52 @@ body {
   .aaf-animate-in {
     animation: none;
   }
+}
+
+/* Keyboard focus is always visible (mouse clicks do not show it). */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--aaf-focus);
+}
+
+.aaf-btn-secondary {
+  background: var(--aaf-white);
+  color: var(--aaf-ink);
+  border: 1px solid var(--aaf-border-strong);
+}
+
+.aaf-btn-secondary:hover {
+  background: var(--aaf-mist);
+}
+
+.aaf-btn-sm {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.82rem;
+}
+
+.aaf-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--aaf-ink);
+  margin: 0 0 0.85rem;
+}
+
+.aaf-muted {
+  color: var(--aaf-text-muted);
+}
+
+.aaf-empty {
+  color: var(--aaf-text-muted);
+  font-size: 0.92rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.aaf-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }

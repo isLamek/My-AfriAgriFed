@@ -1,211 +1,89 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   addDoc,
   collection,
   deleteDoc,
   doc,
-  getDoc,
   onSnapshot,
-  orderBy,
   query,
   serverTimestamp,
   setDoc,
   updateDoc,
   where,
+  writeBatch,
 } from "firebase/firestore";
-import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
-import { Pencil, Trash2, Wallet, CheckCircle2, ImagePlus, X } from "lucide-react";
-import { auth, db } from "./firebaseConfig";
-import { getAdminProfile } from "./admin";
-import { buildNavSections } from "./navConfig";
+import { Pencil, Trash2, Wallet, CheckCircle2, ImagePlus, X, Plus } from "lucide-react";
+import { db } from "./firebaseConfig";
 import { uploadToCloudinary } from "./cloudinaryUpload";
 import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
+import useAccountContext from "./useAccountContext";
+import { formatNad, stockLabel } from "./purchase";
+import { CATEGORIES, FULFILMENT, LIMITS, REGIONS, UNITS, fulfilmentLabel, unitLabel, validateListing } from "./listingRules";
+import { regionLabel } from "./farmview/regions";
 import "./MyListings.css";
-import "./MyOrders.css";
 
-const API_URL = API_BASE_URL;
-const emptyListing = { product: "", price: "", unit: "kg", quantity: "" };
+const COMMISSION_PERCENT = 5; // keep in sync with PLATFORM_COMMISSION_RATE on the server
 
-export default function MyListings() {
-  const [subaccountId, setSubaccountId] = useState(undefined); // undefined = loading
-  const [payoutForm, setPayoutForm] = useState({ businessName: "", accountBank: "", accountNumber: "" });
-  const [banks, setBanks] = useState([]);
-  const [settingUpPayouts, setSettingUpPayouts] = useState(false);
+const emptyListing = {
+  product: "",
+  description: "",
+  category: "vegetables",
+  price: "",
+  unit: "kg",
+  quantity: "",
+  region: "",
+  fulfilment: "collect",
+  deliveryNote: "",
+};
 
-  const [listings, setListings] = useState([]);
-  const [sales, setSales] = useState([]);
-  const [formData, setFormData] = useState(emptyListing);
-  const [editingId, setEditingId] = useState(null);
+function FieldError({ children }) {
+  return children ? <small className="ml-error" role="alert">{children}</small> : null;
+}
+
+function PayoutSetup({ account, onDone }) {
+  const [form, setForm] = useState({ businessName: account.sellerName || "", accountBank: "", accountNumber: "" });
+  const [banks, setBanks] = useState(null);
   const [saving, setSaving] = useState(false);
-  const [isAdminUser, setIsAdminUser] = useState(false);
-  const [imageFile, setImageFile] = useState(null);
-  const [imagePreview, setImagePreview] = useState(null);
-  const [existingImageUrl, setExistingImageUrl] = useState(null);
 
   useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-
-    getDoc(doc(db, "users", uid))
-      .then((snap) => {
-        setSubaccountId(snap.exists() ? snap.data().flutterwaveSubaccountId || null : null);
-      })
-      .catch((error) => {
-        console.error("Could not load payout status:", error);
-        setSubaccountId(null);
-      });
-
-    getAdminProfile(auth.currentUser).then((profile) => setIsAdminUser(!!profile));
-  }, []);
-
-  useEffect(() => {
-    if (!API_URL) {
-      setBanks([]); // no backend configured yet
+    if (!API_BASE_URL) {
+      setBanks([]);
       return;
     }
-    fetch(`${API_URL}/api/payments/banks?country=NA`)
+    fetch(`${API_BASE_URL}/api/payments/banks?country=NA`)
       .then((res) => res.json())
       .then((data) => setBanks(data.banks || []))
       .catch(() => setBanks([]));
   }, []);
 
-  useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-
-    const listingsQuery = query(collection(db, "marketPrices"), where("sellerId", "==", uid));
-
-    const unsubscribe = onSnapshot(listingsQuery, (snapshot) => {
-      setListings(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  useEffect(() => {
-    const uid = auth.currentUser?.uid;
-    if (!uid) return;
-
-    const salesQuery = query(
-      collection(db, "orders"),
-      where("sellerId", "==", uid),
-      orderBy("createdAt", "desc")
-    );
-
-    const unsubscribe = onSnapshot(salesQuery, (snapshot) => {
-      setSales(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
-    });
-
-    return () => unsubscribe();
-  }, []);
-
-  const setupPayouts = async (event) => {
+  const submit = async (event) => {
     event.preventDefault();
-    const user = auth.currentUser;
-
-    if (!payoutForm.businessName || !payoutForm.accountBank || !payoutForm.accountNumber) {
+    if (!form.businessName || !form.accountBank || !form.accountNumber) {
       toast.error("Fill in your business name, bank and account number.");
       return;
     }
-
-    if (!API_URL) {
+    if (!API_BASE_URL) {
       toast.error(NO_BACKEND_MESSAGE);
       return;
     }
-
-    setSettingUpPayouts(true);
-
+    setSaving(true);
     try {
-      // The server checks who is asking from this token; it takes the seller's identity
-      // and e-mail from it, not from the form.
-      const token = await user.getIdToken();
-      const response = await fetch(`${API_URL}/api/payments/subaccounts`, {
+      // The server takes the seller's identity from this token, never from the form.
+      const token = await account.user.getIdToken();
+      const response = await fetch(`${API_BASE_URL}/api/payments/subaccounts`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          businessName: payoutForm.businessName,
-          accountBank: payoutForm.accountBank,
-          accountNumber: payoutForm.accountNumber,
-        }),
+        body: JSON.stringify(form),
       });
-
       const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) throw new Error(data.message || "Could not set up payouts");
-
-      await setDoc(doc(db, "users", user.uid), { flutterwaveSubaccountId: data.subaccountId }, { merge: true });
-      setSubaccountId(data.subaccountId);
-      toast.success("Payouts are set up. Your listings can now accept payment.");
-    } catch (error) {
-      toast.error(error.message);
-    } finally {
-      setSettingUpPayouts(false);
-    }
-  };
-
-  const startEdit = (listing) => {
-    setEditingId(listing.id);
-    setFormData({ product: listing.product, price: listing.price, unit: listing.unit || "kg", quantity: listing.quantity ?? "" });
-    setExistingImageUrl(listing.imageUrl || null);
-    setImageFile(null);
-    setImagePreview(null);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setFormData(emptyListing);
-    setImageFile(null);
-    setImagePreview(null);
-    setExistingImageUrl(null);
-  };
-
-  const handleImageSelect = (file) => {
-    setImageFile(file || null);
-    setImagePreview(file ? URL.createObjectURL(file) : null);
-  };
-
-  const saveListing = async (event) => {
-    event.preventDefault();
-    const user = auth.currentUser;
-
-    if (!formData.product.trim() || !formData.price) {
-      toast.error("Add a product name and price.");
-      return;
-    }
-
-    setSaving(true);
-
-    try {
-      let imageUrl = existingImageUrl || "";
-
-      if (imageFile) {
-        const upload = await uploadToCloudinary(imageFile, "marketplace");
-        imageUrl = upload.secure_url;
-      }
-
-      const payload = {
-        product: formData.product.trim(),
-        price: Number(formData.price),
-        unit: formData.unit,
-        quantity: formData.quantity === "" || formData.quantity == null ? null : Math.max(0, Math.floor(Number(formData.quantity))),
-        imageUrl,
-        sellerId: user.uid,
-        sellerName: user.displayName || user.email,
-        sellerSubaccountId: subaccountId || null,
-      };
-
-      if (editingId) {
-        await updateDoc(doc(db, "marketPrices", editingId), payload);
-        toast.success("Listing updated.");
-      } else {
-        await addDoc(collection(db, "marketPrices"), { ...payload, createdAt: serverTimestamp() });
-        toast.success("Listing posted to the marketplace.");
-      }
-
-      cancelEdit();
+      if (!response.ok) throw new Error(data.message || "Could not set up payouts.");
+      await setDoc(doc(db, "users", account.user.uid), { flutterwaveSubaccountId: data.subaccountId }, { merge: true });
+      await onDone(data.subaccountId);
+      toast.success("Payouts are set up. Buyers can now pay for your listings.");
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -213,232 +91,353 @@ export default function MyListings() {
     }
   };
 
+  return (
+    <section className="aaf-card ml-payout" aria-labelledby="payout-title">
+      <div className="ml-payout-head">
+        <Wallet size={20} aria-hidden="true" />
+        <div>
+          <h2 id="payout-title" className="aaf-section-title">Set up payouts to start selling online</h2>
+          <p className="aaf-muted">
+            Buyers pay by card through AfriAgriFed. We keep a {COMMISSION_PERCENT}% commission on each sale and send the rest to
+            this bank account. There are no listing or monthly fees.
+          </p>
+        </div>
+      </div>
+      <form onSubmit={submit} className="ml-form-grid">
+        <label className="aaf-field">
+          Business or farm name
+          <input value={form.businessName} onChange={(e) => setForm((p) => ({ ...p, businessName: e.target.value }))} autoComplete="organization" />
+        </label>
+        <label className="aaf-field">
+          Bank
+          <select value={form.accountBank} onChange={(e) => setForm((p) => ({ ...p, accountBank: e.target.value }))}>
+            <option value="">{banks === null ? "Loading banks…" : "Select your bank"}</option>
+            {(banks || []).map((bank) => (
+              <option key={bank.code} value={bank.code}>{bank.name}</option>
+            ))}
+          </select>
+          {banks && banks.length === 0 && <small>Online payments are still being set up. You can list products in the meantime.</small>}
+        </label>
+        <label className="aaf-field">
+          Account number
+          <input inputMode="numeric" value={form.accountNumber} onChange={(e) => setForm((p) => ({ ...p, accountNumber: e.target.value }))} />
+        </label>
+        <div className="ml-form-actions">
+          <button className="aaf-btn aaf-btn-primary" disabled={saving}>{saving ? "Setting up…" : "Save bank details"}</button>
+        </div>
+      </form>
+    </section>
+  );
+}
+
+export default function MyListings() {
+  const account = useAccountContext("/my-listings");
+  const navigate = useNavigate();
+  const uid = account.user?.uid;
+  const subaccountId = account.profile?.flutterwaveSubaccountId || null;
+
+  const [listings, setListings] = useState(null);
+  const [formData, setFormData] = useState(emptyListing);
+  const [errors, setErrors] = useState({});
+  const [editingId, setEditingId] = useState(null);
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [existingImageUrl, setExistingImageUrl] = useState(null);
+
+  useEffect(() => {
+    if (!uid) return undefined;
+    return onSnapshot(
+      query(collection(db, "marketPrices"), where("sellerId", "==", uid)),
+      (snap) => setListings(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => setListings([])
+    );
+  }, [uid]);
+
+  // Listings saved before payouts existed still carry no payout account, which
+  // greys out their Buy button. Bring them up to date once payouts are set up.
+  const attachPayoutsToListings = async (id) => {
+    const stale = (listings || []).filter((l) => l.sellerSubaccountId !== id);
+    if (!stale.length) return;
+    const batch = writeBatch(db);
+    stale.forEach((l) => batch.update(doc(db, "marketPrices", l.id), { sellerSubaccountId: id }));
+    await batch.commit();
+  };
+
+  useEffect(() => {
+    if (subaccountId && listings && listings.some((l) => l.sellerSubaccountId !== subaccountId)) {
+      attachPayoutsToListings(subaccountId).catch(() => {});
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subaccountId, listings]);
+
+  const set = (key) => (e) => {
+    setFormData((prev) => ({ ...prev, [key]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [key]: undefined }));
+  };
+
+  const openNew = () => {
+    cancelEdit();
+    setShowForm(true);
+  };
+
+  const startEdit = (listing) => {
+    setEditingId(listing.id);
+    setShowForm(true);
+    setErrors({});
+    setFormData({
+      ...emptyListing,
+      ...Object.fromEntries(Object.keys(emptyListing).map((k) => [k, listing[k] ?? emptyListing[k]])),
+      price: String(listing.price ?? ""),
+      quantity: listing.quantity ?? "",
+    });
+    setExistingImageUrl(listing.imageUrl || null);
+    setImageFile(null);
+    setImagePreview(null);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  function cancelEdit() {
+    setEditingId(null);
+    setShowForm(false);
+    setFormData(emptyListing);
+    setErrors({});
+    setImageFile(null);
+    setImagePreview(null);
+    setExistingImageUrl(null);
+  }
+
+  const chooseImage = (file) => {
+    setImageFile(file || null);
+    setImagePreview(file ? URL.createObjectURL(file) : null);
+  };
+
+  const saveListing = async (event) => {
+    event.preventDefault();
+    const check = validateListing(formData);
+    if (!check.ok) {
+      setErrors(check.errors);
+      toast.error("Please fix the highlighted fields.");
+      return;
+    }
+    setSaving(true);
+    try {
+      let imageUrl = existingImageUrl || "";
+      if (imageFile) imageUrl = (await uploadToCloudinary(imageFile, "marketplace")).secure_url;
+
+      const payload = {
+        ...check.value,
+        imageUrl,
+        sellerId: uid,
+        sellerName: account.sellerName,
+        sellerSubaccountId: subaccountId,
+      };
+
+      if (editingId) {
+        await updateDoc(doc(db, "marketPrices", editingId), payload);
+        toast.success("Listing updated.");
+      } else {
+        await addDoc(collection(db, "marketPrices"), { ...payload, createdAt: serverTimestamp() });
+        toast.success("Your listing is live on the Marketplace.");
+      }
+      cancelEdit();
+    } catch (error) {
+      toast.error(error.code === "permission-denied" ? "Only approved producer accounts can list products." : error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const removeListing = async (listing) => {
-    if (!window.confirm(`Remove "${listing.product}" from the marketplace?`)) return;
-    await deleteDoc(doc(db, "marketPrices", listing.id));
-    toast.success("Listing removed.");
+    if (!window.confirm(`Remove "${listing.product}" from the Marketplace? Buyers will no longer see it.`)) return;
+    try {
+      await deleteDoc(doc(db, "marketPrices", listing.id));
+      toast.success("Listing removed.");
+    } catch (error) {
+      toast.error(error.message);
+    }
   };
 
-  const logout = async () => {
-    await signOut(auth);
-    window.location.href = "/";
-  };
-
-  const navSections = buildNavSections({ userType: "farmer", isAdmin: isAdminUser, activePath: "/my-listings" });
+  const photo = imagePreview || existingImageUrl;
 
   return (
     <AppShell
-      eyebrow="Producer workspace"
-      title="My Listings"
-      subtitle="Manage what you're selling on the AfriAgriFed marketplace."
-      navSections={navSections}
+      title="My listings"
+      subtitle="What you sell on the Marketplace. Orders for these appear under Orders."
+      navSections={account.navSections}
+      actions={
+        !showForm && (
+          <button className="aaf-btn aaf-btn-primary aaf-btn-sm" onClick={openNew}>
+            <Plus size={15} aria-hidden="true" /> New listing
+          </button>
+        )
+      }
       headerRight={<NotificationBell />}
-      onLogout={logout}
-      theme={isAdminUser ? "admin" : "farmer"}
+      onLogout={account.logout}
     >
-      {subaccountId === null && (
-        <section className="aaf-card payout-card">
-          <div className="payout-card-heading">
-            <Wallet size={22} />
-            <div>
-              <h3>Set up payouts</h3>
-              <p>
-                Add your bank details once so buyers can pay you directly through the app. AfriAgriFed
-                automatically deducts its commission and sends the rest to this account.
-              </p>
+      {!account.loading && !subaccountId && <PayoutSetup account={account} onDone={attachPayoutsToListings} />}
+      {subaccountId && (
+        <p className="ml-payout-ok">
+          <CheckCircle2 size={16} aria-hidden="true" /> Payouts are set up. You receive each sale minus the {COMMISSION_PERCENT}% AfriAgriFed commission.
+        </p>
+      )}
+
+      {showForm && (
+        <section className="aaf-card ml-editor" aria-labelledby="ml-editor-title">
+          <h2 id="ml-editor-title" className="aaf-section-title">{editingId ? "Edit listing" : "New listing"}</h2>
+          <form onSubmit={saveListing} noValidate>
+            <div className="ml-form-grid">
+              <label className="aaf-field wide">
+                Product name
+                <input value={formData.product} onChange={set("product")} maxLength={LIMITS.product} placeholder="e.g. Roma tomatoes" aria-invalid={!!errors.product} />
+                <FieldError>{errors.product}</FieldError>
+              </label>
+              <label className="aaf-field">
+                Category
+                <select value={formData.category} onChange={set("category")}>
+                  {CATEGORIES.map((c) => (
+                    <option key={c.id} value={c.id}>{c.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="aaf-field">
+                Price (N$)
+                <input type="number" min="0" step="0.01" inputMode="decimal" value={formData.price} onChange={set("price")} aria-invalid={!!errors.price} />
+                <FieldError>{errors.price}</FieldError>
+              </label>
+              <label className="aaf-field">
+                Unit
+                <select value={formData.unit} onChange={set("unit")}>
+                  {UNITS.map((u) => (
+                    <option key={u.id} value={u.id}>{u.label}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="aaf-field">
+                Quantity available
+                <input type="number" min="0" inputMode="numeric" value={formData.quantity} onChange={set("quantity")} aria-invalid={!!errors.quantity} />
+                <small>Leave empty if there is no fixed limit.</small>
+                <FieldError>{errors.quantity}</FieldError>
+              </label>
+              <label className="aaf-field">
+                Region
+                <select value={formData.region} onChange={set("region")} aria-invalid={!!errors.region}>
+                  <option value="">Choose a region</option>
+                  {REGIONS.map((r) => (
+                    <option key={r} value={r}>{regionLabel(r)}</option>
+                  ))}
+                </select>
+                <FieldError>{errors.region}</FieldError>
+              </label>
+              <label className="aaf-field">
+                How buyers get it
+                <select value={formData.fulfilment} onChange={set("fulfilment")} aria-invalid={!!errors.fulfilment}>
+                  {FULFILMENT.map((f) => (
+                    <option key={f.id} value={f.id}>{f.label}</option>
+                  ))}
+                </select>
+                <FieldError>{errors.fulfilment}</FieldError>
+              </label>
+              <label className="aaf-field wide">
+                Collection or delivery details <span className="aaf-muted">(optional)</span>
+                <input value={formData.deliveryNote} onChange={set("deliveryNote")} maxLength={LIMITS.deliveryNote} placeholder="e.g. Collect in Ongwediva, or delivery in Oshana for N$50" />
+                <small>Any delivery charge must be written here. Buyers only pay the listed price online.</small>
+                <FieldError>{errors.deliveryNote}</FieldError>
+              </label>
+              <label className="aaf-field wide">
+                Description <span className="aaf-muted">(optional)</span>
+                <textarea rows={3} value={formData.description} onChange={set("description")} maxLength={LIMITS.description} placeholder="Variety, size, how it was grown, when it was harvested" />
+                <FieldError>{errors.description}</FieldError>
+              </label>
+
+              <div className="aaf-field wide">
+                Photo <span className="aaf-muted">(optional, a real photo of what you are selling)</span>
+                <div className="ml-photo">
+                  {photo ? (
+                    <div className="ml-photo-preview">
+                      <img src={photo} alt={`Photo of ${formData.product || "your product"}`} />
+                      <button type="button" onClick={() => { chooseImage(null); setExistingImageUrl(null); }} aria-label="Remove photo">
+                        <X size={14} />
+                      </button>
+                    </div>
+                  ) : null}
+                  <label className="aaf-btn aaf-btn-secondary aaf-btn-sm ml-file">
+                    <ImagePlus size={15} aria-hidden="true" /> {photo ? "Change photo" : "Add photo"}
+                    <input type="file" accept="image/*" onChange={(e) => chooseImage(e.target.files?.[0])} />
+                  </label>
+                </div>
+              </div>
             </div>
-          </div>
 
-          <form onSubmit={setupPayouts} className="payout-form">
-            <label>
-              Business / farm name
-              <input
-                value={payoutForm.businessName}
-                onChange={(e) => setPayoutForm((prev) => ({ ...prev, businessName: e.target.value }))}
-                placeholder="e.g., Green Valley Farm"
-              />
-            </label>
-
-            <label>
-              Bank
-              <select
-                value={payoutForm.accountBank}
-                onChange={(e) => setPayoutForm((prev) => ({ ...prev, accountBank: e.target.value }))}
-              >
-                <option value="">Select your bank</option>
-                {banks.map((bank) => (
-                  <option key={bank.code} value={bank.code}>
-                    {bank.name}
-                  </option>
-                ))}
-              </select>
-              {banks.length === 0 && (
-                <span className="payout-hint">
-                  Bank list unavailable - payments aren't configured yet (needs a Flutterwave API key).
-                </span>
-              )}
-            </label>
-
-            <label>
-              Account number
-              <input
-                value={payoutForm.accountNumber}
-                onChange={(e) => setPayoutForm((prev) => ({ ...prev, accountNumber: e.target.value }))}
-                placeholder="Bank account number"
-              />
-            </label>
-
-            <button className="aaf-btn aaf-btn-primary" disabled={settingUpPayouts}>
-              {settingUpPayouts ? "Setting up..." : "Set Up Payouts"}
-            </button>
+            <p className="ml-fee-note">
+              Buyers pay the listed price. When an item sells, AfriAgriFed keeps {COMMISSION_PERCENT}% and you receive the rest.
+            </p>
+            <div className="ml-form-actions">
+              <button className="aaf-btn aaf-btn-primary" disabled={saving}>
+                {saving ? "Saving…" : editingId ? "Save changes" : "Publish listing"}
+              </button>
+              <button type="button" className="aaf-btn aaf-btn-secondary" onClick={cancelEdit}>Cancel</button>
+            </div>
           </form>
         </section>
       )}
 
-      {subaccountId && (
-        <div className="payout-status">
-          <CheckCircle2 size={16} /> Payouts are set up - your listings can accept payment.
+      <section className="aaf-card" aria-labelledby="ml-list-title">
+        <div className="aaf-card-head">
+          <h2 id="ml-list-title" className="aaf-section-title">Your listings</h2>
+          <button className="aaf-text-btn" onClick={() => navigate("/orders")}>View orders</button>
         </div>
-      )}
-
-      <section className="aaf-card">
-        <h3>{editingId ? "Edit Listing" : "Add a Listing"}</h3>
-
-        <form onSubmit={saveListing} className="listing-form">
-          <label>
-            Product
-            <input
-              value={formData.product}
-              onChange={(e) => setFormData((prev) => ({ ...prev, product: e.target.value }))}
-              placeholder="e.g., Tomatoes"
-            />
-          </label>
-
-          <label>
-            Price (N$)
-            <input
-              type="number"
-              min="0"
-              step="0.01"
-              value={formData.price}
-              onChange={(e) => setFormData((prev) => ({ ...prev, price: e.target.value }))}
-            />
-          </label>
-
-          <label>
-            Unit
-            <select value={formData.unit} onChange={(e) => setFormData((prev) => ({ ...prev, unit: e.target.value }))}>
-              <option value="kg">per kg</option>
-              <option value="unit">per unit</option>
-              <option value="tray">per tray</option>
-              <option value="bunch">per bunch</option>
-              <option value="litre">per litre</option>
-            </select>
-          </label>
-
-          <label>
-            Quantity available (optional)
-            <input
-              type="number"
-              min="0"
-              value={formData.quantity}
-              onChange={(e) => setFormData((prev) => ({ ...prev, quantity: e.target.value }))}
-            />
-          </label>
-
-          <label className="listing-photo-field">
-            Photo (optional)
-            {(imagePreview || existingImageUrl) ? (
-              <div className="listing-photo-preview">
-                <img src={imagePreview || existingImageUrl} alt="Listing" />
-                <button type="button" onClick={() => { handleImageSelect(null); setExistingImageUrl(null); }} aria-label="Remove photo">
-                  <X size={14} />
-                </button>
-              </div>
-            ) : (
-              <span className="listing-photo-placeholder">
-                <ImagePlus size={16} /> Add a photo buyers will see
-              </span>
-            )}
-            <input type="file" accept="image/*" onChange={(e) => handleImageSelect(e.target.files?.[0])} />
-          </label>
-
-          <div className="listing-form-actions">
-            <button className="aaf-btn aaf-btn-primary" disabled={saving}>
-              {saving ? "Saving..." : editingId ? "Save Changes" : "Post Listing"}
-            </button>
-            {editingId && (
-              <button type="button" className="aaf-btn aaf-btn-ghost" onClick={cancelEdit}>
-                Cancel
-              </button>
-            )}
-          </div>
-        </form>
-      </section>
-
-      <section className="listings-grid">
-        {listings.length === 0 ? (
-          <p className="dashboard-empty-state">You haven't posted any listings yet.</p>
-        ) : (
-          listings.map((listing) => (
-            <div className="aaf-card listing-card" key={listing.id}>
-              {listing.imageUrl && (
-                <img src={listing.imageUrl} alt={listing.product} className="listing-card-image" />
-              )}
-              <div>
-                <h4>{listing.product}</h4>
-                <p className="listing-price">
-                  N${listing.price} <span>/ {listing.unit || "kg"}</span>
-                </p>
-                {listing.quantity != null && (
-                  <p className={`listing-qty ${listing.quantity <= 0 ? "sold-out" : ""}`}>
-                    {listing.quantity <= 0 ? "Sold out. Edit the quantity to restock." : `${listing.quantity} available`}
-                  </p>
-                )}
-              </div>
-              <div className="listing-actions">
-                <button onClick={() => startEdit(listing)} aria-label="Edit">
-                  <Pencil size={16} />
-                </button>
-                <button onClick={() => removeListing(listing)} aria-label="Remove" className="danger">
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-          ))
+        {listings === null && <p className="aaf-empty">Loading…</p>}
+        {listings && listings.length === 0 && (
+          <p className="aaf-empty">You have no listings yet. Choose “New listing” to sell your first product.</p>
         )}
-      </section>
-
-      <section className="aaf-card recent-sales">
-        <h3>Recent Sales</h3>
-
-        {sales.length === 0 ? (
-          <p className="dashboard-empty-state">No sales recorded yet.</p>
-        ) : (
-          <table className="orders-table">
-            <thead>
-              <tr>
-                <th>Product</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {sales.map((sale) => (
-                <tr key={sale.id}>
-                  <td>{sale.product}</td>
-                  <td>
-                    {sale.currency || "NAD"} {sale.amount}
-                  </td>
-                  <td>
-                    <span className={`order-status ${sale.status}`}>{sale.status}</span>
-                  </td>
-                  <td>{sale.createdAt?.toDate ? sale.createdAt.toDate().toLocaleDateString() : "—"}</td>
+        {listings && listings.length > 0 && (
+          <div className="ml-table-wrap">
+            <table className="ml-table">
+              <thead>
+                <tr>
+                  <th scope="col">Product</th>
+                  <th scope="col">Price</th>
+                  <th scope="col">Stock</th>
+                  <th scope="col">Region</th>
+                  <th scope="col">Collection / delivery</th>
+                  <th scope="col"><span className="aaf-visually-hidden">Actions</span></th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {listings.map((listing) => {
+                  const stock = stockLabel(listing);
+                  const incomplete = !listing.region || !listing.fulfilment;
+                  return (
+                    <tr key={listing.id}>
+                      <td>
+                        <div className="ml-product">
+                          {listing.imageUrl ? <img src={listing.imageUrl} alt="" /> : <span className="ml-thumb" aria-hidden="true" />}
+                          <span>
+                            {listing.product}
+                            {incomplete && <span className="ml-warn">Add region and delivery details</span>}
+                          </span>
+                        </div>
+                      </td>
+                      <td>{formatNad(listing.price)} <span className="aaf-muted">{unitLabel(listing.unit)}</span></td>
+                      <td className={stock.state === "sold_out" ? "ml-sold" : ""}>{stock.text || "No limit"}</td>
+                      <td>{listing.region ? regionLabel(listing.region) : "—"}</td>
+                      <td>{fulfilmentLabel(listing.fulfilment) || "—"}</td>
+                      <td className="ml-actions">
+                        <button onClick={() => startEdit(listing)} aria-label={`Edit ${listing.product}`}>
+                          <Pencil size={15} />
+                        </button>
+                        <button onClick={() => removeListing(listing)} aria-label={`Remove ${listing.product}`} className="danger">
+                          <Trash2 size={15} />
+                        </button>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         )}
       </section>
     </AppShell>

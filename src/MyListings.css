@@ -1,206 +1,194 @@
-.payout-card {
+.ml-payout {
   margin-bottom: 1.25rem;
-  border-left: 4px solid var(--aaf-shoot);
 }
 
-.payout-card-heading {
+.ml-payout-head {
   display: flex;
-  gap: 12px;
+  gap: 0.75rem;
   align-items: flex-start;
   margin-bottom: 1rem;
   color: var(--aaf-baobab);
 }
 
-.payout-card-heading h3 {
-  margin: 0 0 4px;
-  color: var(--aaf-canopy);
-}
-
-.payout-card-heading p {
+.ml-payout-head p {
   margin: 0;
-  color: var(--aaf-text-muted);
-  font-size: 0.9rem;
+  font-size: 0.88rem;
 }
 
-.payout-form,
-.listing-form {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  align-items: end;
+.ml-payout-head .aaf-section-title {
+  margin-bottom: 0.25rem;
 }
 
-.payout-form label,
-.listing-form label {
-  display: flex;
-  flex-direction: column;
-  gap: 0.4rem;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--aaf-ink);
-}
-
-.payout-form input,
-.payout-form select,
-.listing-form input,
-.listing-form select {
-  padding: 0.6rem 0.7rem;
-  border-radius: var(--aaf-radius-sm);
-  border: 1px solid var(--aaf-border);
-  font-family: inherit;
-  background: var(--aaf-mist);
-}
-
-.payout-hint {
-  font-weight: 400;
-  font-size: 0.75rem;
-  color: var(--aaf-text-muted);
-}
-
-.payout-status {
+.ml-payout-ok {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
+  margin: 0 0 1.25rem;
+  font-size: 0.88rem;
   color: var(--aaf-success);
-  background: var(--aaf-success-bg);
-  padding: 0.6rem 1rem;
-  border-radius: var(--aaf-radius-sm);
-  font-size: 0.85rem;
-  font-weight: 600;
+}
+
+.ml-editor {
   margin-bottom: 1.25rem;
 }
 
-.listing-form-actions {
-  display: flex;
-  gap: 0.6rem;
-}
-
-.listings-grid {
+.ml-form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
   gap: 1rem;
-  margin-top: 1.25rem;
 }
 
-.recent-sales {
-  margin-top: 1.25rem;
-}
-
-.recent-sales h3 {
-  margin: 0 0 1rem;
-  color: var(--aaf-canopy);
-}
-
-.listing-card {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 10px;
-}
-
-.listing-card-image {
-  width: 100%;
-  flex-basis: 100%;
-  height: 140px;
-  object-fit: cover;
-  border-radius: var(--aaf-radius-sm);
-  margin-bottom: 4px;
-}
-
-.listing-photo-field {
+.ml-form-grid .wide {
   grid-column: 1 / -1;
 }
 
-.listing-photo-placeholder {
-  display: inline-flex;
+.ml-error {
+  color: var(--aaf-danger) !important;
+}
+
+.aaf-field [aria-invalid="true"] {
+  border-color: var(--aaf-danger);
+}
+
+.ml-photo {
+  display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--aaf-text-muted);
+  gap: 0.75rem;
+  flex-wrap: wrap;
 }
 
-.listing-photo-preview {
+.ml-photo-preview {
   position: relative;
-  display: inline-block;
-  width: fit-content;
 }
 
-.listing-photo-preview img {
+.ml-photo-preview img {
+  width: 120px;
   height: 90px;
+  object-fit: cover;
   border-radius: var(--aaf-radius-sm);
   display: block;
 }
 
-.listing-photo-preview button {
+.ml-photo-preview button {
   position: absolute;
   top: 4px;
   right: 4px;
-  background: rgba(2, 47, 31, 0.75);
-  color: #fff;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
   border: none;
-  border-radius: 999px;
-  width: 20px;
-  height: 20px;
+  background: rgba(2, 47, 31, 0.8);
+  color: #fff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
 }
 
-.listing-card h4 {
-  margin: 0 0 6px;
-  color: var(--aaf-canopy);
+.ml-file input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
-.listing-price {
-  font-size: 1.3rem;
-  font-weight: 800;
-  color: var(--aaf-baobab);
-  margin: 0;
+.ml-file:focus-within {
+  box-shadow: var(--aaf-focus);
 }
 
-.listing-price span {
-  font-size: 0.75rem;
-  font-weight: 500;
+.ml-fee-note {
+  margin: 1rem 0 0;
+  font-size: 0.83rem;
   color: var(--aaf-text-muted);
 }
 
-.listing-qty {
-  font-size: 0.8rem;
-  color: var(--aaf-text-muted);
-  margin: 4px 0 0;
-}
-
-.listing-actions {
+.ml-form-actions {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  align-items: flex-end;
 }
 
-.listing-actions button {
-  border: none;
+.ml-table-wrap {
+  overflow-x: auto;
+}
+
+.ml-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+.ml-table th {
+  text-align: left;
+  font-weight: 500;
+  font-size: 0.78rem;
+  color: var(--aaf-text-muted);
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--aaf-border);
+  white-space: nowrap;
+}
+
+.ml-table td {
+  padding: 0.65rem 0.6rem;
+  border-bottom: 1px solid var(--aaf-border);
+  vertical-align: middle;
+}
+
+.ml-table tr:last-child td {
+  border-bottom: none;
+}
+
+.ml-product {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 500;
+}
+
+.ml-product img,
+.ml-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: var(--aaf-radius-sm);
+  object-fit: cover;
   background: var(--aaf-mist);
-  color: var(--aaf-canopy);
+  flex-shrink: 0;
+}
+
+.ml-warn {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: var(--aaf-warning);
+}
+
+.ml-sold {
+  color: var(--aaf-danger);
+  font-weight: 500;
+}
+
+.ml-actions {
+  white-space: nowrap;
+  text-align: right;
+}
+
+.ml-actions button {
+  border: none;
+  background: transparent;
   width: 32px;
   height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  border-radius: var(--aaf-radius-sm);
+  color: var(--aaf-slate);
   cursor: pointer;
 }
 
-.listing-actions button.danger {
+.ml-actions button:hover {
+  background: var(--aaf-mist);
+  color: var(--aaf-ink);
+}
+
+.ml-actions button.danger:hover {
+  background: var(--aaf-danger-bg);
   color: var(--aaf-danger);
-}
-
-.listing-actions button:hover {
-  background: var(--aaf-border);
-}
-
-/* an empty-state message should use the whole row, not one narrow column */
-.listings-grid .dashboard-empty-state {
-  grid-column: 1 / -1;
 }

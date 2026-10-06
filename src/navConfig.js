@@ -1,88 +1,182 @@
-// Central place for "what links does the sidebar show for this kind of
-// account". Keeps ConsumerDashboard/FarmerDashboard/InstitutionDashboard/
-// AdminDashboard/Profile all in sync instead of each hard-coding its own
-// slightly-different nav list.
+// What the sidebar shows for each kind of account, and what each place is
+// called for that person. One list, used by every signed-in page.
+//
+// The rule: show people only the places that do something for them, and name
+// each place after what it does for *them*. A buyer has no farm, so the map is
+// "Find produce" for them; for a farmer the same page is "My farms & weather".
 
 import React from "react";
 import {
-  Newspaper,
+  LayoutDashboard,
   ShoppingCart,
-  Microscope,
+  Newspaper,
+  ClipboardList,
+  Tags,
+  Package,
+  MessageSquare,
+  Megaphone,
+  Map as MapIcon,
   BookOpen,
   GraduationCap,
   Handshake,
   BarChart3,
   LineChart,
-  Megaphone,
+  Microscope,
   User,
   Wrench,
   CheckCircle2,
-  Tags,
-  Receipt,
-  MessageSquare,
-  Map as MapIcon,
-  Truck,
+  BadgePercent,
 } from "lucide-react";
 
-const iconProps = { size: 18, strokeWidth: 2 };
+const iconProps = { size: 18, strokeWidth: 1.75 };
+const icon = (Icon) => <Icon {...iconProps} />;
 
-export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, onMarketplaceClick }) => {
-  const sections = [];
-  const mainItems = [];
+/** The map's name and purpose for each kind of account. */
+export const MAP_COPY = {
+  farmer: {
+    label: "My farms & weather",
+    title: "My farms & weather",
+    subtitle: "Your farms, input costs, rain, wind and fire alerts on one map.",
+  },
+  institution: {
+    label: "Regional conditions",
+    title: "Regional conditions",
+    subtitle: "Weather, satellite and crop suitability across Namibia's 14 regions.",
+  },
+  consumer: {
+    label: "Find produce",
+    title: "Find produce",
+    subtitle: "See which regions have produce for sale, and the weather where it grows.",
+  },
+};
 
-  if (userType === "institution") {
-    mainItems.push({ label: "Research Desk", icon: <Microscope {...iconProps} />, path: "/institutiondashboard" });
-  } else {
-    // Consumers and farmers share the same dashboard component, with
-    // Feed/Marketplace as in-page tabs rather than separate routes.
-    mainItems.push({ label: "Community Feed", hint: "Talk: news, photos, tips and questions", icon: <Newspaper {...iconProps} />, path: "/dashboard", state: { page: "feed" }, onClick: onFeedClick });
-    mainItems.push({ label: "Marketplace", hint: "Buy: ready-to-sell listings", icon: <ShoppingCart {...iconProps} />, path: "/dashboard", state: { page: "prices" }, onClick: onMarketplaceClick });
-  }
+export const mapCopyFor = (userType) => MAP_COPY[userType] || MAP_COPY.consumer;
 
-  mainItems.push({ label: "Demand Board", hint: "Request: buyers post bulk needs, producers pledge", icon: <MessageSquare {...iconProps} />, path: "/demand-board" });
+/** What the Demand Board is called for each kind of account. */
+export const demandLabelFor = (userType) => (userType === "farmer" ? "Buyer requests" : "Bulk requests");
+
+/** What the Promotions page is called for each kind of account. */
+export const promotionsLabelFor = (userType) => (userType === "farmer" ? "Promote a product" : "Deals");
+
+/** Plain-language name of the account type, shown under the person's name. */
+export const roleLabel = ({ userType, isOrganization, isAdmin }) => {
+  if (isAdmin && !userType) return "Administrator";
+  if (userType === "farmer") return "Producer";
+  if (userType === "institution") return "Institution";
+  if (isOrganization) return "Business buyer";
+  return "Buyer";
+};
+
+const item = (label, Icon, path, extra = {}) => ({ label, icon: icon(Icon), path, ...extra });
+
+function sectionsFor(userType) {
+  const map = mapCopyFor(userType);
 
   if (userType === "farmer") {
-    mainItems.push({ label: "My Listings", icon: <Tags {...iconProps} />, path: "/my-listings" });
+    return [
+      {
+        heading: "Sell",
+        items: [
+          item("Overview", LayoutDashboard, "/dashboard"),
+          item("My listings", Tags, "/my-listings"),
+          item("Orders", Package, "/orders"),
+          item("Messages", MessageSquare, "/messages"),
+          item(demandLabelFor(userType), ClipboardList, "/demand-board"),
+          item(promotionsLabelFor(userType), Megaphone, "/promotions"),
+        ],
+      },
+      {
+        heading: "Farm",
+        items: [
+          item(map.label, MapIcon, "/map"),
+          item("Research", BookOpen, "/research"),
+          item("Training", GraduationCap, "/training"),
+          item("Internships", Handshake, "/internships"),
+        ],
+      },
+      {
+        heading: "Community",
+        items: [
+          item("Community feed", Newspaper, "/feed"),
+          item("Marketplace", ShoppingCart, "/marketplace"),
+        ],
+      },
+      {
+        heading: "Market insights",
+        items: [item("Market data", BarChart3, "/data"), item("Trends", LineChart, "/statistics")],
+      },
+    ];
   }
 
-  mainItems.push({ label: "Research", icon: <BookOpen {...iconProps} />, path: "/research" });
-
-  if (userType === "farmer" || userType === "institution") {
-    mainItems.push({ label: "Training Programs", icon: <GraduationCap {...iconProps} />, path: "/training" });
-    mainItems.push({ label: "Internships", icon: <Handshake {...iconProps} />, path: "/internships" });
+  if (userType === "institution") {
+    return [
+      {
+        heading: "Research",
+        items: [
+          item("Research desk", Microscope, "/institutiondashboard"),
+          item("Training", GraduationCap, "/training"),
+          item("Internships", Handshake, "/internships"),
+          item("Messages", MessageSquare, "/messages"),
+        ],
+      },
+      {
+        heading: "Sourcing",
+        items: [
+          item(demandLabelFor(userType), ClipboardList, "/demand-board"),
+          item("Marketplace", ShoppingCart, "/marketplace"),
+          item("Orders", Package, "/orders"),
+        ],
+      },
+      {
+        heading: "Insights",
+        items: [
+          item(map.label, MapIcon, "/map"),
+          item("Market data", BarChart3, "/data"),
+          item("Trends", LineChart, "/statistics"),
+        ],
+      },
+    ];
   }
 
-  sections.push({ heading: "Workspace", items: mainItems });
-
-  sections.push({
-    heading: "Insights",
-    items: [
-      { label: "Map", icon: <MapIcon {...iconProps} />, path: "/map" },
-      { label: "Data Dashboard", icon: <BarChart3 {...iconProps} />, path: "/data" },
-      { label: "Statistics", icon: <LineChart {...iconProps} />, path: "/statistics" },
-      { label: "Promotions", icon: <Megaphone {...iconProps} />, path: "/promotions" },
-    ],
-  });
-
-  const accountItems = [
-    { label: "Order Tracker", icon: <Truck {...iconProps} />, path: "/track-orders" },
-    { label: "My Orders", icon: <Receipt {...iconProps} />, path: "/my-orders" },
-    { label: "Profile", icon: <User {...iconProps} />, path: "/profile" },
+  // Buyers: individuals and businesses (shops, restaurants, schools).
+  return [
+    {
+      heading: "Shop",
+      items: [
+        item("Overview", LayoutDashboard, "/dashboard"),
+        item("Marketplace", ShoppingCart, "/marketplace"),
+        item(promotionsLabelFor(userType), BadgePercent, "/promotions"),
+        item(demandLabelFor(userType), ClipboardList, "/demand-board"),
+        item(map.label, MapIcon, "/map"),
+      ],
+    },
+    {
+      heading: "Your activity",
+      items: [item("Orders", Package, "/orders"), item("Messages", MessageSquare, "/messages")],
+    },
+    {
+      heading: "Community",
+      items: [item("Community feed", Newspaper, "/feed"), item("Market data", BarChart3, "/data")],
+    },
   ];
+}
 
+export const buildNavSections = ({ userType, isAdmin, activePath }) => {
+  // An admin without a member profile only needs the admin tools.
+  const sections = isAdmin && !userType ? [] : sectionsFor(userType);
+
+  const account = { heading: "Account", items: [item("Profile", User, "/profile")] };
   if (isAdmin) {
-    accountItems.push({ label: "Admin Dashboard", icon: <Wrench {...iconProps} />, path: "/admin/dashboard" });
-    accountItems.push({ label: "Verification Queue", icon: <CheckCircle2 {...iconProps} />, path: "/admin" });
+    account.items.push(item("Admin dashboard", Wrench, "/admin/dashboard"));
+    account.items.push(item("Verification queue", CheckCircle2, "/admin"));
   }
+  sections.push(account);
 
-  sections.push({ heading: "Account", items: accountItems });
-
-  // Mark whichever item matches the current route as active.
   return sections.map((section) => ({
     ...section,
-    items: section.items.map((item) => ({
-      ...item,
-      active: !!activePath && item.path === activePath,
-    })),
+    items: section.items.map((entry) => ({ ...entry, active: !!activePath && entry.path === activePath })),
   }));
 };
+
+/** Where someone lands after signing in. */
+export const homePathFor = (userType) => (userType === "institution" ? "/institutiondashboard" : "/dashboard");

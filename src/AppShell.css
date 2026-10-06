@@ -5,6 +5,22 @@
   font-family: var(--aaf-font);
 }
 
+.aaf-skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -3rem;
+  z-index: 100;
+  background: var(--aaf-white);
+  color: var(--aaf-baobab);
+  padding: 0.6rem 1rem;
+  border-radius: var(--aaf-radius-sm);
+  font-weight: 600;
+}
+
+.aaf-skip-link:focus {
+  top: 1rem;
+}
+
 /* ---- sidebar ---- */
 
 .aaf-sidebar {
@@ -14,51 +30,60 @@
   color: var(--aaf-white);
   display: flex;
   flex-direction: column;
-  padding: 1.25rem 1rem;
+  padding: 1rem 0.75rem;
   position: sticky;
   top: 0;
   height: 100vh;
   overflow-y: auto;
-  transition: width 0.25s ease, padding 0.25s ease, opacity 0.2s ease;
+  transition: width 0.2s ease, padding 0.2s ease, opacity 0.15s ease;
 }
 
 .aaf-sidebar-brand {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 0.4rem 0.5rem 1.5rem;
+  padding: 0.35rem 0.5rem 1.25rem;
+  border: none;
+  background: none;
+  color: inherit;
   cursor: pointer;
+  font-family: var(--aaf-font);
+  text-align: left;
 }
 
 .aaf-sidebar-brand img {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
 }
 
 .aaf-sidebar-brand span {
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: 0.01em;
+  font-weight: 600;
+  font-size: 1rem;
 }
 
 .aaf-sidebar-nav {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 1.25rem;
+  gap: 1.1rem;
+}
+
+.aaf-sidebar-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
 }
 
 .aaf-sidebar-heading {
-  text-transform: uppercase;
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  color: rgba(255, 255, 255, 0.45);
-  margin: 0 0 0.5rem 0.6rem;
-  font-weight: 700;
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.62);
+  margin: 0 0 0.35rem 0.6rem;
+  font-weight: 500;
 }
 
 .aaf-sidebar-link {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -66,34 +91,121 @@
   text-align: left;
   border: none;
   background: transparent;
-  color: rgba(255, 255, 255, 0.82);
-  padding: 0.65rem 0.6rem;
+  color: rgba(255, 255, 255, 0.86);
+  padding: 0.5rem 0.6rem;
   border-radius: var(--aaf-radius-sm);
   font-family: var(--aaf-font);
-  font-size: 0.9rem;
-  font-weight: 500;
+  font-size: 0.875rem;
+  font-weight: 400;
   cursor: pointer;
   transition: background 0.12s ease, color 0.12s ease;
 }
 
 .aaf-sidebar-link:hover {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.07);
   color: var(--aaf-white);
 }
 
 .aaf-sidebar-link.active {
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--aaf-white);
+  font-weight: 500;
+}
+
+.aaf-sidebar-link.active::before {
+  content: "";
+  position: absolute;
+  left: -0.75rem;
+  top: 6px;
+  bottom: 6px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
   background: var(--aaf-shoot);
-  color: var(--aaf-accent-contrast);
-  font-weight: 700;
 }
 
 .aaf-sidebar-icon {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  opacity: 0.9;
+}
+
+.aaf-sidebar-label {
+  flex: 1;
+}
+
+.aaf-sidebar-badge {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--aaf-shoot);
+  color: var(--aaf-canopy);
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.aaf-sidebar-footer {
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.aaf-sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  background: transparent;
+  color: var(--aaf-white);
+  padding: 0.45rem 0.5rem;
+  border-radius: var(--aaf-radius-sm);
+  cursor: pointer;
+  font-family: var(--aaf-font);
+  text-align: left;
+  min-width: 0;
+}
+
+.aaf-sidebar-user:hover {
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.aaf-sidebar-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.14);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+.aaf-sidebar-user-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.aaf-sidebar-user-text strong {
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.aaf-sidebar-user-text span {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .aaf-sidebar-logout {
@@ -101,19 +213,18 @@
   align-items: center;
   gap: 10px;
   border: none;
-  background: rgba(255, 255, 255, 0.06);
-  color: rgba(255, 255, 255, 0.85);
-  padding: 0.65rem 0.6rem;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.78);
+  padding: 0.5rem 0.6rem;
   border-radius: var(--aaf-radius-sm);
   font-family: var(--aaf-font);
-  font-size: 0.88rem;
-  font-weight: 600;
+  font-size: 0.85rem;
   cursor: pointer;
-  margin-top: 1rem;
 }
 
 .aaf-sidebar-logout:hover {
-  background: rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--aaf-white);
 }
 
 /* ---- main area ---- */
@@ -127,26 +238,28 @@
 
 .aaf-shell-topbar {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 1.75rem 2rem 1rem;
-  border-bottom: 3px solid var(--aaf-shoot);
+  padding: 1.25rem 2rem;
+  background: var(--aaf-surface);
+  border-bottom: 1px solid var(--aaf-border);
 }
 
 .aaf-shell-topbar-left {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 0.85rem;
+  min-width: 0;
 }
 
 .aaf-sidebar-collapse-btn {
-  border: none;
-  background: var(--aaf-mist);
-  color: var(--aaf-canopy);
-  width: 38px;
-  height: 38px;
+  border: 1px solid var(--aaf-border);
+  background: var(--aaf-white);
+  color: var(--aaf-slate);
+  width: 34px;
+  height: 34px;
   border-radius: var(--aaf-radius-sm);
   display: flex;
   align-items: center;
@@ -156,20 +269,26 @@
 }
 
 .aaf-sidebar-collapse-btn:hover {
-  background: var(--aaf-border);
+  background: var(--aaf-mist);
+  color: var(--aaf-canopy);
+}
+
+.aaf-shell-heading {
+  min-width: 0;
 }
 
 .aaf-shell-topbar h1 {
   margin: 0;
-  font-size: 1.6rem;
-  font-weight: 800;
+  font-size: 1.3rem;
+  font-weight: 600;
   color: var(--aaf-canopy);
+  letter-spacing: -0.01em;
 }
 
 .aaf-shell-subtitle {
-  margin: 0.25rem 0 0;
+  margin: 0.15rem 0 0;
   color: var(--aaf-text-muted);
-  font-size: 0.92rem;
+  font-size: 0.875rem;
 }
 
 .aaf-shell-topbar-right {
@@ -179,8 +298,14 @@
 }
 
 .aaf-shell-content {
-  padding: 0.5rem 2rem 2.5rem;
+  padding: 1.5rem 2rem 3rem;
   flex: 1;
+  width: 100%;
+  max-width: 1280px;
+}
+
+.aaf-shell-content:focus {
+  outline: none;
 }
 
 /* ---- mobile ---- */
@@ -188,16 +313,15 @@
 .aaf-mobile-toggle {
   display: none;
   position: fixed;
-  top: 0.9rem;
-  left: 0.9rem;
+  top: 0.85rem;
+  left: 0.85rem;
   z-index: 40;
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--aaf-radius-sm);
   border: none;
   background: var(--aaf-canopy);
   color: var(--aaf-white);
-  font-size: 1.1rem;
   cursor: pointer;
 }
 
@@ -206,15 +330,12 @@
 }
 
 @media (min-width: 901px) {
-  .aaf-sidebar {
-    overflow: hidden;
-  }
-
   .aaf-sidebar.collapsed {
     width: 0;
     padding-left: 0;
     padding-right: 0;
     opacity: 0;
+    overflow: hidden;
   }
 }
 
@@ -252,24 +373,27 @@
 
   .aaf-shell-topbar {
     position: relative;
-    flex-wrap: nowrap;
-    padding-top: 4.25rem;
+    padding-top: 4rem;
   }
 
-  /* Bell sits level with the menu button instead of wrapping onto its own row. */
   .aaf-shell-topbar-right {
-    position: absolute;
-    top: 0.9rem;
-    right: 1.25rem;
+    width: 100%;
   }
 
   .aaf-shell-topbar h1 {
-    font-size: 1.4rem;
+    font-size: 1.2rem;
   }
 
   .aaf-shell-content,
   .aaf-shell-topbar {
-    padding-left: 1.25rem;
-    padding-right: 1.25rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aaf-sidebar,
+  .aaf-sidebar-link {
+    transition: none;
   }
 }

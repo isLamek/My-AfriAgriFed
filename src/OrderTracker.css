@@ -314,3 +314,16 @@
     margin-left: auto;
   }
 }
+
+.ot-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.ot-foot .ot-ref {
+  margin: 0;
+}
