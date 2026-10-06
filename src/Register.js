@@ -1,17 +1,41 @@
 import React, { useState } from "react";
-//import { gsap } from "gsap";
 import "./Register.css";
 
-import logo from "./images/full-logo.png";
+import appIcon from "./images/seed-mark.png";
 import { auth, db } from "./firebaseConfig";
-import { createUserWithEmailAndPassword } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
+import { doc, setDoc, serverTimestamp } from "firebase/firestore";
+import FarmerQuestionnaire from "./FarmerQuestionnaire";
+import ConsumerQuestionnaire from './ConsumerQuestionnaire';
+import InstitutionQuestionnaire from "./InstitutionQuestionnaire";
+import { Link, useNavigate } from "react-router-dom";
+import { BUSINESS } from "./business";
+import { ageOn } from "./registrationRules";
+import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
+import toast from "react-hot-toast";
+import { sendVerification } from "./emailVerification";
+import { friendlyAuthError } from "./authErrors";
 
+
+
+import { checkFile, uploadDocumentToCloudinary } from "./cloudinaryUpload";
+
+
+
+// Where each verification document is stored in Cloudinary.
+const DOCUMENT_FOLDERS = {
+  personalId: "personal_id",
+  proofOfRegistration: "proof_of_registration",
+  businessCertificate: "business_certificate",
+  bankStatement: "bank_statement",
+  educatorCertificate: "educator_certificate",
+};
 
 export default function Register({ onBackToHome, onNavigateToSignIn }) {
+  const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1);
   const [formData, setFormData] = useState({
-    // Phase 1: Personal Information
+    // Phase 1: Personal Information (for all users)
     userType: "",
     firstName: "",
     lastName: "",
@@ -22,14 +46,13 @@ export default function Register({ onBackToHome, onNavigateToSignIn }) {
     password: "",
     confirmPassword: "",
     agreedToTerms: false,
+    buyerType: "Individual Buyer",
+    businessName: "",
     
-    // Phase 2: Farm Information
-    farmName: "",
-    farmingType: "",
-    businessAge: "",
-    farmScale: "",
-    location: "",
-    businessEmail: "",
+    // Phase 2: Will be different based on userType
+    // For Farmers: Stored in questionnaireData
+    // For Consumers: Will be in consumerData
+    // For Institutions: Will be in institutionData
     
     // Phase 3: Documents
     personalId: null,
@@ -37,28 +60,25 @@ export default function Register({ onBackToHome, onNavigateToSignIn }) {
     businessCertificate: null,
     bankStatement: null,
     educatorCertificate: null,
-
   });
 
+  const [questionnaireData, setQuestionnaireData] = useState({});
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Navigation handlers
   const handleHomeClick = () => {
-    if (onBackToHome) {
-      onBackToHome();
-    }
+    navigate("/");
+    // onNavigate("home");
   };
 
   const handleSignInClick = () => {
-    if (onNavigateToSignIn) {
-      onNavigateToSignIn();
-    }
+    navigate("/signin");
+    // onNavigate("signin");
   };
 
   const handleContactClick = () => {
-    console.log("Navigate to contact page");
-    alert("Contact page coming soon!");
+    window.location.href = `mailto:${BUSINESS.email}`;
   };
 
   const handleInputChange = (e) => {
@@ -84,8 +104,10 @@ export default function Register({ onBackToHome, onNavigateToSignIn }) {
     if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
     if (!formData.dob) newErrors.dob = "Date of birth is required";
-    if (!formData.nationality.trim()) newErrors.nationality = "Nationality is required";
-    if (!formData.gender) newErrors.gender = "Gender is required";
+    else if (ageOn(formData.dob) < 18) newErrors.dob = "You must be 18 or older to create an account.";
+    if (formData.userType === "consumer" && formData.buyerType !== "Individual Buyer" && !formData.businessName.trim()) {
+      newErrors.businessName = "Enter the name of your business or organisation";
+    }
     if (!formData.personalEmail.trim()) {
       newErrors.personalEmail = "Personal email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.personalEmail)) {
@@ -100,166 +122,272 @@ export default function Register({ onBackToHome, onNavigateToSignIn }) {
       newErrors.confirmPassword = "Passwords do not match";
     }
     if (!formData.agreedToTerms) {
-      newErrors.agreedToTerms = "You must agree to the terms and conditions";
+      newErrors.agreedToTerms = "Please agree to the Terms of service and Privacy policy to continue";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const validatePhase2 = () => {
-    const newErrors = {};
-    
-    if (!formData.farmName.trim()) newErrors.farmName = "Farm/Business name is required";
-    if (!formData.farmingType) newErrors.farmingType = "Please select farming type";
-    if (!formData.businessAge) newErrors.businessAge = "Business age is required";
-    if (!formData.farmScale) newErrors.farmScale = "Please select farm scale";
-    if (!formData.location.trim()) newErrors.location = "Location is required";
-    if (!formData.businessEmail.trim()) {
-      newErrors.businessEmail = "Business email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.businessEmail)) {
-      newErrors.businessEmail = "Business email is invalid";
-    }
+  const handleNext = async () => {
+    if (currentStep === 1) {
+      if (!validatePhase1()) return;
 
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
+      // For Consumers: Skip to document upload or handle differently
+      // Buyers need no documents: create the account straight away. Business
+      // buyers (shops, restaurants, schools) are marked as organisations.
+      if (formData.userType === "consumer") {
+        await handleSubmit(true, {
+          consumerType: formData.buyerType,
+          businessName: formData.buyerType === "Individual Buyer" ? "" : formData.businessName.trim(),
+        });
+        return;
+      }
+
+      // For Farmers and Institutions: Go to questionnaire
+      if (formData.userType === "farmer" || formData.userType === "institution") {
+        setCurrentStep("questionnaire");
+        return;
+      }
+    } 
   };
-
-const handleNext = async () => {
-  if (currentStep === 1) {
-    if (!validatePhase1()) return;
-
-    // CUSTOMER → REGISTER & REDIRECT
-    if (formData.userType === "customer") {
-      await handleSubmit(true);
-      return;
-    }
-
-    // FARMER / EDUCATOR
-    setCurrentStep(2);
-  } 
-  else if (currentStep === 2) {
-    if (!validatePhase2()) return;
-    setCurrentStep(3);
-  }
-};
-
-
-
-
-
-
-
 
   const handleBack = () => {
     if (currentStep === 1) {
       handleHomeClick();
-    } else {
-      setCurrentStep(prev => prev - 1);
+    } else if (currentStep === "questionnaire") {
+      setCurrentStep(1);
+    } else if (currentStep === 3) {
+      if (formData.userType === "farmer" || formData.userType === "institution") {
+        setCurrentStep("questionnaire");
+      } else {
+        setCurrentStep(1);
+      }
     }
   };
 
-  const handleSubmit = async (completeRegistration = false) => {
-  setIsSubmitting(true);
+  const handleQuestionnaireComplete = (data) => {
+    setQuestionnaireData(data);
+    setCurrentStep(3); // Go to document upload
+  };
 
+const handleSubmit = async (completeRegistration = false, extraQuestionnaire = null) => {
+  if (isSubmitting) return;
+
+  // Check every file before creating the account, so a wrong file type never
+  // leaves a half-made account behind.
   try {
-    // 1️⃣ VALIDATE DOCUMENTS IF COMPLETE REGISTRATION
-    if (completeRegistration) {
-  const docErrors = {};
-
-  if (formData.userType === "farmer") {
-    if (!formData.personalId) docErrors.personalId = "Required";
-    if (!formData.proofOfRegistration) docErrors.proofOfRegistration = "Required";
-    if (!formData.businessCertificate) docErrors.businessCertificate = "Required";
-    if (!formData.bankStatement) docErrors.bankStatement = "Required";
-  }
-
-  if (formData.userType === "educator") {
-    if (!formData.educatorCertificate)
-      docErrors.educatorCertificate = "Educator certificate required";
-  }
-
-  if (Object.keys(docErrors).length > 0) {
-    setErrors(prev => ({ ...prev, ...docErrors }));
-    setIsSubmitting(false);
+    Object.keys(DOCUMENT_FOLDERS).forEach((field) => formData[field] && checkFile(formData[field], "document"));
+  } catch (error) {
+    toast.error(error.message);
     return;
   }
-}
 
+  const questionnaire = extraQuestionnaire ? { ...questionnaireData, ...extraQuestionnaire } : questionnaireData;
+  setIsSubmitting(true);
 
-    // 2️⃣ AUTHENTICATION — CREATE USER BY EMAIL + PASSWORD
+  let user = null;
+
+  try {
+    // 1️⃣ Create Firebase Auth user
     const userCredential = await createUserWithEmailAndPassword(
       auth,
       formData.personalEmail,
       formData.password
     );
 
-    const user = userCredential.user;
+    user = userCredential.user;
 
-    // 3️⃣ SAVE ALL FORM DATA TO FIRESTORE
-    await setDoc(doc(db, "users", user.uid), {
-      uid: user.uid,
+    // Ask them to verify the address (never blocks registration if it fails).
+    sendVerification(user);
 
-      // PERSONAL INFORMATION
-      firstName: formData.firstName,
-      lastName: formData.lastName,
-      dob: formData.dob,
-      nationality: formData.nationality,
-      gender: formData.gender,
+    // Posts/comments/listings elsewhere fall back to auth.currentUser's
+    // displayName (and to the account email when it's unset) rather than
+    // an extra Firestore read per author - set it here so it's never blank.
+    await updateProfile(user, {
+      displayName: `${formData.firstName} ${formData.lastName}`.trim(),
+    }).catch(() => {});
 
-      personalEmail: formData.personalEmail,
+    // 3️⃣ File → folder mapping
+    const fileMap = DOCUMENT_FOLDERS;
 
-      // FARM INFORMATION
-      farmName: formData.farmName,
-      farmingType: formData.farmingType,
-      businessAge: formData.businessAge,
-      farmScale: formData.farmScale,
-      businessEmail: formData.businessEmail,
-      location: formData.location,
+    const documentUrls = {};
+    const uploadPromises = [];
 
-      // ACCOUNT STATUS
-      registrationStatus: completeRegistration ? "verified" : "pending",
+    Object.entries(fileMap).forEach(([field, folder]) => {
+      const file = formData[field];
+      if (!file) return;
 
-      // TIMESTAMP
-      createdAt: new Date(),
-      userType: formData.userType,
-documentStatus:
-  formData.userType === "customer" ? "not_required" :
-  completeRegistration ? "submitted" : "pending",
-
+      uploadPromises.push(
+        uploadDocumentToCloudinary(
+          file,
+          `afriagrifed/users/${user.uid}/${folder}`
+        ).then((upload) => {
+          documentUrls[field] = {
+  url: upload.secure_url,
+  publicId: upload.public_id,
+  fileType: file.type,
+  fileName: file.name
+};
+        })
+      );
     });
 
-    alert(
-      completeRegistration
-        ? "Registration complete! Documents under review."
-        : "Registered as pending! Please upload remaining documents soon."
-    );
+    await Promise.all(uploadPromises);
 
-    handleHomeClick();
+    // 4️⃣ Build Firestore document
+    // Consumer accounts capture a business type in their questionnaire
+    // (Retailer/Wholesaler/Processor/Restaurant/NGO vs. Individual Buyer) -
+    // anything but "Individual Buyer" is an organization (supermarkets,
+    // cooperatives, food processors, etc.), not an individual end-consumer,
+    // even though they share the same account type and approval flow.
+    const isOrganization =
+      formData.userType === "consumer" &&
+      !!questionnaire.consumerType &&
+      questionnaire.consumerType !== "Individual Buyer";
+
+    const userData = {
+  uid: user.uid,
+
+  userType: formData.userType,
+  isOrganization,
+
+  // Approval fields
+  approved: false,
+  status: "pending",       // pending | approved | rejected
+
+  personalInfo: {
+    firstName: formData.firstName,
+    lastName: formData.lastName,
+    email: formData.personalEmail,
+    dob: formData.dob,
+    // Optional: only stored when the person chose to give them.
+    ...(formData.nationality.trim() ? { nationality: formData.nationality.trim() } : {}),
+    ...(formData.gender ? { gender: formData.gender } : {}),
+  },
+
+  accountStatus: {
+    registrationStatus: "pending",
+    documentStatus:
+      formData.userType === "consumer"
+        ? "not_required"
+        : "submitted",
+  },
+
+  questionnaireData: questionnaire,
+  agreedToTermsAt: new Date().toISOString(),
+
+  documents: documentUrls,
+
+  createdAt: serverTimestamp(),
+  reviewedAt: null,
+  reviewedBy: null
+};
+    // 5️⃣ Save to Firestore
+    await setDoc(doc(db, "users", user.uid), userData);
+
+    logTelemetryEvent(TELEMETRY_EVENTS.SIGN_UP, { userType: formData.userType });
+
+    if (formData.userType === "consumer") {
+      toast.success("Welcome to AfriAgriFed! Check your e-mail to verify your address.");
+      navigate("/dashboard");
+    } else {
+      toast.success("Thank you. Your documents are with our team; you can sign in once your account is approved.");
+      handleHomeClick();
+    }
 
   } catch (error) {
-    console.error(error);
-    alert("Registration failed: " + error.message);
-  }
+    console.error("Registration failed:", error);
 
-  setIsSubmitting(false);
+    // Optional rollback (recommended)
+    if (user) {
+      await user.delete().catch(() => {});
+    }
+
+    toast.error(friendlyAuthError(error, "Registration failed. Please check your details and try again."));
+  } finally {
+    setIsSubmitting(false);
+  }
 };
 
 
-  const renderProgressSteps = () => (
-    <div className="progress-steps">
-      {[1, 2, 3].map(step => (
-        <div key={step} className={`step ${step === currentStep ? 'active' : ''} ${step < currentStep ? 'completed' : ''}`}>
-          <div className="step-number">{step}</div>
-          <div className="step-label">
-            {step === 1 ? 'Personal Info' : step === 2 ? 'Farm Info' : 'Documents'}
-          </div>
-        </div>
-      ))}
-    </div>
-  );
+  const renderProgressSteps = () => {
+    const steps = [
+      { number: 1, label: 'About you' },
+      { number: 2, label: formData.userType === "farmer" ? "Your farm" : 
+                        formData.userType === "institution" ? "Your institution" : 
+                        "More about you" },
+      { number: 3, label: 'Documents' }
+    ];
 
-  return (
+    return (
+      <div className="progress-steps">
+        {steps.map(step => {
+          let stepStatus = "";
+          const stepNumber = step.number;
+          
+          // Determine current step status
+          if (currentStep === "questionnaire" && stepNumber === 2) {
+            stepStatus = "active";
+          } else if (typeof currentStep === "number" && currentStep === stepNumber) {
+            stepStatus = "active";
+          } else if (
+            (currentStep === "questionnaire" && stepNumber < 2) ||
+            (typeof currentStep === "number" && currentStep > stepNumber)
+          ) {
+            stepStatus = "completed";
+          }
+
+          return (
+            <div key={step.number} className={`step ${stepStatus}`}>
+              <div className="step-number">{step.number}</div>
+              <div className="step-label">{step.label}</div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
+
+  // Render the appropriate questionnaire based on user type** (Event Handler typa thing)
+ const renderQuestionnaire = () => {
+  switch (formData.userType) {
+    case "farmer":
+      return (
+        <FarmerQuestionnaire
+          onComplete={handleQuestionnaireComplete}
+          onBack={() => setCurrentStep(1)}
+          initialData={questionnaireData}
+        />
+      );
+
+    case "consumer":
+      return (
+        <ConsumerQuestionnaire
+          onComplete={handleQuestionnaireComplete}
+          onBack={() => setCurrentStep(1)}
+          initialData={questionnaireData}
+        />
+      );
+
+    case "institution":
+      return (
+        <InstitutionQuestionnaire
+          onComplete={handleQuestionnaireComplete}
+          onBack={() => setCurrentStep(1)}
+          initialData={questionnaireData}
+        />
+      );
+
+    default:
+      return null;
+  }
+};
+
+
+
+
+ return (
     <div className="register-page">
       {/* NAVBAR - Same as Homepage */}
       <nav className="navbar">
@@ -268,10 +396,10 @@ documentStatus:
             Home
           </button>
           <button className="nav-btn" onClick={handleSignInClick}>
-            Sign In
+            Sign in
           </button>
           <button className="nav-btn primary" onClick={handleContactClick}>
-            Contact Us
+            Contact us
           </button>
         </div>
       </nav>
@@ -280,22 +408,24 @@ documentStatus:
         <div className="register-card">
           {/* Logo */}
           <div className="register-logo">
-            <img src={logo} alt="Afriagrifed Logo" />
+            <img src={appIcon} alt="AfriAgriFed" />
+            <span className="register-brand">AfriAgriFed</span>
           </div>
 
-          <h1 className="register-title">Create Your Account</h1>
+          <h1 className="register-title">Create your account</h1>
 
-          {/* Progress Steps */}
-          {renderProgressSteps()}
+          {/* Show progress steps only if not in questionnaire */}
+          {currentStep !== "questionnaire" && formData.userType !== "consumer" && renderProgressSteps()}
 
           {/* Phase 1: Personal Information */}
           {currentStep === 1 && (
             <div className="form-phase">
-              <h2>Personal Information</h2>
+              <h2>About you</h2>
               <div className="form-grid">
                 <div className="form-group">
-                  <label>First Name *</label>
+                  <label htmlFor="reg-firstName">First name</label>
                   <input
+                    id="reg-firstName"
                     type="text"
                     name="firstName"
                     value={formData.firstName}
@@ -307,8 +437,9 @@ documentStatus:
                 </div>
 
                 <div className="form-group">
-                  <label>Last Name *</label>
+                  <label htmlFor="reg-lastName">Last name</label>
                   <input
+                    id="reg-lastName"
                     type="text"
                     name="lastName"
                     value={formData.lastName}
@@ -320,8 +451,9 @@ documentStatus:
                 </div>
 
                 <div className="form-group">
-                  <label>Date of Birth *</label>
+                  <label htmlFor="reg-dob">Date of birth</label>
                   <input
+                    id="reg-dob"
                     type="date"
                     name="dob"
                     value={formData.dob}
@@ -332,8 +464,9 @@ documentStatus:
                 </div>
 
                 <div className="form-group">
-                  <label>Nationality *</label>
+                  <label htmlFor="reg-nationality">Nationality <span className="optional">(optional)</span></label>
                   <input
+                    id="reg-nationality"
                     type="text"
                     name="nationality"
                     value={formData.nationality}
@@ -345,14 +478,15 @@ documentStatus:
                 </div>
 
                 <div className="form-group">
-                  <label>Gender *</label>
+                  <label htmlFor="reg-gender">Gender <span className="optional">(optional)</span></label>
                   <select
+                    id="reg-gender"
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
                     className={errors.gender ? 'error' : ''}
                   >
-                    <option value="">Select Gender</option>
+                    <option value="">Prefer not to say</option>
                     <option value="male">Male</option>
                     <option value="female">Female</option>
                     <option value="other">Other</option>
@@ -360,25 +494,67 @@ documentStatus:
                   {errors.gender && <span className="error-text">{errors.gender}</span>}
                 </div>
                 <div className="form-group full-width">
-                <label>Account Type *</label>
-                 <select
-                  name="userType"
-                  value={formData.userType}
-                  onChange={handleInputChange}
-                  className={errors.userType ? 'error' : ''}
-  >
-                <option value="">Select Account Type</option>
-                <option value="customer">Customer</option>
-                <option value="farmer">Farmer</option>
-                <option value="educator">Educator</option>
-                </select>
-                {errors.userType && <span className="error-text">{errors.userType}</span>}
+                  <label htmlFor="reg-userType">I am joining as</label>
+                  <select
+                    id="reg-userType"
+                    name="userType"
+                    value={formData.userType}
+                    onChange={handleInputChange}
+                    className={errors.userType ? 'error' : ''}
+                  >
+                    <option value="">Choose one</option>
+                    <option value="consumer">A buyer (a person, shop, restaurant, school or other business)</option>
+                    <option value="farmer">A producer (farmer or grower who sells)</option>
+                    <option value="institution">A tertiary institution (research and training)</option>
+                  </select>
+                  <span className="field-hint">
+                    {formData.userType === "farmer"
+                      ? "Producers answer a short questionnaire and upload documents so we can verify them before they sell."
+                      : formData.userType === "institution"
+                      ? "Institutions answer a short questionnaire and upload proof of accreditation before they publish."
+                      : formData.userType === "consumer"
+                      ? "Buyers can start straight away. No documents needed."
+                      : ""}
+                  </span>
+                  {errors.userType && <span className="error-text">{errors.userType}</span>}
                 </div>
 
+                {formData.userType === "consumer" && (
+                  <>
+                    <div className="form-group">
+                      <label htmlFor="reg-buyerType">Buying as</label>
+                      <select id="reg-buyerType" name="buyerType" value={formData.buyerType} onChange={handleInputChange}>
+                        <option value="Individual Buyer">An individual</option>
+                        <option value="Retailer">A shop or supermarket</option>
+                        <option value="Restaurant">A restaurant, hotel or caterer</option>
+                        <option value="School / Institution">A school, hospital or other institution</option>
+                        <option value="Processor">A food processor</option>
+                        <option value="Wholesaler">A wholesaler or trader</option>
+                        <option value="NGO">An NGO or relief programme</option>
+                      </select>
+                    </div>
+                    {formData.buyerType !== "Individual Buyer" && (
+                      <div className="form-group">
+                        <label htmlFor="reg-businessName">Business or organisation name</label>
+                        <input
+                          id="reg-businessName"
+                          type="text"
+                          name="businessName"
+                          value={formData.businessName}
+                          onChange={handleInputChange}
+                          className={errors.businessName ? "error" : ""}
+                          autoComplete="organization"
+                        />
+                        {errors.businessName && <span className="error-text">{errors.businessName}</span>}
+                      </div>
+                    )}
+                  </>
+                )}
 
                 <div className="form-group full-width">
-                  <label>Personal Email *</label>
+                  <label htmlFor="reg-personalEmail">E-mail address</label>
                   <input
+                    id="reg-personalEmail"
                     type="email"
                     name="personalEmail"
                     value={formData.personalEmail}
@@ -390,8 +566,9 @@ documentStatus:
                 </div>
 
                 <div className="form-group">
-                  <label>Password *</label>
+                  <label htmlFor="reg-password">Password</label>
                   <input
+                    id="reg-password"
                     type="password"
                     name="password"
                     value={formData.password}
@@ -403,8 +580,9 @@ documentStatus:
                 </div>
 
                 <div className="form-group">
-                  <label>Confirm Password *</label>
+                  <label htmlFor="reg-confirmPassword">Confirm password</label>
                   <input
+                    id="reg-confirmPassword"
                     type="password"
                     name="confirmPassword"
                     value={formData.confirmPassword}
@@ -415,34 +593,29 @@ documentStatus:
                   {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
                 </div>
 
-                {/* Terms and Conditions */}
                 <div className="form-group full-width">
                   <div className="terms-container">
-                    <label className="terms-label">
+                    <label className="terms-label" htmlFor="reg-agreedToTerms">
                       <input
+                        id="reg-agreedToTerms"
                         type="checkbox"
                         name="agreedToTerms"
                         checked={formData.agreedToTerms}
                         onChange={handleInputChange}
                         className={errors.agreedToTerms ? 'error' : ''}
                       />
-                      <span>I agree to the Terms and Conditions *</span>
+                      <span>
+                        I have read and agree to the{" "}
+                        <Link to="/terms" target="_blank" rel="noopener">Terms of service</Link> and the{" "}
+                        <Link to="/privacy" target="_blank" rel="noopener">Privacy policy</Link>.
+                      </span>
                     </label>
                     {errors.agreedToTerms && <span className="error-text">{errors.agreedToTerms}</span>}
-                    
-                    <div className="terms-content">
-                      <p><strong>Afriagrifed Terms and Conditions</strong></p>
-                      <p>Afriagrifed is committed to fighting food insecurity by creating genuine connections between farmers and consumers. By creating an account, you agree to:</p>
-                      <ul>
-                        <li>Use the platform for its intended purpose of agricultural commerce and community building</li>
-                        <li>Provide accurate and truthful information about your identity and business</li>
-                        <li>Engage in ethical business practices with all platform users</li>
-                        <li>Not engage in any fraudulent activities, scams, or misrepresentation</li>
-                        <li>Understand that Afriagrifed has a zero-tolerance policy for fraudulent behavior</li>
-                      </ul>
-                      <p><strong>Legal Compliance:</strong> You acknowledge that any fraudulent activities, scams, or attempts to deceive other users will result in immediate account suspension and may be reported to relevant law enforcement authorities. Afriagrifed reserves the right to cooperate fully with legal investigations and pursue criminal charges against individuals who misuse the platform.</p>
-                      <p><strong>Platform Mission:</strong> We are building a trusted community dedicated to sustainable agriculture and food security. Your commitment to honesty and integrity helps us achieve this mission.</p>
-                    </div>
+                    <p className="terms-summary">
+                      In short: you must be 18 or older and give true information. Fraud, scams and false listings lead to
+                      suspension and may be reported to the police. We never sell your data, and you can ask us to delete
+                      your account at any time.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -451,124 +624,33 @@ documentStatus:
                 <button className="btn-secondary" onClick={handleBack}>
                   Back to Home
                 </button>
-                <button className="btn-primary" onClick={handleNext}>
-                  Continue to Farm Information
+                <button className="btn-primary" onClick={handleNext} disabled={isSubmitting}>
+                  {formData.userType === "consumer"
+                    ? isSubmitting ? "Creating your account…" : "Create account"
+                    : formData.userType === "farmer"
+                    ? "Continue to producer questions"
+                    : formData.userType === "institution"
+                    ? "Continue to institution questions"
+                    : "Continue"}
                 </button>
               </div>
             </div>
           )}
 
-          {/* Phase 2: Farm Information */}
-          {currentStep === 2 && (
-            <div className="form-phase">
-              <h2>Farm Information</h2>
-              <div className="form-grid">
-                <div className="form-group full-width">
-                  <label>Farm/Business Name *</label>
-                  <input
-                    type="text"
-                    name="farmName"
-                    value={formData.farmName}
-                    onChange={handleInputChange}
-                    className={errors.farmName ? 'error' : ''}
-                    placeholder="Enter your farm or business name"
-                  />
-                  {errors.farmName && <span className="error-text">{errors.farmName}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>Type of Farming *</label>
-                  <select
-                    name="farmingType"
-                    value={formData.farmingType}
-                    onChange={handleInputChange}
-                    className={errors.farmingType ? 'error' : ''}
-                  >
-                    <option value="">Select Type</option>
-                    <option value="animal">Animal Farming</option>
-                    <option value="crops">Crop Farming</option>
-                    <option value="both">Both Animal and Crops</option>
-                  </select>
-                  {errors.farmingType && <span className="error-text">{errors.farmingType}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>Business Age *</label>
-                  <select
-                    name="businessAge"
-                    value={formData.businessAge}
-                    onChange={handleInputChange}
-                    className={errors.businessAge ? 'error' : ''}
-                  >
-                    <option value="">Select Age</option>
-                    <option value="0-1">0-1 years</option>
-                    <option value="1-3">1-3 years</option>
-                    <option value="3-5">3-5 years</option>
-                    <option value="5+">5+ years</option>
-                  </select>
-                  {errors.businessAge && <span className="error-text">{errors.businessAge}</span>}
-                </div>
-
-                <div className="form-group">
-                  <label>Farm Scale *</label>
-                  <select
-                    name="farmScale"
-                    value={formData.farmScale}
-                    onChange={handleInputChange}
-                    className={errors.farmScale ? 'error' : ''}
-                  >
-                    <option value="">Select Scale</option>
-                    <option value="small">Small Scale</option>
-                    <option value="medium">Medium Scale</option>
-                    <option value="large">Large Scale</option>
-                  </select>
-                  {errors.farmScale && <span className="error-text">{errors.farmScale}</span>}
-                </div>
-
-                <div className="form-group full-width">
-                  <label>Business Email *</label>
-                  <input
-                    type="email"
-                    name="businessEmail"
-                    value={formData.businessEmail}
-                    onChange={handleInputChange}
-                    className={errors.businessEmail ? 'error' : ''}
-                    placeholder="your.business@example.com"
-                  />
-                  {errors.businessEmail && <span className="error-text">{errors.businessEmail}</span>}
-                </div>
-
-                <div className="form-group full-width">
-                  <label>Location *</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={formData.location}
-                    onChange={handleInputChange}
-                    placeholder="City, Country"
-                    className={errors.location ? 'error' : ''}
-                  />
-                  {errors.location && <span className="error-text">{errors.location}</span>}
-                </div>
-              </div>
-
-              <div className="form-actions">
-                <button className="btn-secondary" onClick={handleBack}>
-                  Back
-                </button>
-                <button className="btn-primary" onClick={handleNext}>
-                  Continue to Document Upload
-                </button>
-              </div>
-            </div>
-          )}
+          {/* Questionnaire Phase - Dynamic based on user type */}
+          {currentStep === "questionnaire" && renderQuestionnaire()}
 
           {/* Phase 3: Document Upload */}
           {currentStep === 3 && (
             <div className="form-phase">
               <h2>Document Verification</h2>
+              
               <p className="phase-description">
-                Upload the required documents to complete your registration and get full access to all features.
+                {formData.userType === "farmer" 
+                  ? "Upload the required documents to complete your farmer registration and get full access to all features."
+                  : formData.userType === "institution"
+                  ? "Upload the required documents to complete your institution registration."
+                  : ""}
               </p>
 
               {/* Verification Timeline */}
@@ -587,8 +669,8 @@ documentStatus:
                     <div className="icon-review">REV</div>
                   </div>
                   <div className="timeline-content">
-                    <h4>Under Review (24 Hours)</h4>
-                    <p>Our team will verify your documents within 24 hours</p>
+                    <h4>Review by our team</h4>
+                    <p>We check your documents against the details you gave us</p>
                   </div>
                 </div>
                 <div className="timeline-item">
@@ -596,81 +678,119 @@ documentStatus:
                     <div className="icon-verified">VER</div>
                   </div>
                   <div className="timeline-content">
-                    <h4>Account Fully Verified</h4>
-                    <p>Complete access to all platform features</p>
+                    <h4>Approved</h4>
+                    <p>Sign in and start {formData.userType === "institution" ? "publishing" : "selling"}</p>
                   </div>
                 </div>
               </div>
 
               <div className="document-grid">
+                {/* Personal ID - Required for all */}
                 <div className="document-group">
-                  <label>Personal ID *</label>
+                  <label htmlFor="reg-personalId">Personal ID</label>
                   <p className="document-hint">Government issued ID (Passport, Driver's License, etc.)</p>
                   <input
+                    id="reg-personalId"
                     type="file"
                     name="personalId"
                     onChange={handleInputChange}
                     accept=".pdf,.jpg,.jpeg,.png"
                     className={errors.personalId ? 'error' : ''}
                   />
+                  {formData.personalId && (
+  <p className="selected-file">
+    {formData.personalId.name}
+  </p>
+)}
                   {errors.personalId && <span className="error-text">{errors.personalId}</span>}
-                  {formData.userType === "educator" && (
-  <div className="document-group full-width">
-    <label>Degree / Certification *</label>
-    <p className="document-hint">Upload your academic proof</p>
-    <input
-      type="file"
-      name="educatorCertificate"
-      onChange={handleInputChange}
-      accept=".pdf,.jpg,.jpeg,.png"
-      className={errors.educatorCertificate ? 'error' : ''}
-    />
-    {errors.educatorCertificate && (
-      <span className="error-text">{errors.educatorCertificate}</span>
-    )}
-  </div>
+                </div>
+
+                {/* Additional documents based on user type */}
+                {formData.userType === "farmer" && (
+                  <>
+                    <div className="document-group">
+                      <label htmlFor="reg-proofOfRegistration">Proof of Registration</label>
+                      <p className="document-hint">Business registration document</p>
+                      <input
+                        id="reg-proofOfRegistration"
+                        type="file"
+                        name="proofOfRegistration"
+                        onChange={handleInputChange}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className={errors.proofOfRegistration ? 'error' : ''}
+                      />
+                      {formData.proofOfRegistration && (
+  <p className="selected-file">
+    {formData.proofOfRegistration.name}
+  </p>
+)}
+                      {errors.proofOfRegistration && <span className="error-text">{errors.proofOfRegistration}</span>}
+                    </div>
+
+                    <div className="document-group">
+                      <label htmlFor="reg-businessCertificate">Business Certificate</label>
+                      <p className="document-hint">Official business certification</p>
+                      <input
+                        id="reg-businessCertificate"
+                        type="file"
+                        name="businessCertificate"
+                        onChange={handleInputChange}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className={errors.businessCertificate ? 'error' : ''}
+                      />
+                      {formData.businessCertificate && (
+  <p className="selected-file">
+    {formData.businessCertificate.name}
+  </p>
+)}
+                      {errors.businessCertificate && <span className="error-text">{errors.businessCertificate}</span>}
+                    </div>
+
+                    <div className="document-group">
+                      <label htmlFor="reg-bankStatement">Last Month Bank Statement</label>
+                      <p className="document-hint">Business bank statement</p>
+                      <input
+                        id="reg-bankStatement"
+                        type="file"
+                        name="bankStatement"
+                        onChange={handleInputChange}
+                        accept=".pdf,.jpg,.jpeg,.png"
+                        className={errors.bankStatement ? 'error' : ''}
+                      />
+                      {formData.bankStatement && (
+  <p className="selected-file">
+    {formData.bankStatement.name}
+  </p>
+)}
+                      {errors.bankStatement && <span className="error-text">{errors.bankStatement}</span>}
+                    </div>
+                  </>
+                )}
+
+                {formData.userType === "institution" && (
+                  <div className="document-group full-width">
+                    <label htmlFor="reg-educatorCertificate">Institution Certificate/Degree</label>
+                    <p className="document-hint">Upload your academic institution proof</p>
+                    <input
+                      id="reg-educatorCertificate"
+                      type="file"
+                      name="educatorCertificate"
+                      onChange={handleInputChange}
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      className={errors.educatorCertificate ? 'error' : ''}
+                    />
+                    {formData.educatorCertificate && (
+  <p className="selected-file">
+    {formData.educatorCertificate.name}
+  </p>
 )}
 
-                </div>
+                    {errors.educatorCertificate && (
+                      <span className="error-text">{errors.educatorCertificate}</span>
+                    )}
+                  </div>
+                )}
 
-                <div className="document-group">
-                  <label>Proof of Registration *</label>
-                  <p className="document-hint">Business registration document</p>
-                  <input
-                    type="file"
-                    name="proofOfRegistration"
-                    onChange={handleInputChange}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className={errors.proofOfRegistration ? 'error' : ''}
-                  />
-                  {errors.proofOfRegistration && <span className="error-text">{errors.proofOfRegistration}</span>}
-                </div>
-
-                <div className="document-group">
-                  <label>Business Certificate *</label>
-                  <p className="document-hint">Official business certification</p>
-                  <input
-                    type="file"
-                    name="businessCertificate"
-                    onChange={handleInputChange}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className={errors.businessCertificate ? 'error' : ''}
-                  />
-                  {errors.businessCertificate && <span className="error-text">{errors.businessCertificate}</span>}
-                </div>
-
-                <div className="document-group">
-                  <label>Last Month Bank Statement *</label>
-                  <p className="document-hint">Business bank statement</p>
-                  <input
-                    type="file"
-                    name="bankStatement"
-                    onChange={handleInputChange}
-                    accept=".pdf,.jpg,.jpeg,.png"
-                    className={errors.bankStatement ? 'error' : ''}
-                  />
-                  {errors.bankStatement && <span className="error-text">{errors.bankStatement}</span>}
-                </div>
               </div>
 
               <div className="form-actions">
@@ -678,25 +798,32 @@ documentStatus:
                   Back
                 </button>
                 <div className="completion-options">
-                  <button 
-                    className="btn-outline" 
-                    onClick={() => handleSubmit(false)}
-                    disabled={isSubmitting}
-                  >
-                    Register as Pending
-                  </button>
-                  <button 
-                    className="btn-primary" 
-                    onClick={() => handleSubmit(true)}
-                    disabled={isSubmitting}
-                  >
-                    Complete Registration
-                  </button>
+                 {formData.userType === "consumer" ? (
+  <button
+    className="btn-primary"
+    onClick={() => handleSubmit(true)}
+    disabled={isSubmitting}
+  >
+    {isSubmitting ? "Registering..." : "Complete Registration"}
+  </button>
+) : (
+  <button
+    className="btn-primary"
+    onClick={() => handleSubmit(false)}
+    disabled={isSubmitting}
+  >
+    {isSubmitting ? "Submitting..." : "Submit for Verification"}
+  </button>
+)}
                 </div>
               </div>
 
               <div className="registration-note">
-                <p><strong>Note:</strong> Your documents will be reviewed within 24 hours. Once verified, your account will have full access to all platform features. Registering as pending gives limited access until verification is complete.</p>
+                <p>
+                  <strong>What happens next:</strong> our team reviews your documents. You can sign in as soon as your account is
+                  approved. Questions? E-mail <a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a>. Your documents are used
+                  only to verify your account; see the <Link to="/privacy">Privacy policy</Link>.
+                </p>
               </div>
             </div>
           )}

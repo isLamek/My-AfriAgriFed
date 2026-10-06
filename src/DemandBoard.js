@@ -1,0 +1,481 @@
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  addDoc,
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+  updateDoc,
+} from "firebase/firestore";
+import toast from "react-hot-toast";
+import { CalendarClock, CheckCircle2, MessageSquare, Plus, Send, Users, X } from "lucide-react";
+import { db } from "./firebaseConfig";
+import { useNavigate } from "react-router-dom";
+import { openConversation } from "./conversations";
+import { demandLabelFor } from "./navConfig";
+import { notifyUser } from "./notifications";
+import useAccountContext from "./useAccountContext";
+import AppShell from "./AppShell";
+import NotificationBell from "./NotificationBell";
+import {
+  DEMAND_UNITS,
+  FILTERS,
+  LIMITS,
+  countByFilter,
+  deadlineState,
+  filterDemands,
+  summarizePledges,
+  validateDemand,
+  validatePledge,
+} from "./demandRules";
+import "./DemandBoard.css";
+
+const emptyDemand = { title: "", product: "", quantityNeeded: "", unit: "kg", deadline: "", notes: "" };
+
+const STEPS = [
+  { n: 1, title: "A buyer posts a need", body: "What, how much, and by when. A school, a shop, a restaurant, or anyone buying in bulk." },
+  { n: 2, title: "Producers pledge", body: "Each farmer pledges the amount they can supply. Several farmers can team up to cover one request." },
+  { n: 3, title: "Agree and deliver", body: "Use the discussion to settle price, delivery and timing. The buyer marks it fulfilled." },
+];
+
+function FieldError({ children }) {
+  return children ? <em className="demand-error">{children}</em> : null;
+}
+
+export default function DemandBoard() {
+  const { userType, isAdminUser, navSections, logout, user, publicName, sellerName } = useAccountContext("/demand-board");
+  const navigate = useNavigate();
+  const uid = user?.uid;
+  const isFarmer = userType === "farmer";
+
+  const [demands, setDemands] = useState([]);
+  const [loaded, setLoaded] = useState(false);
+  const [loadError, setLoadError] = useState("");
+  const [filter, setFilter] = useState("open");
+  const [formData, setFormData] = useState(emptyDemand);
+  const [errors, setErrors] = useState({});
+  const [showForm, setShowForm] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [openDemandId, setOpenDemandId] = useState(null);
+
+  useEffect(() => {
+    const demandsQuery = query(collection(db, "demandRequests"), orderBy("createdAt", "desc"));
+    return onSnapshot(
+      demandsQuery,
+      (snapshot) => {
+        setDemands(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+        setLoaded(true);
+      },
+      (error) => {
+        setLoadError(error.message);
+        setLoaded(true);
+      }
+    );
+  }, []);
+
+  const counts = useMemo(() => countByFilter(demands, uid), [demands, uid]);
+  const visible = useMemo(() => filterDemands(demands, filter, uid), [demands, filter, uid]);
+  const set = (key) => (e) => setFormData((prev) => ({ ...prev, [key]: e.target.value }));
+
+  const postDemand = async (event) => {
+    event.preventDefault();
+    const found = validateDemand(formData);
+    setErrors(found);
+    if (Object.keys(found).length) return;
+
+    setSaving(true);
+    try {
+      await addDoc(collection(db, "demandRequests"), {
+        title: formData.title.trim(),
+        product: formData.product.trim(),
+        quantityNeeded: Number(formData.quantityNeeded),
+        unit: formData.unit,
+        deadline: formData.deadline || null,
+        notes: formData.notes.trim(),
+        buyerId: user.uid,
+        buyerName: sellerName || publicName,
+        buyerType: userType,
+        status: "open",
+        createdAt: serverTimestamp(),
+      });
+      toast.success("Request posted. Producers can now pledge.");
+      setFormData(emptyDemand);
+      setErrors({});
+      setShowForm(false);
+      setFilter("mine");
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  const markFulfilled = async (demand) => {
+    try {
+      await updateDoc(doc(db, "demandRequests", demand.id), { status: "fulfilled" });
+      toast.success("Marked as fulfilled.");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const emptyMessage = {
+    open: "No open requests right now. Buyers can post one with the button above.",
+    fulfilled: "Nothing has been fulfilled yet.",
+    mine: "You haven't posted a request yet.",
+  }[filter];
+
+  return (
+    <AppShell
+      title={demandLabelFor(userType)}
+      subtitle={
+        isFarmer
+          ? "Buyers who need large quantities. Pledge what you can supply; several producers can share one request."
+          : "Need a large quantity? Post it here and producers pledge to supply it, together if needed."
+      }
+      navSections={navSections}
+      actions={
+        !isFarmer && (
+          <button className="aaf-btn aaf-btn-primary aaf-btn-sm" onClick={() => setShowForm((prev) => !prev)}>
+            {showForm ? <><X size={15} aria-hidden="true" /> Cancel</> : <><Plus size={15} aria-hidden="true" /> Post a request</>}
+          </button>
+        )
+      }
+      headerRight={<NotificationBell />}
+      onLogout={logout}
+    >
+
+      <details className="demand-how">
+        <summary>How bulk requests work</summary>
+        <ol className="demand-steps">
+          {STEPS.map((step) => (
+            <li key={step.n}>
+              <span className="demand-step-n">{step.n}</span>
+              <div>
+                <strong>{step.title}</strong>
+                <span>{step.body}</span>
+              </div>
+            </li>
+          ))}
+        </ol>
+      </details>
+
+      {showForm && (
+        <section className="aaf-card">
+          <form onSubmit={postDemand} className="demand-form" noValidate>
+            <label>
+              Title
+              <input
+                value={formData.title}
+                maxLength={LIMITS.title}
+                onChange={set("title")}
+                placeholder="e.g. Weekly maize supply for school feeding"
+                autoFocus
+              />
+              <FieldError>{errors.title}</FieldError>
+            </label>
+            <label>
+              Product
+              <input value={formData.product} maxLength={LIMITS.product} onChange={set("product")} placeholder="e.g. White maize" />
+              <FieldError>{errors.product}</FieldError>
+            </label>
+            <label>
+              Quantity needed
+              <input type="number" min="0" inputMode="decimal" value={formData.quantityNeeded} onChange={set("quantityNeeded")} />
+              <FieldError>{errors.quantityNeeded}</FieldError>
+            </label>
+            <label>
+              Unit
+              <select value={formData.unit} onChange={set("unit")}>
+                {DEMAND_UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+              </select>
+            </label>
+            <label>
+              Needed by (optional)
+              <input type="date" value={formData.deadline} onChange={set("deadline")} />
+              <FieldError>{errors.deadline}</FieldError>
+            </label>
+            <label className="demand-form-notes">
+              Notes
+              <textarea
+                rows={3}
+                maxLength={LIMITS.notes}
+                value={formData.notes}
+                onChange={set("notes")}
+                placeholder="Delivery location, quality requirements, budget range..."
+              />
+              <FieldError>{errors.notes}</FieldError>
+            </label>
+            <button className="aaf-btn aaf-btn-primary" disabled={saving}>
+              {saving ? "Posting..." : "Post request"}
+            </button>
+          </form>
+        </section>
+      )}
+
+      <div className="demand-filters" role="tablist" aria-label="Filter requests">
+        {FILTERS.map((f) => (
+          <button
+            key={f.id}
+            role="tab"
+            aria-selected={filter === f.id}
+            className={filter === f.id ? "on" : ""}
+            onClick={() => setFilter(f.id)}
+          >
+            {f.label} <span>{counts[f.id]}</span>
+          </button>
+        ))}
+      </div>
+
+      <section className="demand-list">
+        {loadError && <p className="dashboard-empty-state">Could not load requests: {loadError}</p>}
+        {!loaded && !loadError && <p className="dashboard-empty-state">Loading requests...</p>}
+        {loaded && !loadError && visible.length === 0 && <p className="dashboard-empty-state">{emptyMessage}</p>}
+        {visible.map((demand) => (
+          <DemandCard
+            key={demand.id}
+            demand={demand}
+            isOpenThread={openDemandId === demand.id}
+            onToggleThread={() => setOpenDemandId((prev) => (prev === demand.id ? null : demand.id))}
+            onMarkFulfilled={markFulfilled}
+            currentUid={uid}
+            currentName={isFarmer ? sellerName || publicName : publicName}
+            onMessage={async (otherUid, otherName) => {
+              try {
+                const id = await openConversation({
+                  me: { uid, name: isFarmer ? sellerName || publicName : publicName },
+                  other: { uid: otherUid, name: otherName },
+                  topic: { kind: "demand", id: demand.id, title: demand.title, ownerId: demand.buyerId },
+                });
+                navigate(`/messages/${id}`);
+              } catch (error) {
+                toast.error(error.code === "permission-denied" ? "You can't message this person about this request." : error.message);
+              }
+            }}
+            canPledge={isFarmer}
+            isAdminUser={isAdminUser}
+          />
+        ))}
+      </section>
+    </AppShell>
+  );
+}
+
+function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, currentUid, currentName, canPledge, isAdminUser, onMessage }) {
+  const [pledges, setPledges] = useState([]);
+  const [pledgeQty, setPledgeQty] = useState("");
+  const [pledgeNote, setPledgeNote] = useState("");
+  const [pledgeErrors, setPledgeErrors] = useState({});
+  const [messages, setMessages] = useState([]);
+  const [messageText, setMessageText] = useState("");
+
+  useEffect(() => {
+    const pledgesQuery = query(collection(db, "demandRequests", demand.id, "pledges"), orderBy("createdAt", "asc"));
+    return onSnapshot(pledgesQuery, (snapshot) => {
+      setPledges(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+    });
+  }, [demand.id]);
+
+  useEffect(() => {
+    if (!isOpenThread) return undefined;
+    const messagesQuery = query(collection(db, "demandRequests", demand.id, "messages"), orderBy("createdAt", "asc"));
+    return onSnapshot(messagesQuery, (snapshot) => {
+      setMessages(snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() })));
+    });
+  }, [demand.id, isOpenThread]);
+
+  const isOwnDemand = demand.buyerId === currentUid;
+  const fulfilled = demand.status === "fulfilled";
+  const summary = summarizePledges(demand, pledges, currentUid);
+  const deadline = deadlineState(demand);
+  const canPledgeHere = canPledge && !isOwnDemand && !fulfilled;
+  const canMarkFulfilled = !fulfilled && (isOwnDemand || isAdminUser);
+
+  const submitPledge = async (event) => {
+    event.preventDefault();
+    const found = validatePledge({ quantity: pledgeQty, note: pledgeNote }, demand);
+    setPledgeErrors(found);
+    if (Object.keys(found).length) return;
+    try {
+      await addDoc(collection(db, "demandRequests", demand.id, "pledges"), {
+        farmerId: currentUid,
+        farmerName: currentName,
+        quantity: Number(pledgeQty),
+        note: pledgeNote.trim(),
+        createdAt: serverTimestamp(),
+      });
+      toast.success("Pledge added.");
+      setPledgeQty("");
+      setPledgeNote("");
+      notifyUser(demand.buyerId, {
+        title: "New pledge on your request",
+        body: `${currentName} can supply ${pledgeQty} ${demand.unit} of ${demand.product}.`,
+        link: "/demand-board",
+      });
+    } catch (error) {
+      toast.error(error.code === "permission-denied" ? "Only producer accounts can pledge." : error.message);
+    }
+  };
+
+  const withdrawPledge = async (pledge) => {
+    if (!window.confirm("Withdraw this pledge?")) return;
+    try {
+      await deleteDoc(doc(db, "demandRequests", demand.id, "pledges", pledge.id));
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  const sendMessage = async (event) => {
+    event.preventDefault();
+    if (!messageText.trim()) return;
+    try {
+      await addDoc(collection(db, "demandRequests", demand.id, "messages"), {
+        authorId: currentUid,
+        authorName: currentName,
+        text: messageText.trim(),
+        createdAt: serverTimestamp(),
+      });
+      setMessageText("");
+    } catch (error) {
+      toast.error(error.message);
+    }
+  };
+
+  return (
+    <div className="aaf-card demand-card">
+      <div className="demand-card-header">
+        <div>
+          <div className="demand-badges">
+            <span className={`aaf-pill ${fulfilled ? "aaf-pill-success" : "aaf-pill-warning"}`}>{fulfilled ? "Fulfilled" : "Open"}</span>
+            {isOwnDemand && <span className="aaf-pill">Your request</span>}
+            {!fulfilled && summary.covered && <span className="aaf-pill aaf-pill-success">Fully pledged</span>}
+            {deadline === "overdue" && <span className="aaf-pill demand-pill-danger">Past its date</span>}
+            {deadline === "soon" && <span className="aaf-pill demand-pill-danger">Needed soon</span>}
+          </div>
+          <h3>{demand.title}</h3>
+          <p className="demand-meta">
+            {demand.product} · {demand.quantityNeeded} {demand.unit} needed
+            {demand.deadline && (
+              <span className="demand-deadline"><CalendarClock size={13} /> by {demand.deadline}</span>
+            )}
+          </p>
+          <p className="demand-buyer">Posted by {demand.buyerName && !demand.buyerName.includes("@") ? demand.buyerName : "a buyer"}</p>
+        </div>
+        {canMarkFulfilled && (
+          <button className="aaf-btn aaf-btn-secondary aaf-btn-sm" onClick={() => onMarkFulfilled(demand)}>
+            <CheckCircle2 size={16} /> Mark fulfilled
+          </button>
+        )}
+      </div>
+
+      {demand.notes && <p className="demand-notes">{demand.notes}</p>}
+
+      <div className="demand-progress">
+        <div className="demand-progress-bar" role="progressbar" aria-valuenow={summary.percent} aria-valuemin={0} aria-valuemax={100}>
+          <div className="demand-progress-fill" style={{ width: `${summary.percent}%` }} />
+        </div>
+        <span className="demand-progress-label">
+          <Users size={14} /> {summary.pledged} / {demand.quantityNeeded} {demand.unit} pledged by {summary.count}{" "}
+          {summary.count === 1 ? "producer" : "producers"}
+          {!fulfilled && summary.remaining > 0 && summary.count > 0 && ` · ${summary.remaining} ${demand.unit} still needed`}
+        </span>
+      </div>
+
+      {pledges.length > 0 && (
+        <ul className="demand-pledges">
+          {pledges.map((p) => (
+            <li key={p.id}>
+              <span>
+                <strong>{p.farmerName && !p.farmerName.includes("@") ? p.farmerName : "A producer"}</strong> · {p.quantity} {demand.unit}
+                {p.note ? <em> · {p.note}</em> : null}
+              </span>
+              {isOwnDemand && p.farmerId !== currentUid && (
+                <button type="button" onClick={() => onMessage(p.farmerId, p.farmerName)}>Message</button>
+              )}
+              {p.farmerId === currentUid && !fulfilled && (
+                <button type="button" onClick={() => withdrawPledge(p)} aria-label="Withdraw pledge">Withdraw</button>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {canPledgeHere && (
+        <form onSubmit={submitPledge} className="pledge-form" noValidate>
+          <div className="pledge-field">
+            <input
+              type="number"
+              min="0"
+              inputMode="decimal"
+              placeholder={`How much can you supply (${demand.unit})`}
+              value={pledgeQty}
+              onChange={(e) => setPledgeQty(e.target.value)}
+              aria-label="Quantity you can supply"
+            />
+            <FieldError>{pledgeErrors.quantity || pledgeErrors.demand}</FieldError>
+          </div>
+          <div className="pledge-field">
+            <input
+              placeholder="Note, e.g. ready 15 Oct (optional)"
+              maxLength={LIMITS.pledgeNote}
+              value={pledgeNote}
+              onChange={(e) => setPledgeNote(e.target.value)}
+              aria-label="Note for the buyer"
+            />
+            <FieldError>{pledgeErrors.note}</FieldError>
+          </div>
+          <button className="aaf-btn aaf-btn-primary" type="submit">Pledge</button>
+        </form>
+      )}
+      {!canPledge && !isOwnDemand && !fulfilled && (
+        <p className="demand-hint">Only producer accounts can pledge to supply a request.</p>
+      )}
+
+      <div className="demand-card-actions">
+        <button className="demand-thread-toggle" onClick={onToggleThread} aria-expanded={isOpenThread}>
+          <MessageSquare size={15} aria-hidden="true" /> {isOpenThread ? "Hide public questions" : "Public questions"}
+        </button>
+        {canPledge && !isOwnDemand && (
+          <button className="aaf-btn aaf-btn-secondary aaf-btn-sm" onClick={() => onMessage(demand.buyerId, demand.buyerName)}>
+            <Send size={14} aria-hidden="true" /> Message buyer privately
+          </button>
+        )}
+      </div>
+
+      {isOpenThread && (
+        <div className="demand-thread">
+          <div className="demand-thread-messages">
+            {messages.length === 0 ? (
+              <p className="dashboard-empty-state">
+                Everyone signed in can read these. Agree price, delivery address and phone numbers in a private message instead.
+              </p>
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} className={`demand-message ${msg.authorId === currentUid ? "own" : ""}`}>
+                  <span className="demand-message-author">{msg.authorName}</span>
+                  <p>{msg.text}</p>
+                </div>
+              ))
+            )}
+          </div>
+          <form onSubmit={sendMessage} className="demand-thread-input">
+            <input
+              placeholder="Ask a question everyone can see…"
+              aria-label="Public question or answer"
+              value={messageText}
+              maxLength={500}
+              onChange={(e) => setMessageText(e.target.value)}
+            />
+            <button className="aaf-btn aaf-btn-primary" type="submit" aria-label="Send">
+              <Send size={16} />
+            </button>
+          </form>
+        </div>
+      )}
+    </div>
+  );
+}

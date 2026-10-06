@@ -1,0 +1,29 @@
+{
+  "files": {
+    "main.css": "/static/css/main.1f6c5635.css",
+    "main.js": "/static/js/main.1c6eea2a.js",
+    "static/media/register.avif": "/static/media/register.2530759b3556a7c89e25.avif",
+    "static/media/AI-bot.png": "/static/media/AI-bot.5357351cd3f85c94e80c.png",
+    "static/media/farming.jpg": "/static/media/farming.527231df4a2a62473d41.jpg",
+    "static/media/cows.jpg": "/static/media/cows.acf234eb2d0dc2641595.jpg",
+    "static/media/full-logo.png": "/static/media/full-logo.494614a7e92bf2cbd0bc.png",
+    "static/media/consumers.jpg": "/static/media/consumers.c456e16cb6eeb6507ccd.jpg",
+    "static/media/Découvrez combien de pieds de tomate planter par m² pour une récolte optimale.jpg": "/static/media/Découvrez combien de pieds de tomate planter par m² pour une récolte optimale.5cafad9b95517e95091c.jpg",
+    "static/media/farm4.jpg": "/static/media/farm4.0d639807e42fb09bd550.jpg",
+    "static/media/How to Raise Laying Hens - DIY Chicken Feed - Egg Harvesting_.jpg": "/static/media/How to Raise Laying Hens - DIY Chicken Feed - Egg Harvesting_.2916f4c868f90860fcf7.jpg",
+    "static/media/farm3.jpg": "/static/media/farm3.aa1b2252180777f1fa49.jpg",
+    "static/media/farming-data.jpg": "/static/media/farming-data.e5d104e84601b43d8ca1.jpg",
+    "static/media/farm2.jpg": "/static/media/farm2.0e9e72175e30e77f3799.jpg",
+    "static/media/promotion.jpg": "/static/media/promotion.819c5fc1eeb13c16c64c.jpg",
+    "static/media/programs.jpg": "/static/media/programs.01fa64381cff6ed9f263.jpg",
+    "static/media/educators.jpg": "/static/media/educators.7aa73eff9f68fd805d1c.jpg",
+    "static/media/statistics.jpg": "/static/media/statistics.401e1eea177120e4daa2.jpg",
+    "index.html": "/index.html",
+    "main.1f6c5635.css.map": "/static/css/main.1f6c5635.css.map",
+    "main.1c6eea2a.js.map": "/static/js/main.1c6eea2a.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.1f6c5635.css",
+    "static/js/main.1c6eea2a.js"
+  ]
+}

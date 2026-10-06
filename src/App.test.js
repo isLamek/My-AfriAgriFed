@@ -1,30 +1,29 @@
 import { render, screen } from '@testing-library/react';
+import { BrowserRouter } from 'react-router-dom';
 import App from './App';
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import { AccountProvider } from './AccountContext';
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-  apiKey: "AIzaSyCcTP0FGWW8RZdVHGP2RfgL7I6FP6SVTTw",
-  authDomain: "afriagrifed-ebc30.firebaseapp.com",
-  projectId: "afriagrifed-ebc30",
-  storageBucket: "afriagrifed-ebc30.firebasestorage.app",
-  messagingSenderId: "936599860460",
-  appId: "1:936599860460:web:e14467de59e30285ed61c9",
-  measurementId: "G-7WFC56EJZL"
-};
+function renderApp() {
+  render(
+    <BrowserRouter>
+      <AccountProvider>
+        <App />
+      </AccountProvider>
+    </BrowserRouter>
+  );
+}
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+test('renders the home page', () => {
+  renderApp();
+  // The hero title is typed in by a GSAP animation on mount, so assert on the
+  // static call-to-action button instead.
+  expect(screen.getByText(/Create a free account/i)).toBeInTheDocument();
+});
 
-
-test('renders learn react link', () => {
-  render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+test('shows the legal links and asks about analytics with two equal choices', () => {
+  renderApp();
+  expect(screen.getAllByRole('link', { name: /Privacy policy/i }).length).toBeGreaterThan(0);
+  expect(screen.getAllByRole('link', { name: /Terms of service/i }).length).toBeGreaterThan(0);
+  expect(screen.getByRole('button', { name: /Essential only/i })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /Allow analytics/i })).toBeInTheDocument();
 });

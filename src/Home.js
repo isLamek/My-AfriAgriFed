@@ -1,16 +1,18 @@
 import React, { useRef, useEffect, useState } from "react";
 import { gsap } from "gsap";
 import { TextPlugin } from "gsap/TextPlugin";
-import Register from "./Register";
-import SignIn from "./SignIn";
 import "./Home.css";
+import { useNavigate } from "react-router-dom";
+import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import SiteFooter from "./SiteFooter";
+import { BUSINESS } from "./business";
 
-import logo from "./images/full-logo.png";
+import fullLogo from "./images/full-logo.png";
+import footerLogo from "./images/footer-logo.png";
 import farmingImg from "./images/farming-data.jpg";
 import statisticsImg from "./images/statistics.jpg";
 import promotionImg from "./images/promotion.jpg";
 import programsImg from "./images/programs.jpg";
-import aiBot from "./images/AI-bot.png";
 import farmersImg from "./images/farming.jpg";
 import consumersImg from "./images/consumers.jpg";
 import educatorsImg from "./images/educators.jpg";
@@ -18,7 +20,7 @@ import educatorsImg from "./images/educators.jpg";
 gsap.registerPlugin(TextPlugin);
 
 export default function Home() {
-  const [currentPage, setCurrentPage] = useState("home");
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -33,47 +35,46 @@ export default function Home() {
   const subtitleRef = useRef(null);
   const navBtnRefs = useRef([]);
   const navRef = useRef(null);
-  const aiBotRef = useRef(null);
-  const aiMessageRef = useRef(null);
   const sectionRef = useRef(null);
   const sectionCardsRef = useRef([]);
   const [isMounted, setIsMounted] = useState(false);
+  const navigate = useNavigate();
 
   const heroCards = [
-    { title: "Farming Data", desc: "Agricultural insights", img: farmingImg },
-    { title: "Statistics", desc: "Real-time analytics", img: statisticsImg },
-    { title: "Promotion", desc: "Market products", img: promotionImg },
-    { title: "Programs", desc: "Training resources", img: programsImg }
+    { title: "Weather & crops", desc: "Rain, wind and crop guidance for every region", img: farmingImg },
+    { title: "Market data", desc: "What is listed and requested on the platform", img: statisticsImg },
+    { title: "Marketplace", desc: "Buy from and sell to producers directly", img: promotionImg },
+    { title: "Learning", desc: "Research, training and internships", img: programsImg }
   ];
 
   const sectionCards = [
-    { 
-      title: "Farmers", 
-      desc: "Showcasing their products, connect with consumers and access farming data.",
-      img: farmersImg 
-    },
-    { 
-      title: "Consumers", 
-      desc: "Connect directly with local farmers, access fresh produce, and support sustainable agriculture in your community.",
-      img: consumersImg 
-    },
-    { 
-      title: "Tertiary Institutions", 
-      desc: "Educational resources, research data, and training programs for students and educators in agricultural studies.",
-      img: educatorsImg 
-    }
-  ];
+  { 
+    title: "Producers", 
+    desc: "List your produce, get paid online, answer buyers' bulk requests and plan with weather and crop data for your farm.",
+    img: farmersImg 
+  },
+  { 
+    title: "Buyers", 
+    desc: "Households, shops, restaurants and schools buying straight from Namibian producers, or posting what they need in bulk.",
+    img: consumersImg 
+  },
+  { 
+    title: "Tertiary Institutions", 
+    desc: "Publish research and training, offer internships, and answer the problems producers bring to you.",
+    img: educatorsImg 
+  }
+];
 
   // Navigation handlers
-  const handleRegisterClick = () => setCurrentPage("register");
-  const handleSignInClick = () => setCurrentPage("signin");
+  const handleRegisterClick = () => navigate("/register");
+  const handleSignInClick = () => navigate("/signin");
   const handleContactClick = () => {
     const contactSection = document.querySelector('.contact-section');
     if (contactSection) {
       contactSection.scrollIntoView({ behavior: 'smooth' });
     }
   };
-  const handleBackToHome = () => setCurrentPage("home");
+  const handleBackToHome = () => navigate("/home");
 
   // Contact form handlers
   const handleInputChange = (e) => {
@@ -84,14 +85,14 @@ export default function Home() {
     }));
   };
 
+  // There is no mail server behind this form yet, so it opens the visitor's own
+  // e-mail app with the message filled in, rather than pretending to send it.
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const subject = encodeURIComponent(`Message from ${formData.name} via the AfriAgriFed website`);
+    const body = encodeURIComponent(`${formData.message}\n\n${formData.name}\n${formData.email}`);
+    window.location.href = `mailto:${BUSINESS.email}?subject=${subject}&body=${body}`;
     setIsSubmitted(true);
-    
-    setTimeout(() => {
-      setIsSubmitted(false);
-      setFormData({ name: "", email: "", message: "" });
-    }, 3000);
   };
 
   // Add cards to refs array
@@ -120,7 +121,7 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (!isMounted || currentPage !== "home") return;
+    if (!isMounted ) return;
 
     // Reset ref arrays
     cardRefs.current = [];
@@ -212,54 +213,14 @@ export default function Home() {
       }
     }
 
-    // AI Bot Animation
-    if (aiBotRef.current && aiMessageRef.current) {
-      // Bouncing animation for AI bot
-      gsap.to(aiBotRef.current, {
-        y: -10,
-        duration: 1,
-        repeat: -1,
-        yoyo: true,
-        ease: "power1.inOut",
-        delay: 3
-      });
-
-      // Typing animation for AI messages
-      const aiTl = gsap.timeline({ delay: 4 });
-      
-      aiTl.set(aiMessageRef.current, { text: "" })
-         .to(aiMessageRef.current, {
-           duration: 3,
-           text: "Hi! I'm AAF AI Assistant",
-           ease: "none"
-         })
-         .to(aiMessageRef.current, {
-           duration: 0.5,
-           opacity: 0,
-           ease: "power2.inOut"
-         })
-         .set(aiMessageRef.current, { text: "" })
-         .to(aiMessageRef.current, {
-           duration: 0.5,
-           opacity: 1,
-           ease: "power2.inOut"
-         })
-         .to(aiMessageRef.current, {
-           duration: 3,
-           text: "Need help? I'm here for you!",
-           ease: "none"
-         });
-    }
-
     // Cleanup function
     return () => {
       tl.kill();
     };
-  }, [isMounted, currentPage]);
+  }, [isMounted]);
 
   // Page rendering logic
-  if (currentPage === "register") return <Register onBackToHome={handleBackToHome} />;
-  if (currentPage === "signin") return <SignIn onBackToHome={handleBackToHome} />;
+
 
   return (
     <div className="home">
@@ -290,25 +251,12 @@ export default function Home() {
         </div>
       </nav>
 
-      {/* AI ASSISTANT */}
-      <div className="ai-assistant">
-        <div className="ai-bot-container">
-          <img 
-            ref={aiBotRef}
-            src={aiBot} 
-            alt="AI Assistant" 
-            className="ai-bot" 
-          />
-          <div className="ai-message" ref={aiMessageRef}></div>
-        </div>
-      </div>
-
       {/* HERO SECTION */}
       <section className="hero-section">
         {/* LOGO CONTAINER */}
         <div className="logo-container">
           <div className="logo-box" ref={logoRef}>
-            <img src={logo} alt="AfriAgriFed Logo" className="hero-logo" />
+            <img src={fullLogo} alt="AfriAgriFed - Digitalizing Africa's food security from African soil" className="hero-logo" />
           </div>
         </div>
 
@@ -317,17 +265,17 @@ export default function Home() {
         </h1>
 
         <p ref={subtitleRef} className="hero-subtitle">
-          Afriagrifed empowers farmers, markets and educators through
-          data-driven agriculture and innovation.
+          AfriAgriFed connects Namibian producers with buyers and institutions, and gives farmers the weather, market and
+          training information they need to grow more.
         </p>
 
         {/* Prominent Call-to-Action Buttons */}
         <div className="cta-buttons">
           <button className="cta-btn primary" onClick={handleRegisterClick}>
-            Get Started - Register Now
+            Create a free account
           </button>
           <button className="cta-btn secondary" onClick={handleSignInClick}>
-            Sign In to Your Account
+            Sign in
           </button>
         </div>
 
@@ -352,8 +300,8 @@ export default function Home() {
       {/* TARGET AUDIENCE SECTION */}
       <section ref={sectionRef} className="audience-section">
         <div className="section-header">
-          <h2>Our Target Audience</h2>
-          <p>Connecting all stakeholders in the agricultural ecosystem</p>
+          <h2>Who AfriAgriFed is for</h2>
+            <p>One platform for producers, the people who buy from them, and the institutions that train and research.</p>
         </div>
         
         <div className="section-cards">
@@ -388,100 +336,97 @@ export default function Home() {
             <h3>Contact Information</h3>
             <div className="contact-details">
               <div className="contact-item">
-                <div className="contact-icon">📧</div>
+                <div className="contact-icon"><Mail size={20} /></div>
                 <div>
                   <h4>Email</h4>
-                  <p>info@afriagrifed.com</p>
+                  <p><a href={`mailto:${BUSINESS.email}`}>{BUSINESS.email}</a></p>
                 </div>
               </div>
               <div className="contact-item">
-                <div className="contact-icon">📱</div>
+                <div className="contact-icon"><Phone size={20} /></div>
                 <div>
                   <h4>Phone</h4>
-                  <p>+264 61 123 4567</p>
+                  <p><a href={BUSINESS.phoneHref}>{BUSINESS.phone}</a></p>
                 </div>
               </div>
               <div className="contact-item">
-                <div className="contact-icon">📍</div>
+                <div className="contact-icon"><MapPin size={20} /></div>
                 <div>
                   <h4>Location</h4>
-                  <p>Windhoek, Namibia</p>
+                  <p>{BUSINESS.town}, {BUSINESS.country}</p>
                 </div>
               </div>
               <div className="contact-item">
-                <div className="contact-icon">⏰</div>
+                <div className="contact-icon"><Clock size={20} /></div>
                 <div>
                   <h4>Working Hours</h4>
-                  <p>Mon - Fri: 8:00 AM - 5:00 PM</p>
+                  <p>{BUSINESS.hours}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="contact-form-container">
-            <h3>Send us a Message</h3>
+            <h3>Send us a message</h3>
             <form className="contact-form" onSubmit={handleSubmit}>
               <div className="form-group">
+                <label htmlFor="contact-name" className="aaf-visually-hidden">Your name</label>
                 <input
+                  id="contact-name"
+                  autoComplete="name"
                   type="text"
                   name="name"
-                  placeholder="Your Name"
+                  placeholder="Your name"
                   value={formData.name}
                   onChange={handleInputChange}
                   required
                 />
               </div>
               <div className="form-group">
+                <label htmlFor="contact-email" className="aaf-visually-hidden">Your e-mail address</label>
                 <input
+                  id="contact-email"
+                  autoComplete="email"
                   type="email"
                   name="email"
-                  placeholder="Your Email"
+                  placeholder="Your e-mail address"
                   value={formData.email}
                   onChange={handleInputChange}
                   required
                 />
               </div>
               <div className="form-group">
+                <label htmlFor="contact-message" className="aaf-visually-hidden">Your message</label>
                 <textarea
+                  id="contact-message"
                   name="message"
-                  placeholder="Your Message"
+                  placeholder="Your message"
                   rows="5"
                   value={formData.message}
                   onChange={handleInputChange}
                   required
                 ></textarea>
               </div>
-              <button type="submit" className="submit-btn" disabled={isSubmitted}>
-                {isSubmitted ? "Message Sent!" : "Send Message"}
+              <button type="submit" className="submit-btn">
+                Write e-mail
               </button>
+              <p className="contact-form-note" role="status">
+                {isSubmitted
+                  ? `Your e-mail app should now be open with your message. If it didn't open, write to ${BUSINESS.email}.`
+                  : `This opens your e-mail app with the message ready to send to ${BUSINESS.email}. We use your details only to reply.`}
+              </p>
             </form>
           </div>
         </div>
       </section>
 
-      {/* FOOTER BANNER */}
-      <footer className="footer-banner">
+      {/* FOOTER */}
+      <div className="footer-banner">
         <div className="footer-content">
-          <div className="footer-logo">
-            <img src={logo} alt="AfriAgriFed Logo" className="footer-logo-img" />
-            <p>Digitizing Namibia's Agricultural Landscape</p>
-          </div>
-          
-          <div className="footer-social">
-            <p>Follow Us</p>
-            <div className="social-icons">
-              <span className="social-icon">📘</span>
-              <span className="social-icon">🐦</span>
-              <span className="social-icon">📸</span>
-              <span className="social-icon">💼</span>
-            </div>
-          </div>
+          <img src={footerLogo} alt="AfriAgriFed - Digitalizing Africa's food security from African soil" className="footer-brand-banner" loading="lazy" />
         </div>
-        
-        <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} AfriAgriFed. All rights reserved.</p>
-        </div>
-      </footer>
+      </div>
+      <SiteFooter tone="dark" />
     </div>
   );
 }

@@ -1,0 +1,329 @@
+/* Order Tracker - uses the shared --aaf-* tokens. */
+
+.ot-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.ot-tabs,
+.ot-filter {
+  display: inline-flex;
+  background: var(--aaf-white);
+  border: 1px solid var(--aaf-border);
+  border-radius: 999px;
+  padding: 3px;
+}
+
+.ot-tabs button,
+.ot-filter button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  color: var(--aaf-text);
+}
+
+.ot-tabs button.on,
+.ot-filter button.on {
+  background: var(--aaf-primary);
+  color: var(--aaf-white);
+}
+
+.ot-count {
+  min-width: 20px;
+  padding: 1px 6px;
+  border-radius: 999px;
+  background: var(--aaf-laterite);
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.ot-list {
+  display: grid;
+  gap: 14px;
+}
+
+.ot-card {
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-md);
+  box-shadow: var(--aaf-shadow-sm);
+  padding: 18px 20px;
+}
+
+.ot-head {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.ot-head h3 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.ot-sub {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--aaf-text-muted);
+}
+
+.ot-badge {
+  flex: none;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  background: var(--aaf-mist);
+  color: var(--aaf-slate);
+}
+
+.ot-badge.paid { background: var(--aaf-warning-bg); color: var(--aaf-warning); }
+.ot-badge.confirmed,
+.ot-badge.dispatched,
+.ot-badge.in_transit { background: #e6f0fa; color: #2f6fb0; }
+.ot-badge.delivered { background: var(--aaf-success-bg); color: var(--aaf-success); }
+.ot-badge.cancelled { background: var(--aaf-danger-bg); color: var(--aaf-danger); }
+
+/* Stepper */
+.ot-steps {
+  list-style: none;
+  margin: 18px 0 6px;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.ot-steps li {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 4px;
+  font-size: 0.78rem;
+}
+
+/* connector line to the next step */
+.ot-steps li:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 11px;
+  left: calc(50% + 14px);
+  right: calc(-50% + 14px);
+  height: 2px;
+  background: var(--aaf-border);
+}
+
+.ot-steps li.done:not(:last-child)::after {
+  background: var(--aaf-success);
+}
+
+.ot-dot {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--aaf-white);
+  border: 2px solid var(--aaf-border);
+  color: #fff;
+  z-index: 1;
+}
+
+.ot-steps li.done .ot-dot {
+  background: var(--aaf-success);
+  border-color: var(--aaf-success);
+}
+
+.ot-steps li.current .ot-dot {
+  border-color: var(--aaf-accent);
+  background: var(--aaf-accent);
+  box-shadow: 0 0 0 4px rgba(123, 177, 65, 0.25);
+}
+
+.ot-step-label {
+  font-weight: 600;
+}
+
+.ot-steps li.upcoming .ot-step-label {
+  color: var(--aaf-text-muted);
+  font-weight: 500;
+}
+
+.ot-step-time {
+  color: var(--aaf-text-muted);
+  font-size: 0.7rem;
+  min-height: 1em;
+}
+
+.ot-wait {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  color: var(--aaf-text-muted);
+}
+
+.ot-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  align-items: center;
+}
+
+.ot-actions input {
+  flex: 1 1 240px;
+  min-width: 0;
+  padding: 9px 12px;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  font: inherit;
+  font-size: 0.88rem;
+}
+
+.ot-btn {
+  padding: 9px 16px;
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  background: var(--aaf-white);
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ot-btn.primary {
+  background: var(--aaf-primary);
+  border-color: var(--aaf-primary);
+  color: var(--aaf-white);
+}
+
+.ot-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.ot-log {
+  margin-top: 12px;
+}
+
+.ot-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  font-size: 0.82rem;
+  color: var(--aaf-primary);
+  cursor: pointer;
+}
+
+.ot-log ul {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.ot-log li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+
+.ot-log li span {
+  color: var(--aaf-text-muted);
+}
+
+.ot-log li em {
+  flex-basis: 100%;
+  color: var(--aaf-text);
+}
+
+.ot-ref {
+  margin: 12px 0 0;
+  font-size: 0.72rem;
+  color: var(--aaf-text-muted);
+  word-break: break-all;
+}
+
+.ot-empty-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 20px;
+  text-align: center;
+  color: var(--aaf-text-muted);
+}
+
+.ot-empty {
+  color: var(--aaf-text-muted);
+}
+
+.ot-error {
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+  border-radius: var(--aaf-radius-sm);
+  padding: 10px 14px;
+  font-size: 0.88rem;
+}
+
+/* Phones: the stepper turns vertical so times stay readable. */
+@media (max-width: 640px) {
+  .ot-steps {
+    grid-template-columns: 1fr;
+    gap: 10px;
+    margin-left: 4px;
+  }
+
+  .ot-steps li {
+    flex-direction: row;
+    align-items: center;
+    text-align: left;
+    gap: 10px;
+  }
+
+  .ot-steps li:not(:last-child)::after {
+    top: 24px;
+    left: 11px;
+    right: auto;
+    width: 2px;
+    height: 12px;
+  }
+
+  .ot-step-time {
+    margin-left: auto;
+  }
+}
+
+.ot-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
+.ot-foot .ot-ref {
+  margin: 0;
+}

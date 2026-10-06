@@ -1,0 +1,86 @@
+.notification-bell {
+  position: relative;
+  font-family: "Inter", sans-serif;
+}
+
+.bell-btn {
+  position: relative;
+  border: none;
+  background: #ffffff;
+  border-radius: 999px;
+  width: 42px;
+  height: 42px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--aaf-canopy, #022f1f);
+  cursor: pointer;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.bell-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #dc2626;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 1px 6px;
+  min-width: 18px;
+  line-height: 1.4;
+}
+
+.bell-dropdown {
+  position: absolute;
+  right: 0;
+  top: 50px;
+  width: 320px;
+  max-height: 400px;
+  overflow-y: auto;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+  padding: 1rem;
+  z-index: 50;
+}
+
+.bell-dropdown h4 {
+  margin: 0 0 0.75rem;
+  color: #1f2937;
+}
+
+.bell-empty {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.bell-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: #f7f9fc;
+  border-radius: 8px;
+  padding: 0.6rem 0.75rem;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+}
+
+.bell-item strong {
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.bell-item span {
+  color: #4b5563;
+  font-size: 0.8rem;
+}
+
+.bell-item.unread {
+  background: #ecfdf5;
+  border-left: 4px solid #16a34a;
+}

@@ -1,0 +1,230 @@
+/*
+  AfriAgriFed design tokens - sourced from "AfriAgriFed Brand Guidelines v1.0".
+  Import this once (in index.js) and use these variables everywhere instead
+  of one-off hex codes, so the whole app stays visually consistent.
+*/
+
+:root {
+  /* Brand palette */
+  --aaf-baobab: #044d3a; /* primary - carries the brand */
+  --aaf-baobab-dark: #033b2c;
+  --aaf-shoot: #7bb141; /* accent / highlights / CTAs */
+  --aaf-shoot-dark: #679839;
+  --aaf-canopy: #022f1f; /* darkest green */
+  --aaf-ink: #1c261f; /* body text */
+  --aaf-slate: #5e6b64; /* secondary / muted text */
+  --aaf-mist: #eff2ed; /* light section background */
+  --aaf-laterite: #c3602b; /* warm accent - warnings, badges */
+
+  --aaf-white: #ffffff;
+  --aaf-border: #dfe5e0;
+  --aaf-border-strong: #c9d2cb;
+  --aaf-danger: #c0392b;
+  --aaf-danger-bg: #fdecea;
+  --aaf-success: #1f8a4c;
+  --aaf-success-bg: #e8f6ec;
+  --aaf-warning: #b7791f;
+  --aaf-warning-bg: #fdf3e0;
+
+  /* Semantic aliases used across components */
+  --aaf-bg: #f6f7f4;
+  --aaf-surface: var(--aaf-white);
+  --aaf-text: var(--aaf-ink);
+  --aaf-text-muted: var(--aaf-slate);
+  --aaf-primary: var(--aaf-baobab);
+  --aaf-accent: var(--aaf-shoot);
+  /* Text color that reads well on top of --aaf-shoot. Dashboard theme scopes
+     below swap both together so accent-colored surfaces stay legible. */
+  --aaf-accent-contrast: var(--aaf-canopy);
+
+  /* Typography */
+  --aaf-font: "Poppins", "Calibri", "Arial", sans-serif;
+
+  /* Shape + elevation */
+  --aaf-radius-sm: 6px;
+  --aaf-radius-md: 10px;
+  --aaf-radius-lg: 14px;
+  /* Flat surfaces with a hairline border; shadows only for things that float
+     (menus, dialogs, the mobile sidebar). */
+  --aaf-shadow-sm: 0 1px 2px rgba(2, 47, 31, 0.05);
+  --aaf-shadow-md: 0 4px 16px rgba(2, 47, 31, 0.08);
+  --aaf-shadow-lg: 0 12px 32px rgba(2, 47, 31, 0.14);
+  --aaf-focus: 0 0 0 3px rgba(123, 177, 65, 0.45);
+
+  --aaf-sidebar-width: 248px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--aaf-font);
+  color: var(--aaf-text);
+  background: var(--aaf-bg);
+}
+
+/* Shared building blocks used by the new dashboard/profile/admin shells */
+
+.aaf-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: none;
+  border-radius: var(--aaf-radius-sm);
+  padding: 0.65rem 1.1rem;
+  font-family: var(--aaf-font);
+  font-weight: 600;
+  font-size: 0.9rem;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.aaf-btn-primary {
+  background: var(--aaf-baobab);
+  color: var(--aaf-white);
+}
+
+.aaf-btn-primary:hover {
+  background: var(--aaf-baobab-dark);
+}
+
+.aaf-btn-accent {
+  background: var(--aaf-shoot);
+  color: var(--aaf-accent-contrast);
+}
+
+.aaf-btn-accent:hover {
+  background: var(--aaf-shoot-dark);
+}
+
+.aaf-btn-ghost {
+  background: var(--aaf-white);
+  color: var(--aaf-baobab);
+  border: 1px solid var(--aaf-border-strong);
+}
+
+.aaf-btn-ghost:hover {
+  background: var(--aaf-mist);
+}
+
+.aaf-btn-danger {
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+}
+
+.aaf-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.aaf-card {
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-md);
+  padding: 1.25rem 1.5rem;
+}
+
+.aaf-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.aaf-pill-success {
+  background: var(--aaf-success-bg);
+  color: var(--aaf-success);
+}
+
+.aaf-pill-warning {
+  background: var(--aaf-warning-bg);
+  color: var(--aaf-warning);
+}
+
+.aaf-pill-danger {
+  background: var(--aaf-danger-bg);
+  color: var(--aaf-danger);
+}
+
+.aaf-eyebrow {
+  color: var(--aaf-text-muted);
+  font-weight: 500;
+  font-size: 0.8rem;
+  margin: 0 0 0.25rem;
+}
+
+/* Fast, GPU-friendly fade-in used instead of layout-affecting transitions */
+@keyframes aaf-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.aaf-animate-in {
+  animation: aaf-fade-in 0.25s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aaf-animate-in {
+    animation: none;
+  }
+}
+
+/* Keyboard focus is always visible (mouse clicks do not show it). */
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: none;
+  box-shadow: var(--aaf-focus);
+}
+
+.aaf-btn-secondary {
+  background: var(--aaf-white);
+  color: var(--aaf-ink);
+  border: 1px solid var(--aaf-border-strong);
+}
+
+.aaf-btn-secondary:hover {
+  background: var(--aaf-mist);
+}
+
+.aaf-btn-sm {
+  padding: 0.45rem 0.8rem;
+  font-size: 0.82rem;
+}
+
+.aaf-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--aaf-ink);
+  margin: 0 0 0.85rem;
+}
+
+.aaf-muted {
+  color: var(--aaf-text-muted);
+}
+
+.aaf-empty {
+  color: var(--aaf-text-muted);
+  font-size: 0.92rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.aaf-visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

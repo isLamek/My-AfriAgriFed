@@ -1,0 +1,142 @@
+/* ===== Admin Dashboard ===== */
+
+.admin-subtitle {
+  margin: 2rem 0 1rem;
+  color: var(--aaf-text);
+}
+
+/* ===== User Card ===== */
+
+.user-card {
+  background: var(--aaf-surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border-left: 6px solid #2563eb;
+}
+
+.application-card {
+  background: var(--aaf-surface);
+  border-radius: 12px;
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border-left: 6px solid #16a34a;
+}
+
+.document-review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1rem;
+}
+
+.document-review-card {
+  background: var(--aaf-surface);
+  border-radius: 12px;
+  padding: 1.25rem;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
+  border-left: 6px solid #7c3aed;
+}
+
+.document-list {
+  display: grid;
+  gap: 8px;
+}
+
+.user-card.rejected {
+  border-left-color: #dc2626;
+}
+
+.user-card.approved {
+  border-left-color: #16a34a;
+}
+
+.user-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.user-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.user-email {
+  font-size: 0.9rem;
+  color: var(--aaf-text-muted);
+}
+
+/* ===== Documents ===== */
+
+.document-links {
+  margin-top: 1rem;
+}
+
+.document-links a {
+  display: inline-block;
+  margin-right: 12px;
+  margin-bottom: 8px;
+  color: #2563eb;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.document-links a:hover {
+  text-decoration: underline;
+}
+
+/* ===== Actions ===== */
+
+.admin-actions {
+  margin-top: 1.2rem;
+  display: flex;
+  gap: 12px;
+}
+
+.admin-actions button {
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  border: none;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.approve-btn {
+  background: #16a34a;
+  color: var(--aaf-surface);
+}
+
+.reject-btn {
+  background: #dc2626;
+  color: var(--aaf-surface);
+}
+
+.admin-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ===== Notes ===== */
+
+.admin-notes {
+  margin-top: 0.8rem;
+  font-size: 0.9rem;
+  color: var(--aaf-text);
+  background: #f1f5f9;
+  padding: 0.75rem;
+  border-radius: 6px;
+}
+
+.admin-subtitle.first {
+  margin-top: 0.5rem;
+}
+
+.approve-btn:disabled,
+.reject-btn:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}

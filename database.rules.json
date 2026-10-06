@@ -1,0 +1,66 @@
+{
+  "rules": {
+    "posts": {
+      ".read": "auth != null",
+      ".indexOn": ["createdAt"],
+      "$postId": {
+        ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)",
+        ".validate": "newData.hasChildren(['userId', 'userName', 'content', 'createdAt'])",
+
+        "userId": { ".validate": "newData.val() === auth.uid || newData.val() === data.val()" },
+        "userName": { ".validate": "newData.isString() && newData.val().length <= 120" },
+        "authorRole": { ".validate": "newData.isString() && newData.val().length <= 40" },
+        "content": { ".validate": "newData.isString() && newData.val().length <= 1000" },
+        "imageUrl": {
+          ".validate": "newData.isString() && (newData.val() === '' || (newData.val().beginsWith('https://res.cloudinary.com/') && newData.val().length <= 500))"
+        },
+        "createdAt": { ".validate": "newData.isNumber() && newData.val() <= now + 3600000" },
+
+        "comments": {
+          "$commentId": {
+            ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['userId', 'userName', 'text', 'createdAt'])",
+
+            "userId": { ".validate": "newData.val() === auth.uid || newData.val() === data.val()" },
+            "userName": { ".validate": "newData.isString() && newData.val().length <= 120" },
+            "text": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500" },
+            "createdAt": { ".validate": "newData.isNumber() && newData.val() <= now + 3600000" },
+
+            "replies": {
+              "$replyId": {
+                ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid)",
+                ".validate": "newData.hasChildren(['userId', 'userName', 'text', 'createdAt'])",
+
+                "userId": { ".validate": "newData.val() === auth.uid || newData.val() === data.val()" },
+                "userName": { ".validate": "newData.isString() && newData.val().length <= 120" },
+                "text": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 500" },
+                "createdAt": { ".validate": "newData.isNumber() && newData.val() <= now + 3600000" },
+
+                "$other": { ".validate": false }
+              }
+            },
+
+            "$other": { ".validate": false }
+          }
+        },
+
+        "likes": {
+          "$uid": {
+            ".write": "auth != null && auth.uid === $uid",
+            ".validate": "newData.val() === true"
+          }
+        },
+
+        "$other": { ".validate": false }
+      }
+    },
+
+    "farmerVerification": {
+      ".read": "auth != null",
+      "$applicationId": {
+        ".write": "auth != null && !data.exists()",
+        "userId": { ".validate": "newData.val() === auth.uid" }
+      }
+    }
+  }
+}

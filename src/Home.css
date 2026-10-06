@@ -82,14 +82,18 @@ body {
   box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
 }
 
-/* Primary ghost button - glowing green outline */
+/* Primary ghost button - glowing green outline.
+   Previously an infinite box-shadow keyframe animation - box-shadow isn't
+   GPU-accelerated, so that repainted this always-visible fixed-position
+   button every frame, forever, on every page. A static glow looks the same
+   and costs nothing at rest. */
 .nav-btn.primary {
   border: 2px solid #2ecc71;
   color: #2ecc71;
   background: transparent;
   font-weight: 700;
-  box-shadow: 0 0 15px rgba(46, 204, 113, 0.4);
-  animation: glow 2s ease-in-out infinite alternate;
+  box-shadow: 0 0 16px rgba(46, 204, 113, 0.5);
+  transition: box-shadow 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .nav-btn.primary:hover {
@@ -97,18 +101,6 @@ body {
   color: white;
   transform: translateY(-2px);
   box-shadow: 0 0 25px rgba(46, 204, 113, 0.8);
-  animation: none;
-}
-
-@keyframes glow {
-  from {
-    box-shadow: 0 0 15px rgba(46, 204, 113, 0.4),
-                0 0 20px rgba(46, 204, 113, 0.2);
-  }
-  to {
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.6),
-                0 0 30px rgba(46, 204, 113, 0.4);
-  }
 }
 
 /* -------------------- HERO -------------------- */
@@ -125,7 +117,6 @@ body {
 
   background-size: cover;
   background-position: center;
-  background-attachment: fixed;
   color: #2d5016;
   position: relative;
   display: flex;
@@ -141,44 +132,22 @@ body {
 }
 
 .logo-box {
-  width: 200px;
-  height: 200px;
+  width: 100%;
+  max-width: 380px;
   background: transparent;
-  border-radius: 20px;
-  padding: 20px;
-  box-shadow: 0 0 25px rgba(46, 204, 113, 0.6),
-              0 0 35px rgba(46, 204, 113, 0.4),
-              0 0 50px rgba(46, 204, 113, 0.2);
-  border: 3px solid #2ecc71;
-  backdrop-filter: blur(5px);
+  padding: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 3;
-  animation: logoGlow 3s ease-in-out infinite alternate;
-}
-
-@keyframes logoGlow {
-  from {
-    box-shadow: 0 0 20px rgba(46, 204, 113, 0.5),
-                0 0 30px rgba(46, 204, 113, 0.3),
-                0 0 40px rgba(46, 204, 113, 0.1);
-    border: 3px solid #2ecc71;
-  }
-  to {
-    box-shadow: 0 0 30px rgba(46, 204, 113, 0.8),
-                0 0 45px rgba(46, 204, 113, 0.5),
-                0 0 60px rgba(46, 204, 113, 0.3);
-    border: 3px solid #27ae60;
-  }
 }
 
 /* BIG LOGO IN HERO */
 .hero-logo {
   width: 100%;
-  height: 100%;
+  height: auto;
   object-fit: contain;
-  filter: brightness(1.3) contrast(1.4) drop-shadow(0 4px 8px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 18px 40px rgba(2, 47, 31, 0.3));
 }
 
 /* -------------------- TEXT -------------------- */
@@ -237,16 +206,16 @@ body {
 }
 
 .cta-btn.primary {
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  background: #0b6b4f;
   color: white;
-  box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 10px 25px rgba(4, 77, 58, 0.25);
   border: 2px solid #27ae60;
 }
 
 .cta-btn.primary:hover {
   transform: translateY(-5px);
-  box-shadow: 0 15px 35px rgba(46, 204, 113, 0.6);
-  background: linear-gradient(135deg, #27ae60, #219955);
+  box-shadow: 0 15px 35px rgba(4, 77, 58, 0.35);
+  background: #044d3a;
 }
 
 .cta-btn.secondary {
@@ -347,7 +316,7 @@ body {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  box-shadow: 0 8px 25px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 8px 25px rgba(4, 77, 58, 0.25);
   border: 3px solid #2ecc71;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -355,7 +324,7 @@ body {
 
 .ai-bot:hover {
   transform: scale(1.1);
-  box-shadow: 0 12px 35px rgba(46, 204, 113, 0.6);
+  box-shadow: 0 12px 35px rgba(4, 77, 58, 0.35);
 }
 
 .ai-message {
@@ -450,9 +419,17 @@ body {
   height: 200%;
   background: linear-gradient(45deg, transparent, rgba(46, 204, 113, 0.3), transparent);
   transform: rotate(45deg);
-  animation: waveFlow 6s ease-in-out infinite;
+  animation: waveFlow 3s ease-in-out infinite;
+  animation-play-state: paused;
   z-index: 2;
   opacity: 0.6;
+  will-change: transform;
+}
+
+/* Only animate while hovered - otherwise this ran on all 3 cards forever,
+   for every visitor, even when nobody was looking at them. */
+.audience-card:hover .card-wave {
+  animation-play-state: running;
 }
 
 @keyframes waveFlow {
@@ -526,6 +503,15 @@ body {
   display: flex;
   flex-direction: column;
   gap: 25px;
+}
+
+.contact-item p {
+  margin: 2px 0;
+  line-height: 1.4;
+}
+
+.contact-item p:first-of-type {
+  margin-top: 5px;
 }
 
 .contact-item {
@@ -603,7 +589,7 @@ body {
 .submit-btn {
   width: 100%;
   padding: 18px;
-  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  background: #0b6b4f;
   color: white;
   border: none;
   border-radius: 10px;
@@ -614,9 +600,9 @@ body {
 }
 
 .submit-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #27ae60, #219955);
+  background: #044d3a;
   transform: translateY(-3px);
-  box-shadow: 0 10px 25px rgba(46, 204, 113, 0.4);
+  box-shadow: 0 10px 25px rgba(4, 77, 58, 0.25);
 }
 
 .submit-btn:disabled {
@@ -626,40 +612,35 @@ body {
 
 /* -------------------- FOOTER BANNER -------------------- */
 .footer-banner {
-  background: linear-gradient(135deg, #2d5016 0%, #1a3210 100%);
+  background: var(--aaf-canopy, #022f1f);
   color: white;
-  padding: 40px 40px 20px;
+  padding: 0 0 20px;
+}
+
+.footer-brand-banner {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  height: auto;
+  margin: 0 auto;
 }
 
 .footer-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 30px;
+  gap: 20px;
   max-width: 1200px;
   margin: 0 auto;
-  padding-bottom: 30px;
+  padding: 30px 40px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.footer-logo {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-}
-
-.footer-logo-img {
-  width: 150px;
-  height: auto;
-  margin-bottom: 15px;
-  filter: brightness(0) invert(1);
-}
-
-.footer-logo p {
+.footer-tagline {
   font-size: 16px;
   color: #b0d4aa;
   line-height: 1.6;
+  text-align: center;
 }
 
 .footer-social {
@@ -723,9 +704,7 @@ body {
   }
   
   .logo-box {
-    width: 180px;
-    height: 180px;
-    padding: 15px;
+    max-width: 260px;
   }
   
   .cards-row {
@@ -833,9 +812,9 @@ body {
   .footer-content {
     gap: 20px;
   }
-  
-  .footer-logo-img {
-    width: 120px;
+
+  .footer-brand-banner {
+    max-width: 240px;
   }
 }
 
@@ -895,8 +874,7 @@ body {
   }
 
   .logo-box {
-    width: 120px;
-    height: 120px;
+    max-width: 190px;
     margin-bottom: 25px;
   }
 
@@ -974,8 +952,7 @@ body {
   }
 
   .logo-box {
-    width: 100px;
-    height: 100px;
+    max-width: 160px;
     margin-bottom: 20px;
   }
   
@@ -986,4 +963,35 @@ body {
   .footer-banner {
     padding: 20px 15px 10px;
   }
+}
+.contact-form-note {
+  margin: 0.75rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #5e6b64;
+}
+
+.contact-item a {
+  color: inherit;
+}
+
+/* The home page background is light, so the outline nav buttons need dark
+   text to be readable (they were white on near-white). */
+.home .nav-btn:not(.primary) {
+  border-color: #044d3a;
+  color: #044d3a;
+  background: rgba(255, 255, 255, 0.85);
+  text-shadow: none;
+}
+
+.home .nav-btn:not(.primary):hover {
+  background: #044d3a;
+  color: #fff;
+}
+
+.home .nav-btn.primary {
+  background: #044d3a;
+  border-color: #044d3a;
+  color: #fff;
+  text-shadow: none;
 }
