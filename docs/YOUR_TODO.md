@@ -31,6 +31,22 @@ payments and promotions ("Payments are being set up"), seller payout setup, phot
 document uploads (so new farmer and institution registrations, which need documents, and
 post photos cannot complete), fire hotspots, and the shared weather cache.
 
+## 0b. After the dashboard overhaul (6 October 2026)
+
+- [ ] **Turn photo and document uploads back on (10 minutes).** Uploads no longer need the
+      backend. In Cloudinary: Settings, Upload, Upload presets, Add upload preset. Signing mode
+      **Unsigned**; allowed formats `jpg,jpeg,png,webp,gif,heic,pdf,doc,docx`; max file size
+      20 MB. Save, then put the cloud name and preset name in `.env`:
+      `REACT_APP_CLOUDINARY_CLOUD_NAME=...` and `REACT_APP_CLOUDINARY_UPLOAD_PRESET=...`.
+      Rebuild and deploy. When the backend is online, uploads switch to signed uploads by themselves.
+- [ ] **Deploy the new Firestore rules with the website** (messages and deletion requests
+      need them): the usual `npx firebase-tools deploy --only "hosting,firestore:rules,database" --project afriagrifed-ebc30`.
+- [ ] **Add your BIPA registration number and registered name** to `src/business.js`.
+- [ ] **Replace the home page stock photos** with your own or licensed ones (see `docs/COMPLIANCE.md`).
+- [ ] **Have a lawyer read** `/terms`, `/privacy` and `/refunds` (text in `src/legalContent.js`).
+- [ ] **Check the refund rules match how you want to work** (48 hours to report a problem,
+      promotions refundable only before they start, N$5 page access not refundable).
+
 ## 1. Today (about 15 minutes)
 
 - [ ] **Sign the GitHub tool in.** Open a **new** terminal window and run:
@@ -52,7 +68,7 @@ post photos cannot complete), fire hotspots, and the shared weather cache.
 | [ ] | **Open-Meteo commercial plan** (2.1) | open-meteo.com/en/pricing, "API Standard", ask for a quote | 15 min + their reply | **(stop)** The free tier forbids commercial use. |
 | [ ] | **NASA FIRMS key** (2.2) | firms.modaps.eosdis.nasa.gov/api/map_key | 5 min | Free. Switches on the fire layer. |
 | [ ] | **Flutterwave test keys** (2.4) | dashboard.flutterwave.com (Test mode), Settings, API Keys | 10 min | Also invent a long random phrase for the webhook "Secret hash". |
-| [ ] | **Cloudinary keys** (2.3) | cloudinary.com, Settings, API Keys | 5 min | You may already have these in `.env`. |
+| [ ] | **Cloudinary keys** (2.3) | cloudinary.com, Settings, API Keys | 5 min | For signed uploads through the backend. Uploads already work without them once the unsigned preset in section 0b is set up. |
 | [ ] | **Render account** (4) | render.com, sign up with GitHub | 30 min | Hosts the backend. See below. |
 | [ ] | **EUMETSAT permission email** (2.6) | eumetsat.int user helpdesk | 15 min to write; days to get a reply | **(stop)** for the live satellite cloud and lightning layers. Until you have it, hide them. |
 | [ ] | Map tile key, e.g. MapTiler (later) | maptiler.com | 10 min | Not wired in yet. Tell me when you have one and I will build it. |

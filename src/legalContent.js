@@ -51,6 +51,7 @@ export const LEGAL_PAGES = {
           "Cloudinary (photos and documents you upload).",
           "Flutterwave (card payments and payouts to sellers).",
           "Open-Meteo, EUMETSAT and NASA FIRMS (weather, satellite and fire data on the map; they receive the map area you look at, not who you are).",
+          "Esri and OpenStreetMap (the satellite and street map images) and Google Fonts (the website's typeface). Like any website you visit, these receive your device's IP address when your browser loads their files.",
         ],
       },
       {

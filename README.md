@@ -3,9 +3,20 @@
 Digitalizing Africa's food security from African soil. One platform that
 connects farmers, consumers and agricultural institutions in Namibia.
 
-- **Community:** a Community Feed for conversation, a Demand Board where buyers
-  post bulk needs and producers pledge to supply them, and a Marketplace with
-  quantities, stock and secure payments.
+- **One app, three kinds of account.** Each person gets the sidebar and names
+  that fit what they do (`src/navConfig.js`):
+  - Producers: Overview (orders waiting on them, stock, buyer requests, payouts),
+    My listings, Orders, Messages, Buyer requests, Promote a product, and
+    "My farms & weather" on the map.
+  - Buyers (people and businesses): Overview, Marketplace, Deals, Bulk requests,
+    Orders, Messages, and "Find produce" on the map.
+  - Institutions: Research desk, Training, Internships, Bulk requests and
+    "Regional conditions" on the map.
+- **Community:** a Community feed for conversation, bulk requests where buyers
+  post large needs and producers pledge to supply them, and a Marketplace with
+  regions, delivery options, stock and secure payments.
+- **Messages:** private buyer-seller conversations, always about a listing, an
+  order or a bulk request (`src/conversations.js`, rules in `firestore.rules`).
 - **Map:** all 14 Namibian regions with live weather (wind, rain, temperature),
   satellite clouds and lightning, fire hotspots, crop guidance, and each
   farmer's own farms and input costs.
@@ -65,6 +76,7 @@ Needs Node 18 or newer.
 
 ```bash
 npm test                # unit tests (Jest)
+npm run test:rules      # runs the message rules in the Firestore emulator (needs Java)
 npm run build           # production build
 ```
 
@@ -72,6 +84,20 @@ npm run build           # production build
 combination hits a known `react-scripts@5` + `eslint-plugin-jest`
 incompatibility ("Environment key jest/globals is unknown"). It only skips the
 lint pass.
+
+To click through the signed-in app without touching real data, run the
+Firebase emulators (`npx firebase-tools emulators:start --only auth,firestore,database`)
+and start the website with `REACT_APP_USE_EMULATORS=true npm start`.
+
+Photo and document uploads work without the backend once
+`REACT_APP_CLOUDINARY_CLOUD_NAME` and `REACT_APP_CLOUDINARY_UPLOAD_PRESET` are
+set (an unsigned Cloudinary preset; see `.env.example`).
+
+## Legal pages and compliance
+
+`/terms`, `/privacy`, `/refunds` and `/cookies` come from `src/legalContent.js`;
+business details from `src/business.js`. `docs/COMPLIANCE.md` lists every
+launch-compliance item and what is still yours to do.
 
 ## Deploying
 
