@@ -12,7 +12,7 @@ import {
 } from "firebase/firestore";
 import { signOut } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
-import { uploadToCloudinary } from "./cloudinairyUpload";
+import { uploadToCloudinary, uploadDocumentToCloudinary } from "./cloudinaryUpload";
 import { notifyUser } from "./notifications";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import { getAdminProfile } from "./admin";
@@ -127,7 +127,7 @@ export default function InstitutionDashboard() {
       }
 
       if (pdfFile) {
-        const upload = await uploadToCloudinary(
+        const upload = await uploadDocumentToCloudinary(
           pdfFile,
           `afriagrifed/institutions/${uid}/research/pdfs`
         );

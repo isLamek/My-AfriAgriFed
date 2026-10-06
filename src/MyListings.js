@@ -19,7 +19,7 @@ import { Pencil, Trash2, Wallet, CheckCircle2, ImagePlus, X } from "lucide-react
 import { auth, db } from "./firebaseConfig";
 import { getAdminProfile } from "./admin";
 import { buildNavSections } from "./navConfig";
-import { uploadToCloudinary } from "./cloudinairyUpload";
+import { uploadToCloudinary } from "./cloudinaryUpload";
 import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";

@@ -29,7 +29,7 @@ import {
   auth,
   database
 } from "./firebaseConfig";
-import { uploadToCloudinary } from "./cloudinairyUpload";
+import { uploadToCloudinary } from "./cloudinaryUpload";
 import { getAdminProfile } from "./admin";
 import NotificationBell from "./NotificationBell";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";

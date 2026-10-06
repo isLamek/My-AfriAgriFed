@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 import { LayoutDashboard, FileText, Lock, Pencil, Paperclip, Check, X } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
-import { uploadToCloudinary } from "./cloudinairyUpload";
+import { uploadToCloudinary } from "./cloudinaryUpload";
 import { getAdminProfile } from "./admin";
 import { buildNavSections } from "./navConfig";
 import AppShell from "./AppShell";

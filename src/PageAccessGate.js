@@ -3,7 +3,7 @@ import { doc, setDoc, serverTimestamp, collection, addDoc } from "firebase/fires
 import { Lock, GraduationCap, LogIn } from "lucide-react";
 import toast from "react-hot-toast";
 import { db } from "./firebaseConfig";
-import { uploadToCloudinary } from "./cloudinairyUpload";
+import { uploadDocumentToCloudinary } from "./cloudinaryUpload";
 import { startAnonymousPageCheckout } from "./payments";
 import { ensureViewer, isRegistered, hasPaidOrVerifiedAccess } from "./pageAccess";
 import "./PageAccessGate.css";
@@ -82,7 +82,7 @@ function PagePaywall({ pageKey, uid, onUnlocked }) {
 
     setVerifyingStudent(true);
     try {
-      const upload = await uploadToCloudinary(studentCard, "student-cards");
+      const upload = await uploadDocumentToCloudinary(studentCard, "student-cards");
 
       await setDoc(
         doc(db, "pageAccess", uid),

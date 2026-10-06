@@ -11,7 +11,7 @@ import {
 } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import { auth, db } from "./firebaseConfig";
-import { uploadToCloudinary } from "./cloudinairyUpload";
+import { uploadToCloudinary } from "./cloudinaryUpload";
 import { startPromotionCheckout } from "./payments";
 import { RATE_PER_WORKING_DAY, countWorkingDays } from "./promoPricing";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";

@@ -25,8 +25,7 @@ import {
   database
 } from "./firebaseConfig";
 
-import { uploadToCloudinary }
-from "./cloudinairyUpload";
+import { checkFile, uploadDocumentToCloudinary } from "./cloudinaryUpload";
 
 
 
@@ -190,31 +189,6 @@ const handleSubmit = async (completeRegistration = false) => {
       displayName: `${formData.firstName} ${formData.lastName}`.trim(),
     }).catch(() => {});
 
-    // 2️⃣ File validation
-    const validateFile = (file) => {
-      const allowedTypes = [
-  "application/pdf",
-
-  "image/jpeg",
-  "image/png",
-  "image/jpg",
-
-  "application/msword",
-
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-];
-
-      const maxSize = 20 * 1024 * 1024;
-
-      if (!allowedTypes.includes(file.type)) {
-        throw new Error(`Invalid file type: ${file.name}`);
-      }
-
-      if (file.size > maxSize) {
-        throw new Error(`File too large (max 20MB): ${file.name}`);
-      }
-    };
-
     // 3️⃣ File → folder mapping
     const fileMap = {
       personalId: "personal_id",
@@ -231,10 +205,10 @@ const handleSubmit = async (completeRegistration = false) => {
       const file = formData[field];
       if (!file) return;
 
-      validateFile(file);
+      checkFile(file, "document");
 
       uploadPromises.push(
-        uploadToCloudinary(
+        uploadDocumentToCloudinary(
           file,
           `afriagrifed/users/${user.uid}/${folder}`
         ).then((upload) => {
