@@ -9,6 +9,34 @@ Never paste a key into a chat, email, screenshot or GitHub.
 
 ---
 
+## Now (7 October 2026)
+
+- [ ] **Deploy the latest build** from the project folder (Claude can build it but is not
+      allowed to deploy):
+      `npx firebase-tools deploy --only "hosting,firestore:rules,database" --project afriagrifed-ebc30`
+- [ ] **Put your real Cloudinary cloud name in `.env`.** It still says `your-cloud-name`.
+      Cloudinary dashboard, top of the page, "Cloud name":
+      `REACT_APP_CLOUDINARY_CLOUD_NAME=...`. Then check that an **unsigned** upload preset named
+      `aaf_unsigned` exists (Settings, Upload, Upload presets; allowed formats
+      `jpg,jpeg,png,webp,gif,heic,pdf,doc,docx`; max 20 MB). Rebuild and deploy.
+      Until then, profile photos still work (a small copy is stored), but listing photos and
+      documents can't upload.
+- [ ] **NASA FIRMS key: done** (it is in `.env` and works). The fire layer shows on the live
+      site only once the backend (`server.js`) is hosted (Render, section 2.6).
+- [ ] **Add your BIPA registration number and registered name** to `src/business.js`
+      (shown on the legal pages).
+- [ ] **Have a lawyer read** `/terms`, `/privacy` and `/refunds` (text in `src/legalContent.js`),
+      and check the refund rules match how you want to work.
+- [ ] **Photo licences:** see `docs/IMAGE_CREDITS.md` for the older photos with no recorded
+      source (some home page photos too). `farm4.jpg` had a stock watermark and was removed.
+- [ ] **GitHub:** the work is on branch `rebuild`, which already contains everything on `main`
+      (the contributor's commits are merged in, nothing overwritten). Say the word and Claude
+      pushes it so both repositories' `main` match. If you add the deploy key
+      (`FIREBASE_SERVICE_ACCOUNT_AFRIAGRIFED_EBC30`) on GitHub, every push to `main` deploys
+      the site by itself.
+
+---
+
 ## 0. DEPLOYED on 5 October 2026: do these two things NOW
 
 The website, the main database rules and the community-posts rules went live at

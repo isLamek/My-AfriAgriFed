@@ -1,0 +1,48 @@
+# Builds and deploys the website to Firebase Hosting (afriagrifed-ebc30.web.app)
+# every time something is merged into main.
+#
+# Needs, in GitHub -> Settings -> Secrets and variables -> Actions:
+#   Secret   FIREBASE_SERVICE_ACCOUNT_AFRIAGRIFED_EBC30  (created by `firebase init hosting:github`)
+#   Variable REACT_APP_CLOUDINARY_CLOUD_NAME, REACT_APP_CLOUDINARY_UPLOAD_PRESET  (photo uploads)
+#   Variable REACT_APP_API_URL  (only once the backend is online; leave unset until then)
+#
+# This deploys the website only. Database rules (firestore.rules,
+# database.rules.json) are deployed by hand: see docs/YOUR_TODO.md.
+
+name: Deploy to Firebase Hosting on merge
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build_and_deploy:
+    runs-on: ubuntu-latest
+    env:
+      # Without the deploy key the code is still tested and built, and the run
+      # ends with a warning instead of a red failure on every push.
+      HAS_DEPLOY_KEY: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AFRIAGRIFED_EBC30 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - run: npm test -- --watchAll=false
+      - run: npm run build
+        env:
+          CI: false # CRA would otherwise fail the build on any lint warning
+          DISABLE_ESLINT_PLUGIN: "true"
+          REACT_APP_API_URL: ${{ vars.REACT_APP_API_URL }}
+          REACT_APP_CLOUDINARY_CLOUD_NAME: ${{ vars.REACT_APP_CLOUDINARY_CLOUD_NAME }}
+          REACT_APP_CLOUDINARY_UPLOAD_PRESET: ${{ vars.REACT_APP_CLOUDINARY_UPLOAD_PRESET }}
+      - if: env.HAS_DEPLOY_KEY != 'true'
+        run: |
+          echo "::warning::Not deployed - the secret FIREBASE_SERVICE_ACCOUNT_AFRIAGRIFED_EBC30 is not set. Run 'npx firebase-tools init hosting:github' to create it, or deploy by hand (see docs/YOUR_TODO.md)."
+      - if: env.HAS_DEPLOY_KEY == 'true'
+        uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_AFRIAGRIFED_EBC30 }}
+          channelId: live
+          projectId: afriagrifed-ebc30

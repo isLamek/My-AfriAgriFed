@@ -36,6 +36,8 @@ import { isAdmin } from "./admin";
 import { needsVerification } from "./emailVerification";
 import { VerifyEmailGate } from "./VerifyEmail";
 import AppErrorBoundary, { lazyWithReload } from "./AppErrorBoundary";
+import Legal from "./Legal";
+import CookieBanner from "./CookieBanner";
 
 // Lazy-loaded so the map library only downloads when someone opens the map.
 const MapPage = lazyWithReload(() => import("./MapPage"));
@@ -217,6 +219,11 @@ function App() {
       <AppErrorBoundary key={location.pathname}>
       <Routes>
       <Route path="/" element={<Home />} />
+      {/* Legal pages: public, linked from the sign-up form and the cookie banner. */}
+      <Route path="/privacy" element={<Legal page="privacy" />} />
+      <Route path="/terms" element={<Legal page="terms" />} />
+      <Route path="/refunds" element={<Legal page="refunds" />} />
+      <Route path="/cookies" element={<Legal page="cookies" />} />
       <Route path="/signin" element={<SignIn />} />
       <Route path="/register" element={<Register />} />
       {process.env.NODE_ENV !== "production" && <Route path="/quick-access" element={<QuickAccess />} />}
@@ -378,6 +385,7 @@ function App() {
       <Route path="*" element={<Navigate to="/" />} />
       </Routes>
       </AppErrorBoundary>
+      <CookieBanner />
     </>
   );
 }

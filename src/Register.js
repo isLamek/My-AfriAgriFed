@@ -8,7 +8,8 @@ import { doc, setDoc, serverTimestamp } from "firebase/firestore";
 import FarmerQuestionnaire from "./FarmerQuestionnaire";
 import ConsumerQuestionnaire from './ConsumerQuestionnaire';
 import InstitutionQuestionnaire from "./InstitutionQuestionnaire";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { ageOn } from "./registrationRules";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import { sendVerification } from "./emailVerification";
@@ -101,6 +102,7 @@ export default function Register({ onBackToHome, onNavigateToSignIn }) {
     if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
     if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
     if (!formData.dob) newErrors.dob = "Date of birth is required";
+    else if (ageOn(formData.dob) < 18) newErrors.dob = "You must be 18 or older to create an account.";
     if (!formData.nationality.trim()) newErrors.nationality = "Nationality is required";
     if (!formData.gender) newErrors.gender = "Gender is required";
     if (!formData.personalEmail.trim()) {
@@ -117,7 +119,7 @@ export default function Register({ onBackToHome, onNavigateToSignIn }) {
       newErrors.confirmPassword = "Passwords do not match";
     }
     if (!formData.agreedToTerms) {
-      newErrors.agreedToTerms = "You must agree to the terms and conditions";
+      newErrors.agreedToTerms = "Please agree to the Terms of service and Privacy policy to continue";
     }
 
     setErrors(newErrors);
@@ -276,6 +278,7 @@ const handleSubmit = async (completeRegistration = false) => {
     lastName: formData.lastName,
     email: formData.personalEmail,
     dob: formData.dob,
+    agreedToTermsAt: new Date().toISOString(),
     nationality: formData.nationality,
     gender: formData.gender,
   },
@@ -562,7 +565,11 @@ const handleSubmit = async (completeRegistration = false) => {
                         onChange={handleInputChange}
                         className={errors.agreedToTerms ? 'error' : ''}
                       />
-                      <span>I agree to the Terms and Conditions *</span>
+                      <span>
+                        I have read and agree to the{" "}
+                        <Link to="/terms" target="_blank" rel="noopener">Terms of service</Link> and the{" "}
+                        <Link to="/privacy" target="_blank" rel="noopener">Privacy policy</Link>. *
+                      </span>
                     </label>
                     {errors.agreedToTerms && <span className="error-text">{errors.agreedToTerms}</span>}
                     
