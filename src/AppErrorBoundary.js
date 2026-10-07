@@ -61,6 +61,14 @@ export default class AppErrorBoundary extends React.Component {
               ? "Reload to get the latest version."
               : "Please reload. If it keeps happening, go back to your dashboard and tell us what you were doing."}
           </p>
+          {!update && (
+            <details className="aaf-crash-details">
+              <summary>Technical details (for the AfriAgriFed team)</summary>
+              <code>
+                {window.location.pathname}: {String(this.state.error?.name || "Error")}: {String(this.state.error?.message || "").slice(0, 300)}
+              </code>
+            </details>
+          )}
           <div className="aaf-crash-actions">
             <button type="button" className="aaf-btn aaf-btn-primary" onClick={() => window.location.reload()}>
               Reload
