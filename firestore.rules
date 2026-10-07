@@ -30,6 +30,16 @@ service cloud.firestore {
       return request.auth.token.email_verified == true;
     }
 
+    // Keeps conversations and payments on AfriAgriFed: free text may not carry a
+    // phone number (9+ digits), an e-mail address or a link. Mirrors
+    // src/contactGuard.js (which also catches spelled-out numbers and messenger
+    // names before anything is sent).
+    function noContactInfo(t) {
+      return !t.matches('[\\s\\S]*[0-9]([ ().+/-]{0,2}[0-9]){8,}[\\s\\S]*')
+        && !t.matches('[\\s\\S]*[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+([.][A-Za-z0-9-]+)+[\\s\\S]*')
+        && !t.matches('[\\s\\S]*(https?://|www[.])[\\s\\S]*');
+    }
+
     function isAdminEmail(email) {
       return exists(/databases/$(database)/documents/admins/$(email));
     }
@@ -111,7 +121,9 @@ service cloud.firestore {
     //    userType (so a consumer cannot turn themselves into a verified farmer);
     //  - only admins change those.
     match /users/{uid} {
-      allow create: if signedIn() && request.auth.uid == uid
+      // An admin may create their OWN profile already approved, so they can switch
+      // to any role and test it (Admin Dashboard -> "Test the app as").
+      allow create: if (isSignedInAdmin() && request.auth.uid == uid) || signedIn() && request.auth.uid == uid
         && request.resource.data.get('approved', false) != true
         && request.resource.data.get('status', 'pending') == 'pending'
         && request.resource.data.get('accountStatus', {}).get('registrationStatus', 'pending') == 'pending'
@@ -268,7 +280,8 @@ service cloud.firestore {
         && d.product is string && d.product.size() > 0 && d.product.size() <= 80
         && d.quantityNeeded is number && d.quantityNeeded > 0 && d.quantityNeeded <= 10000000
         && d.unit in ['kg', 'ton', 'unit', 'crate', 'litre']
-        && (d.get('notes', '') is string) && d.get('notes', '').size() <= 600;
+        && (d.get('notes', '') is string) && d.get('notes', '').size() <= 600
+        && noContactInfo(d.get('notes', '')) && noContactInfo(d.title);
     }
 
     match /demandRequests/{id} {
@@ -286,6 +299,7 @@ service cloud.firestore {
           && request.resource.data.quantity > 0 && request.resource.data.quantity <= 10000000
           && request.resource.data.get('note', '') is string
           && request.resource.data.get('note', '').size() <= 200
+          && noContactInfo(request.resource.data.get('note', ''))
           && get(/databases/$(database)/documents/demandRequests/$(id)).data.status == 'open'
           && get(/databases/$(database)/documents/demandRequests/$(id)).data.buyerId != request.auth.uid;
         allow update, delete: if signedIn() && (resource.data.farmerId == request.auth.uid || isSignedInAdmin());
@@ -293,7 +307,9 @@ service cloud.firestore {
 
       match /messages/{messageId} {
         allow read: if signedIn();
-        allow create: if signedIn() && request.resource.data.authorId == request.auth.uid;
+        allow create: if signedIn() && request.resource.data.authorId == request.auth.uid
+          && request.resource.data.text is string && request.resource.data.text.size() <= 1000
+          && noContactInfo(request.resource.data.text);
         allow update, delete: if false;
       }
     }
@@ -386,6 +402,92 @@ service cloud.firestore {
         && validFarmInput(request.resource.data)
         && request.resource.data.createdAt == resource.data.createdAt;
       allow delete: if signedIn() && resource.data.ownerId == request.auth.uid;
+    }
+
+    // ---- Account deletion requests (Profile -> Privacy) -----------------------
+    // One per person, keyed by uid. Only admins can mark it done.
+    match /deletionRequests/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['uid', 'email', 'reason', 'status', 'requestedAt'])
+        && request.resource.data.uid == uid
+        && request.resource.data.status == 'open'
+        && request.resource.data.reason is string && request.resource.data.reason.size() <= 500
+        && request.resource.data.requestedAt == request.time;
+      allow read: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
+      allow list: if isSignedInAdmin();
+      allow update: if isSignedInAdmin();
+      allow delete: if false;
+    }
+
+    // ---- Private messages between a buyer and a seller ----------------------
+    // Mirrors src/conversations.js. A conversation is always about one listing, order
+    // or bulk request, and the other person must be that thing's counterpart:
+    // the listing's seller, the order's other party, or the request's buyer.
+    // So nobody can open a thread with a stranger.
+    function conversationTopicOk(d) {
+      let kind = d.topic.kind;
+      let other = d.participants[0] == request.auth.uid ? d.participants[1] : d.participants[0];
+      return (kind == 'listing'
+          && get(/databases/$(database)/documents/marketPrices/$(d.topic.id)).data.sellerId == other)
+        || (kind == 'order'
+          && request.auth.uid in [get(/databases/$(database)/documents/orders/$(d.topic.id)).data.buyerId,
+                                  get(/databases/$(database)/documents/orders/$(d.topic.id)).data.sellerId]
+          && other in [get(/databases/$(database)/documents/orders/$(d.topic.id)).data.buyerId,
+                       get(/databases/$(database)/documents/orders/$(d.topic.id)).data.sellerId])
+        // A producer messaging the buyer who posted a request, or that buyer
+        // replying to a producer (who must be a producer account).
+        || (kind == 'demand'
+          && (get(/databases/$(database)/documents/demandRequests/$(d.topic.id)).data.buyerId == other
+            || (get(/databases/$(database)/documents/demandRequests/$(d.topic.id)).data.buyerId == request.auth.uid
+              && get(/databases/$(database)/documents/users/$(other)).data.get('userType', '') == 'farmer')));
+    }
+
+    function validConversation(d) {
+      return d.keys().hasOnly(['participants', 'names', 'topic', 'createdAt'])
+        && d.participants is list && d.participants.size() == 2
+        && d.participants[0] != d.participants[1]
+        && request.auth.uid in d.participants
+        && d.names is map && d.names.size() <= 2
+        && d.topic is map && d.topic.keys().hasOnly(['kind', 'id', 'title'])
+        && d.topic.kind in ['listing', 'order', 'demand']
+        && d.topic.id is string && d.topic.id.size() > 0 && d.topic.id.size() <= 40
+        && d.topic.title is string && d.topic.title.size() <= 120
+        && d.createdAt == request.time
+        && conversationTopicOk(d);
+    }
+
+    function isParticipant(conversationId) {
+      return signedIn()
+        && request.auth.uid in get(/databases/$(database)/documents/conversations/$(conversationId)).data.participants;
+    }
+
+    match /conversations/{id} {
+      // `resource == null` lets the app check whether a thread exists before creating it.
+      allow get: if signedIn() && (resource == null || request.auth.uid in resource.data.participants || isSignedInAdmin());
+      allow list: if signedIn() && request.auth.uid in resource.data.participants;
+      allow create: if signedIn() && validConversation(request.resource.data);
+      // Participants only move the "last message" summary and their OWN read marker.
+      allow update: if signedIn() && request.auth.uid in resource.data.participants
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage', 'lastMessageAt', 'lastSenderId', 'readAt'])
+        && (!('lastMessage' in request.resource.data)
+          || (request.resource.data.lastMessage is string && request.resource.data.lastMessage.size() <= 200))
+        && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastSenderId'])
+          || request.resource.data.lastSenderId == request.auth.uid)
+        && (!('readAt' in request.resource.data)
+          || request.resource.data.readAt.diff(resource.data.get('readAt', {})).affectedKeys().hasOnly([request.auth.uid]));
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isParticipant(id) || isSignedInAdmin();
+        allow create: if isParticipant(id)
+          && request.resource.data.keys().hasOnly(['senderId', 'text', 'createdAt'])
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 1000
+          && noContactInfo(request.resource.data.text)
+          && request.resource.data.createdAt == request.time;
+        allow update, delete: if false;
+      }
     }
 
     match /orders/{id} {

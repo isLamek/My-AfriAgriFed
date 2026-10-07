@@ -30,7 +30,11 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "emulators": "node scripts/emulators.js",
+    "seed": "node scripts/emulator-seed.js",
+    "start:local": "node scripts/start-local.js",
+    "rules-check": "node scripts/rules-check.mjs"
   },
   "eslintConfig": {
     "extends": [
