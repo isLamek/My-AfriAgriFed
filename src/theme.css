@@ -261,3 +261,42 @@ body {
   white-space: nowrap;
   border: 0;
 }
+
+/* Shown instead of a white page if a page crashes (AppErrorBoundary.js). */
+.aaf-crash {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+  font-family: var(--aaf-font);
+}
+
+.aaf-crash-card {
+  max-width: 460px;
+  padding: 2rem 1.75rem;
+  border-radius: var(--aaf-radius-md);
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 10px 30px rgba(2, 47, 31, 0.08), inset 0 1px 0 #fff;
+  text-align: center;
+}
+
+.aaf-crash-card h1 {
+  margin: 0 0 0.5rem;
+  font-size: 1.3rem;
+  color: #2d5016;
+}
+
+.aaf-crash-card p {
+  margin: 0 0 1.25rem;
+  color: var(--aaf-text-muted);
+  line-height: 1.5;
+}
+
+.aaf-crash-actions {
+  display: flex;
+  gap: 0.6rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { onAuthStateChanged } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { Toaster } from "react-hot-toast";
@@ -35,9 +35,10 @@ import { auth, db } from "./firebaseConfig";
 import { isAdmin } from "./admin";
 import { needsVerification } from "./emailVerification";
 import { VerifyEmailGate } from "./VerifyEmail";
+import AppErrorBoundary, { lazyWithReload } from "./AppErrorBoundary";
 
 // Lazy-loaded so the map library only downloads when someone opens the map.
-const MapPage = React.lazy(() => import("./MapPage"));
+const MapPage = lazyWithReload(() => import("./MapPage"));
 
 const isApprovedStatus = (userData) =>
   userData.approved === true ||
@@ -197,6 +198,7 @@ function AdminRoute({ children }) {
 }
 
 function App() {
+  const location = useLocation();
   return (
     <>
       <Toaster
@@ -211,6 +213,8 @@ function App() {
           error: { iconTheme: { primary: "#c0392b", secondary: "#fff" } },
         }}
       />
+      {/* a crash on one page shows a Reload message, and clears when you move on */}
+      <AppErrorBoundary key={location.pathname}>
       <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/signin" element={<SignIn />} />
@@ -373,6 +377,7 @@ function App() {
 
       <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      </AppErrorBoundary>
     </>
   );
 }
