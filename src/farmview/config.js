@@ -67,7 +67,7 @@ export const WEATHER_LAYERS = [
     unit: "mm/h",
     legend: [0.1, 1, 5, 15],
     source: "ECMWF IFS 0.25° forecast via Open-Meteo",
-    note: "Forecast rainfall in the hour before the selected time. Model forecast, not measured rain.",
+    note: "Forecast rainfall in the hour before the selected time: an area picture from points about 100 km apart, so local showers can be missed. Rest the pointer on (or tap) a spot for its exact forecast.",
   },
   {
     id: "temperature",
@@ -77,7 +77,7 @@ export const WEATHER_LAYERS = [
     unit: "°C",
     legend: [5, 15, 22, 30, 38, 45],
     source: "ECMWF IFS 0.25° forecast via Open-Meteo",
-    note: "Forecast air temperature 2 m above ground. Model forecast, not measured.",
+    note: "Forecast air temperature 2 m above ground: an area picture, not corrected for hills and valleys. Rest the pointer on (or tap) a spot for its exact, altitude-corrected forecast.",
   },
   {
     id: "clouds",

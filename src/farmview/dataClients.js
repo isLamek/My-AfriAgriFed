@@ -85,14 +85,15 @@ export function fetchPointWeather(lat, lng) {
   const params = new URLSearchParams({
     latitude: la,
     longitude: ln,
-    current: "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m",
+    current: "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m",
     daily: "precipitation_sum,temperature_2m_max,temperature_2m_min,et0_fao_evapotranspiration",
-    hourly: "soil_moisture_0_to_1cm,soil_temperature_6cm",
+    hourly: "soil_moisture_0_to_1cm,soil_temperature_6cm,precipitation,precipitation_probability",
+    wind_speed_unit: "ms",
     forecast_days: "7",
     timezone: TIMEZONE,
   });
   return cachedJson(
-    `pt:${la},${ln}`,
+    `pt2:${la},${ln}`, // v2: adds wind and hourly rain (older cached answers lack them)
     `https://api.open-meteo.com/v1/forecast?${params}`,
     TTL.forecast,
     `/api/weather/point?lat=${la}&lng=${ln}`
@@ -104,6 +105,7 @@ function summarisePointWeather(data) {
   const soilNow = latestNumber(hourlySoil, data.hourly?.time);
   return {
     current: data.current,
+    now: summariseSpot(data), // the same "now" numbers as the map readout
     days: (data.daily?.time || []).map((date, i) => ({
       date,
       rainMm: data.daily.precipitation_sum[i],
@@ -179,4 +181,97 @@ export async function fetchFlood(lat, lng) {
   );
   const level = peakRatio >= 3 ? "high" : peakRatio >= 1.5 ? "elevated" : "normal";
   return { level, peakRatio: Math.round(peakRatio * 10) / 10, days: d.time || [], flow };
+}
+
+// ---- Exact-spot conditions for the map readout ------------------------------
+// Open-Meteo's forecast for one spot: its best model for the area, corrected
+// for the spot's altitude, with "current" values updated every 15 minutes.
+// Far more accurate than reading between the national grid's points (about
+// 100 km apart). Cached per ~1 km cell for 10 minutes, so moving around a
+// little costs nothing.
+const SPOT_TTL = 10 * 60 * 1000;
+const spotCache = new Map(); // cell -> { value, expires }
+const spotInflight = new Map();
+// 0.01° ≈ 1 km; toFixed avoids float edges (18.13 * 100 = 1812.9999...)
+const cell = (n) => Number(n.toFixed(2));
+
+export function spotKey(lat, lng) {
+  return `${cell(lat)},${cell(lng)}`;
+}
+
+export function summariseSpot(data) {
+  const c = data.current || {};
+  // times come without a zone; utc_offset_seconds says which (0 for GMT requests)
+  const offset = (data.utc_offset_seconds || 0) * 1000;
+  const toMs = (t) => Date.parse(t.endsWith("Z") ? t : `${t}Z`) - offset;
+  // chance of rain over the next 3 hours: the highest hourly chance
+  const times = data.hourly?.time || [];
+  const chances = data.hourly?.precipitation_probability || [];
+  const amounts = data.hourly?.precipitation || [];
+  const nowMs = Date.now();
+  let next3 = null;
+  let lastHour = null; // the hourly total for the hour that ended most recently
+  let lastHourAt = -Infinity;
+  times.forEach((t, i) => {
+    const ms = toMs(t);
+    if (ms > nowMs && ms <= nowMs + 3 * 3600000 && typeof chances[i] === "number") next3 = Math.max(next3 ?? 0, chances[i]);
+    if (ms <= nowMs && ms > lastHourAt && typeof amounts[i] === "number") {
+      lastHour = amounts[i];
+      lastHourAt = ms;
+    }
+  });
+  return {
+    at: c.time ? toMs(c.time) : nowMs,
+    temp: c.temperature_2m,
+    humidity: c.relative_humidity_2m,
+    rainLastHourMm: lastHour ?? (typeof c.precipitation === "number" ? c.precipitation : null),
+    windMs: c.wind_speed_10m,
+    windFrom: c.wind_direction_10m,
+    gustMs: c.wind_gusts_10m,
+    rainChance3h: next3,
+    elevation: data.elevation,
+  };
+}
+
+/** Exact-spot "now" for several places in one request (used by the no-map list). */
+export async function fetchSpotsNow(places) {
+  const params = new URLSearchParams({
+    latitude: places.map((p) => p.lat).join(","),
+    longitude: places.map((p) => p.lng).join(","),
+    current: "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m",
+    hourly: "precipitation_probability,precipitation",
+    forecast_hours: "4",
+    past_hours: "1",
+    wind_speed_unit: "ms",
+    timezone: "GMT",
+  });
+  const data = await plainJson(`https://api.open-meteo.com/v1/forecast?${params}`);
+  return (Array.isArray(data) ? data : [data]).map(summariseSpot);
+}
+
+export function fetchSpotNow(lat, lng) {
+  const key = spotKey(lat, lng);
+  const hit = spotCache.get(key);
+  if (hit && hit.expires > Date.now()) return Promise.resolve(hit.value);
+  if (spotInflight.has(key)) return spotInflight.get(key);
+  const [la, ln] = key.split(",");
+  const params = new URLSearchParams({
+    latitude: la,
+    longitude: ln,
+    current: "temperature_2m,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,wind_gusts_10m",
+    hourly: "precipitation_probability,precipitation",
+    forecast_hours: "4",
+    past_hours: "1",
+    wind_speed_unit: "ms",
+    timezone: "GMT",
+  });
+  const request = plainJson(`https://api.open-meteo.com/v1/forecast?${params}`)
+    .then((data) => {
+      const value = summariseSpot(data);
+      spotCache.set(key, { value, expires: Date.now() + SPOT_TTL });
+      return value;
+    })
+    .finally(() => spotInflight.delete(key));
+  spotInflight.set(key, request);
+  return request;
 }

@@ -1056,3 +1056,17 @@ p.fv-error {
     top: 64px;
   }
 }
+
+.fv-hover-note {
+  margin-top: 3px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.fv-hover.exact .fv-hover-note {
+  color: #b5e48c;
+}
+
+.fv-hover.loading .fv-hover-note::after {
+  content: " …";
+}

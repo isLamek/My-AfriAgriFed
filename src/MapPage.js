@@ -17,7 +17,7 @@ import { fetchFeatures } from "./farmview/serverApi";
 import { auth } from "./firebaseConfig";
 import { subscribeFarms } from "./farms";
 import { BASEMAPS, NAMIBIA_BOUNDS, TIMEZONE, TOWNS, VIEWS, WEATHER_LAYERS } from "./farmview/config";
-import { fetchClimate, fetchFlood, fetchPointWeather } from "./farmview/dataClients";
+import { fetchClimate, fetchFlood, fetchPointWeather, fetchSpotNow } from "./farmview/dataClients";
 import { fetchNationalGrid, nowIndex } from "./farmview/weatherGrid";
 import { RAMPS, rampColor, rasterCoordinates, renderField } from "./farmview/fieldRaster";
 import { fetchSatelliteTimes, frameTimes, satelliteTileUrl } from "./farmview/satellite";
@@ -180,7 +180,7 @@ export default function MapPage() {
     // which on a slow connection would hold back the overlays.
     map.once("style.load", () => setMapReady(true));
     // the forecast for the spot under the cursor (or under a finger)
-    const detachReadout = attachReadout(map, () => ({ grid: gridRef.current, hour: hourRef.current, regions: regionsRef.current }));
+    const detachReadout = attachReadout(map, () => ({ grid: gridRef.current, hour: hourRef.current, regions: regionsRef.current }), fetchSpotNow);
     map.on("click", (e) => {
       const spot = { lat: e.lngLat.lat, lng: e.lngLat.lng };
       if (placingRef.current) {
@@ -610,7 +610,7 @@ export default function MapPage() {
       onLogout={logout}
       theme={theme}
     >
-      {noMap && <NoMapFallback grid={grid} hourIdx={hourIdx} gridError={gridError} />}
+      {noMap && <NoMapFallback />}
       <div className="fv-wrap" hidden={noMap}>
         <div className="fv-map" data-band="mid" ref={containerRef} />
 

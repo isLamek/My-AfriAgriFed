@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
-import { CloudRain, Droplets, Flame, Sprout, Thermometer, Waves } from "lucide-react";
+import { CloudRain, Droplets, Flame, Sprout, Thermometer, Umbrella, Waves, Wind } from "lucide-react";
+import { compassPoint } from "./farmview/cursorReadout";
 import { TOWNS } from "./farmview/config";
 import { regionLabel } from "./farmview/regions";
 import { describeAge, fireLevel, firesNear } from "./farmview/fires";
@@ -126,11 +127,22 @@ function WeatherBlock({ weather }) {
   const maxRain = Math.max(5, ...days.map((d) => d.rainMm || 0));
   return (
     <div className="fv-weather">
-      <p className="fv-muted">Model estimate for this spot, updated {String(current.time).slice(11, 16)} local time</p>
+      <p className="fv-muted">
+        Forecast for this exact spot (corrected for its altitude), as of {String(current.time).slice(11, 16)} Namibian time
+      </p>
       <div className="fv-now">
-        <div><Thermometer size={16} /> <strong>{Math.round(current.temperature_2m)}°C</strong></div>
+        <div><Thermometer size={16} /> <strong>{Number(current.temperature_2m).toFixed(1)}°C</strong></div>
         <div><Droplets size={16} /> {current.relative_humidity_2m}% humidity</div>
-        <div><CloudRain size={16} /> {current.precipitation} mm now</div>
+        <div>
+          <CloudRain size={16} /> {weather.now?.rainLastHourMm != null ? `${weather.now.rainLastHourMm.toFixed(1)} mm in the past hour` : `${current.precipitation} mm`}
+        </div>
+        {weather.now?.rainChance3h != null && <div><Umbrella size={16} /> {weather.now.rainChance3h}% chance of rain, next 3 h</div>}
+        {weather.now?.windMs != null && (
+          <div>
+            <Wind size={16} /> {weather.now.windMs.toFixed(1)} m/s from {compassPoint(weather.now.windFrom)}
+            {weather.now.gustMs != null ? `, gusts ${weather.now.gustMs.toFixed(1)}` : ""}
+          </div>
+        )}
         {soilMoisturePct != null && <div><Sprout size={16} /> Topsoil {soilMoisturePct}% moisture</div>}
       </div>
       <div className="fv-days">

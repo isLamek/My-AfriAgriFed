@@ -1,7 +1,8 @@
-import React from "react";
-import { CloudRain, MonitorX, Thermometer, Wind } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { CloudRain, MonitorX, Thermometer, Umbrella, Wind } from "lucide-react";
 import { TOWNS } from "./config";
-import { sampleField } from "./weatherGrid";
+import { fetchSpotsNow } from "./dataClients";
+import { compassPoint } from "./cursorReadout";
 
 /** True when this browser can draw the map (it needs WebGL). */
 export function supportsWebGL() {
@@ -13,16 +14,31 @@ export function supportsWebGL() {
   }
 }
 
-const round = (n) => (n == null || Number.isNaN(n) ? null : Math.round(n));
-const one = (n) => (n == null || Number.isNaN(n) ? null : Math.round(n * 10) / 10);
+const TOWN_LIST = TOWNS.filter((t) => t.major);
 
 /**
  * Shown instead of the map when the browser can't draw it (WebGL switched
- * off, blocked after a graphics crash, or an old phone). The weather still
- * loads, so members get it as a list for each region's main town.
+ * off, blocked after a graphics crash, or an old phone): the current weather
+ * for each region's main town, from each town's own forecast.
  */
-export default function NoMapFallback({ grid, hourIdx, gridError }) {
-  const towns = TOWNS.filter((t) => t.major);
+export default function NoMapFallback() {
+  const [spots, setSpots] = useState(null);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let live = true;
+    fetchSpotsNow(TOWN_LIST)
+      .then((list) => live && setSpots(list))
+      .catch(() => live && setError("The weather service isn't answering right now. Please try again later."));
+    return () => {
+      live = false;
+    };
+  }, []);
+
+  const asOf = spots?.[0]?.at
+    ? new Date(spots[0].at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Windhoek" })
+    : "";
+
   return (
     <div className="fv-nomap">
       <section className="aaf-card fv-nomap-note">
@@ -42,26 +58,22 @@ export default function NoMapFallback({ grid, hourIdx, gridError }) {
 
       <section className="aaf-card fv-nomap-weather">
         <h2>Weather now, by region</h2>
-        {gridError && <p className="fv-note">The weather service isn't answering right now. Please try again later.</p>}
-        {!grid && !gridError && <p className="fv-note">Loading the forecast...</p>}
-        {grid && (
+        {error && <p className="fv-note">{error}</p>}
+        {!spots && !error && <p className="fv-note">Loading the forecast...</p>}
+        {spots && (
           <>
-            <p className="fv-note">
-              Forecast for {new Date(grid.times[hourIdx]).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: "Africa/Windhoek" })}{" "}
-              (Namibian time), {grid.model}.
-            </p>
+            <p className="fv-note">Each town's own forecast (corrected for its altitude){asOf ? `, as of ${asOf} Namibian time` : ""}.</p>
             <div className="fv-nomap-grid">
-              {towns.map((town) => {
-                const temp = round(sampleField(grid, grid.temp[hourIdx], town.lng, town.lat));
-                const rain = one(sampleField(grid, grid.rain[hourIdx], town.lng, town.lat));
-                const wind = one(sampleField(grid, grid.speed[hourIdx], town.lng, town.lat));
+              {TOWN_LIST.map((town, i) => {
+                const s = spots[i] || {};
                 return (
                   <div className="fv-nomap-town" key={town.name}>
                     <strong>{town.region}</strong>
                     <span className="fv-nomap-place">{town.name}</span>
-                    <span><Thermometer size={14} /> {temp == null ? "-" : `${temp} °C`}</span>
-                    <span><CloudRain size={14} /> {rain == null ? "-" : `${rain} mm`}</span>
-                    <span><Wind size={14} /> {wind == null ? "-" : `${wind} m/s`}</span>
+                    <span><Thermometer size={14} /> {s.temp == null ? "-" : `${s.temp.toFixed(1)} °C`}</span>
+                    <span><CloudRain size={14} /> {s.rainLastHourMm == null ? "-" : `${s.rainLastHourMm.toFixed(1)} mm past hour`}</span>
+                    {s.rainChance3h != null && <span><Umbrella size={14} /> {s.rainChance3h}% rain chance, 3 h</span>}
+                    <span><Wind size={14} /> {s.windMs == null ? "-" : `${s.windMs.toFixed(1)} m/s ${compassPoint(s.windFrom)}`}</span>
                   </div>
                 );
               })}
