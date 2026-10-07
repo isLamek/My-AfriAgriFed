@@ -883,3 +883,66 @@ p.fv-error {
   background: var(--aaf-danger-bg);
   color: var(--aaf-danger);
 }
+
+/* ---- no WebGL: weather as a list (farmview/NoMapFallback.js) ---- */
+.fv-wrap[hidden] {
+  display: none;
+}
+
+.fv-nomap {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.fv-nomap-note {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  color: #2d5016;
+}
+
+.fv-nomap-note h2,
+.fv-nomap-weather h2 {
+  margin: 0 0 0.4rem;
+  font-size: 1.1rem;
+  color: #2d5016;
+}
+
+.fv-nomap-note p {
+  margin: 0 0 0.9rem;
+  color: var(--aaf-text-muted);
+  line-height: 1.5;
+  font-size: 0.9rem;
+}
+
+.fv-nomap-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 10px;
+  margin-top: 0.75rem;
+}
+
+.fv-nomap-town {
+  display: grid;
+  gap: 3px;
+  padding: 0.75rem 0.85rem;
+  border-radius: var(--aaf-radius-sm);
+  background: rgba(2, 47, 31, 0.035);
+  font-size: 0.86rem;
+}
+
+.fv-nomap-town strong {
+  color: #2d5016;
+}
+
+.fv-nomap-place {
+  color: var(--aaf-text-muted);
+  font-size: 0.78rem;
+  margin-bottom: 4px;
+}
+
+.fv-nomap-town span:not(.fv-nomap-place) {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

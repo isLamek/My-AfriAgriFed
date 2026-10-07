@@ -22,6 +22,7 @@ import { RAMPS, rampColor, rasterCoordinates, renderField } from "./farmview/fie
 import { fetchSatelliteTimes, frameTimes, satelliteTileUrl } from "./farmview/satellite";
 import { REGIONS_URL, findRegion, labelPoint, regionLabel } from "./farmview/regions";
 import WindParticles from "./farmview/windParticles";
+import NoMapFallback, { supportsWebGL } from "./farmview/NoMapFallback";
 import "./MapPage.css";
 
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
@@ -64,6 +65,9 @@ export default function MapPage() {
   const isFarmer = userType === "farmer";
 
   const [mapReady, setMapReady] = useState(false);
+  // No WebGL (switched off, blocked after a graphics crash, old phone): show
+  // the weather as a list instead of crashing the page.
+  const [noMap, setNoMap] = useState(() => !supportsWebGL());
   const [overlaysReady, setOverlaysReady] = useState(false); // region layers exist; weather can slot under them
   const [basemap, setBasemap] = useState("satellite");
   const [regions, setRegions] = useState(null);
@@ -117,6 +121,7 @@ export default function MapPage() {
 
   // ---- create the map once --------------------------------------------------
   useEffect(() => {
+    if (noMap) return undefined;
     const sources = {};
     const layers = [];
     Object.entries(BASEMAPS).forEach(([id, b]) => {
@@ -124,7 +129,9 @@ export default function MapPage() {
       layers.push({ id: `base-${id}`, type: "raster", source: `base-${id}`, layout: { visibility: id === "satellite" ? "visible" : "none" } });
     });
 
-    const map = new maplibregl.Map({
+    let map;
+    try {
+      map = new maplibregl.Map({
       container: containerRef.current,
       style: { version: 8, sources, layers },
       bounds: VIEWS.oshana.bounds,
@@ -136,6 +143,11 @@ export default function MapPage() {
       pitchWithRotate: false,
       dragRotate: false,
     });
+    } catch (error) {
+      console.warn("[map] could not start, showing the weather list instead:", error?.message || error);
+      setNoMap(true);
+      return undefined;
+    }
     map.touchZoomRotate.disableRotation();
     setMapReady(false);
     setOverlaysReady(false);
@@ -181,7 +193,7 @@ export default function MapPage() {
       map.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [noMap]);
 
   // ---- region outlines, labels, and the layer slots weather draws into -------
   useEffect(() => {
@@ -539,7 +551,8 @@ export default function MapPage() {
       onLogout={logout}
       theme={theme}
     >
-      <div className="fv-wrap">
+      {noMap && <NoMapFallback grid={grid} hourIdx={hourIdx} gridError={gridError} />}
+      <div className="fv-wrap" hidden={noMap}>
         <div className="fv-map" data-band="mid" ref={containerRef} />
 
         <div className="fv-controls aaf-card">
