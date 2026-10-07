@@ -9,7 +9,14 @@ Never paste a key into a chat, email, screenshot or GitHub.
 
 ---
 
-## 0. DEPLOYED on 5 October 2026: do these two things NOW
+## 0. LIVE: updated again on 7 October 2026
+
+**https://afriagrifed-ebc30.web.app now serves the latest code**, including the signed-in
+overhaul (Feed, Marketplace, Messages, Orders), the legal pages, and the new database rules
+for private messages and account-deletion requests. Both GitHub repositories hold the same
+code. The two things below are still yours to do, and the first matters most.
+
+### Original deploy notes (5 October)
 
 The website, the main database rules and the community-posts rules went live at
 **https://afriagrifed-ebc30.web.app** (built with no backend address, so nothing points at
@@ -39,8 +46,9 @@ post photos cannot complete), fire hotspots, and the shared weather cache.
       20 MB. Save, then put the cloud name and preset name in `.env`:
       `REACT_APP_CLOUDINARY_CLOUD_NAME=...` and `REACT_APP_CLOUDINARY_UPLOAD_PRESET=...`.
       Rebuild and deploy. When the backend is online, uploads switch to signed uploads by themselves.
-- [ ] **Deploy the new Firestore rules with the website** (messages and deletion requests
-      need them): the usual `npx firebase-tools deploy --only "hosting,firestore:rules,database" --project afriagrifed-ebc30`.
+- [x] **New Firestore rules deployed with the website (done 7 Oct 2026).** Messages and
+      account-deletion requests work with them. Deploy again after any future rules change:
+      `npx firebase-tools deploy --only "hosting,firestore:rules,database" --project afriagrifed-ebc30`.
 - [ ] **Add your BIPA registration number and registered name** to `src/business.js`.
 - [ ] **Replace the home page stock photos** with your own or licensed ones (see `docs/COMPLIANCE.md`).
 - [ ] **Have a lawyer read** `/terms`, `/privacy` and `/refunds` (text in `src/legalContent.js`).

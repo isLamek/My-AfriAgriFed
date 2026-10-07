@@ -12,3 +12,6 @@ npm-debug.log*
 
 # Firebase emulator logs
 *-debug.log
+
+# A stray second copy of the repository that ended up inside this folder
+/afriagrfed/
