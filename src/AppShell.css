@@ -123,6 +123,8 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  /* the soft mint of the home page's sections */
+  background: linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
 }
 
 .aaf-shell-topbar {
@@ -131,8 +133,19 @@
   justify-content: space-between;
   gap: 1rem;
   flex-wrap: wrap;
-  padding: 1.75rem 2rem 1rem;
+  padding: 1.75rem 2rem 1.4rem;
   border-bottom: 3px solid var(--aaf-shoot);
+  margin-bottom: 1.25rem;
+  /* home-page hero look: a farm photo under a dark-green wash */
+  background:
+    linear-gradient(100deg, rgba(2, 47, 31, 0.92) 0%, rgba(4, 77, 58, 0.78) 45%, rgba(2, 47, 31, 0.45) 100%),
+    var(--aaf-banner, none) center 40% / cover no-repeat,
+    var(--aaf-canopy);
+  color: #fff;
+}
+
+.aaf-shell-topbar .aaf-eyebrow {
+  color: #b5e48c;
 }
 
 .aaf-shell-topbar-left {
@@ -141,34 +154,18 @@
   gap: 0.85rem;
 }
 
-.aaf-sidebar-collapse-btn {
-  border: none;
-  background: var(--aaf-mist);
-  color: var(--aaf-canopy);
-  width: 38px;
-  height: 38px;
-  border-radius: var(--aaf-radius-sm);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  flex-shrink: 0;
-}
-
-.aaf-sidebar-collapse-btn:hover {
-  background: var(--aaf-border);
-}
 
 .aaf-shell-topbar h1 {
   margin: 0;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
   font-weight: 800;
-  color: var(--aaf-canopy);
+  color: #fff;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .aaf-shell-subtitle {
   margin: 0.25rem 0 0;
-  color: var(--aaf-text-muted);
+  color: rgba(255, 255, 255, 0.88);
   font-size: 0.92rem;
 }
 
@@ -179,7 +176,7 @@
 }
 
 .aaf-shell-content {
-  padding: 0.5rem 2rem 2.5rem;
+  padding: 0 2rem 2.5rem;
   flex: 1;
 }
 
@@ -193,7 +190,7 @@
   z-index: 40;
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: var(--aaf-radius-md);
   border: none;
   background: var(--aaf-canopy);
   color: var(--aaf-white);
@@ -205,21 +202,120 @@
   display: none;
 }
 
+/* ---- desktop: the menu folds to an icon rail ---- */
+
+.aaf-sidebar-rail {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+/* the edge line lights up green while the pointer is on the menu */
+.aaf-sidebar-rail::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  transition: background 0.15s ease;
+  pointer-events: none;
+}
+
+.aaf-sidebar-rail:hover::after {
+  background: linear-gradient(180deg, #2ecc71, #27ae60);
+}
+
+.aaf-rail-toggle {
+  position: absolute;
+  top: 26px;
+  right: -14px;
+  width: 14px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 0 4px 4px 0;
+  background: #2ecc71;
+  color: var(--aaf-canopy);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transform: translateX(-4px);
+  box-shadow: 3px 2px 10px rgba(2, 47, 31, 0.25);
+  transition: opacity 0.15s ease, transform 0.15s ease, background 0.15s ease;
+}
+
+.aaf-sidebar-rail:hover .aaf-rail-toggle,
+.aaf-rail-toggle:focus-visible,
+.aaf-sidebar-rail.collapsed .aaf-rail-toggle {
+  opacity: 1;
+  transform: none;
+}
+
+.aaf-rail-toggle:hover {
+  background: #b5e48c;
+}
+
+.aaf-rail-toggle:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
 @media (min-width: 901px) {
-  .aaf-sidebar {
-    overflow: hidden;
+  .aaf-sidebar-rail .aaf-sidebar {
+    position: static;
+    height: 100%;
+    overflow-x: hidden;
+  }
+
+  .aaf-sidebar-label {
+    white-space: nowrap;
+    transition: opacity 0.15s ease;
   }
 
   .aaf-sidebar.collapsed {
+    width: 72px;
+    padding-left: 0.6rem;
+    padding-right: 0.6rem;
+  }
+
+  .aaf-sidebar.collapsed .aaf-sidebar-label {
+    opacity: 0;
     width: 0;
+    overflow: hidden;
+  }
+
+  .aaf-sidebar.collapsed .aaf-sidebar-brand,
+  .aaf-sidebar.collapsed .aaf-sidebar-link,
+  .aaf-sidebar.collapsed .aaf-sidebar-logout {
+    justify-content: center;
+    gap: 0;
     padding-left: 0;
     padding-right: 0;
-    opacity: 0;
+  }
+
+  /* section names become thin dividers */
+  .aaf-sidebar.collapsed .aaf-sidebar-heading {
+    height: 1px;
+    margin: 0 0.5rem 0.6rem;
+    overflow: hidden;
+    color: transparent;
+    background: rgba(255, 255, 255, 0.14);
   }
 }
 
 @media (max-width: 900px) {
-  .aaf-sidebar-collapse-btn {
+  .aaf-sidebar-rail {
+    display: contents;
+  }
+
+  .aaf-rail-toggle,
+  .aaf-sidebar-rail::after {
     display: none;
   }
 
@@ -271,5 +367,64 @@
   .aaf-shell-topbar {
     padding-left: 1.25rem;
     padding-right: 1.25rem;
+  }
+}
+
+/* ---- the member chip at the foot of the menu ---- */
+.aaf-member-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 1rem;
+  padding: 0.55rem 0.6rem;
+  border: 0;
+  border-radius: var(--aaf-radius-sm);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  color: #fff;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.aaf-member-chip:hover {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
+}
+
+.aaf-member-text {
+  display: grid;
+  min-width: 0;
+  line-height: 1.25;
+}
+
+.aaf-member-text strong {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.86rem;
+}
+
+.aaf-member-text small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #b5e48c;
+  font-size: 0.74rem;
+}
+
+.aaf-member-chip + .aaf-sidebar-logout {
+  margin-top: 0.4rem;
+}
+
+@media (min-width: 901px) {
+  .aaf-sidebar.collapsed .aaf-member-chip {
+    justify-content: center;
+    gap: 0;
+    padding-left: 0;
+    padding-right: 0;
+    background: none;
+    box-shadow: none;
   }
 }

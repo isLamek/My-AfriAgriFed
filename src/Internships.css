@@ -15,7 +15,7 @@
 
 .internships-form-card {
   background: var(--aaf-surface);
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   padding: 1.5rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   align-self: start;
@@ -39,7 +39,7 @@
 .internships-form-card input,
 .internships-form-card textarea {
   padding: 0.6rem 0.7rem;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   border: 1px solid var(--aaf-border);
   font-family: inherit;
 }
@@ -52,7 +52,7 @@
 
 .publish-btn {
   border: none;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   padding: 0.8rem;
   background: var(--aaf-primary);
   color: var(--aaf-surface);
@@ -68,7 +68,7 @@
 
 .internship-card {
   background: var(--aaf-surface);
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   padding: 1.25rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
@@ -83,7 +83,7 @@
 
 .type-pill {
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.03em;
@@ -117,7 +117,7 @@
 
 .internship-actions button {
   border: none;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   padding: 0.55rem 1rem;
   background: var(--aaf-primary);
   color: var(--aaf-surface);
@@ -133,7 +133,7 @@
 .status-pill {
   display: inline-block;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   font-size: 0.8rem;
   font-weight: 700;
 }

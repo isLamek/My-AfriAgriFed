@@ -17,7 +17,7 @@
 
 .verify-banner button {
   border: 1px solid currentColor;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   background: transparent;
   padding: 4px 12px;
   font: inherit;

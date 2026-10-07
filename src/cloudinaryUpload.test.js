@@ -104,4 +104,10 @@ describe("uploadToCloudinary", () => {
     global.fetch = jest.fn(() => fail(400, { error: { message: "Upload preset not found" } }));
     await expect(uploadToCloudinary(photo)).rejects.toThrow(/upload preset is missing or not unsigned/);
   });
+
+  it("turns a wrong cloud name into a plain message", async () => {
+    const { uploadToCloudinary } = load({ cloudName: "your-cloud-name", preset: "aaf_unsigned" });
+    global.fetch = jest.fn(() => fail(401, { error: { message: "cloud_name is disabled" } }));
+    await expect(uploadToCloudinary(photo)).rejects.toThrow(/cloud name is wrong/);
+  });
 });

@@ -1,40 +1,62 @@
+/* Photo tiles, in the same style as the home page's cards: a dark green
+   wash over a photo, white text. */
 .aaf-spaces {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 12px;
   margin: 0 0 1.25rem;
 }
 
 .aaf-space {
+  position: relative;
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--aaf-border);
+  min-height: 112px;
+  padding: 14px 16px;
+  border: 0;
   border-radius: var(--aaf-radius-md);
-  background: var(--aaf-surface);
+  background:
+    linear-gradient(160deg, rgba(2, 47, 31, 0.55), rgba(2, 47, 31, 0.9)),
+    var(--aaf-space-photo) center / cover no-repeat,
+    var(--aaf-canopy);
   font: inherit;
   text-align: left;
-  color: var(--aaf-text);
+  color: #fff;
   cursor: pointer;
-  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  overflow: hidden;
+  box-shadow: 0 8px 22px rgba(2, 47, 31, 0.12);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.aaf-space::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 4px;
+  background: transparent;
 }
 
 .aaf-space:hover {
-  border-color: var(--aaf-primary);
+  transform: translateY(-3px);
+  box-shadow: 0 14px 30px rgba(2, 47, 31, 0.2);
 }
 
 .aaf-space:focus-visible {
-  outline: 2px solid var(--aaf-primary);
+  outline: 2px solid #2ecc71;
   outline-offset: 2px;
 }
 
 .aaf-space.on {
-  border-color: var(--aaf-primary);
-  background: var(--aaf-primary);
-  color: #fff;
-  box-shadow: var(--aaf-shadow-sm);
   cursor: default;
+  transform: none;
+  box-shadow: 0 0 0 2px #2ecc71, 0 10px 26px rgba(46, 204, 113, 0.3);
+}
+
+.aaf-space.on::after {
+  background: linear-gradient(90deg, #2ecc71, #27ae60);
 }
 
 .aaf-space-icon {
@@ -44,19 +66,18 @@
   justify-content: center;
   width: 34px;
   height: 34px;
-  border-radius: 10px;
-  background: var(--aaf-mist);
-  color: var(--aaf-primary);
-}
-
-.aaf-space.on .aaf-space-icon {
+  border-radius: var(--aaf-radius-sm);
   background: rgba(255, 255, 255, 0.16);
   color: #fff;
 }
 
+.aaf-space.on .aaf-space-icon {
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+}
+
 .aaf-space-text {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   min-width: 0;
 }
 
@@ -65,15 +86,15 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  font-weight: 600;
-  font-size: 0.92rem;
+  font-weight: 700;
+  font-size: 0.98rem;
 }
 
 .aaf-space-title em {
   padding: 1px 8px;
-  border-radius: 999px;
-  background: var(--aaf-mist);
-  color: var(--aaf-primary);
+  border-radius: var(--aaf-radius-sm);
+  background: rgba(181, 228, 140, 0.22);
+  color: #b5e48c;
   font-style: normal;
   font-size: 0.68rem;
   font-weight: 700;
@@ -81,19 +102,10 @@
   text-transform: uppercase;
 }
 
-.aaf-space.on .aaf-space-title em {
-  background: var(--aaf-shoot);
-  color: var(--aaf-accent-contrast);
-}
-
 .aaf-space-blurb {
   font-size: 0.78rem;
   line-height: 1.35;
-  color: var(--aaf-text-muted);
-}
-
-.aaf-space.on .aaf-space-blurb {
-  color: rgba(255, 255, 255, 0.82);
+  color: rgba(255, 255, 255, 0.85);
 }
 
 .aaf-spaces-active {
@@ -106,14 +118,15 @@
 
 @media (max-width: 900px) {
   .aaf-spaces {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 6px;
   }
 
   .aaf-space {
     flex-direction: column;
     align-items: center;
+    justify-content: flex-end;
     gap: 6px;
+    min-height: 88px;
     padding: 10px 6px;
     text-align: center;
   }

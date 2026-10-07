@@ -35,7 +35,8 @@ service cloud.firestore {
     // src/contactGuard.js (which also catches spelled-out numbers and messenger
     // names before anything is sent).
     function noContactInfo(t) {
-      return !t.matches('[\\s\\S]*[0-9]([ ().+/-]{0,2}[0-9]){8,}[\\s\\S]*')
+      // a digit run that runs into a time ("2026-10-07 10:00") is a date, not a phone
+      return !t.matches('[\\s\\S]*[0-9]([ ().+/-]{0,2}[0-9]){8,}([^0-9:][\\s\\S]*)?')
         && !t.matches('[\\s\\S]*[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+([.][A-Za-z0-9-]+)+[\\s\\S]*')
         && !t.matches('[\\s\\S]*(https?://|www[.])[\\s\\S]*');
     }
@@ -137,6 +138,53 @@ service cloud.firestore {
         || isSignedInAdmin()
       );
       allow delete: if isSignedInAdmin();
+    }
+
+    // ---- public profile card (what other members see) ----------------------
+    // usernames/{name} = { uid }: one owner per name, so names are unique.
+    match /usernames/{name} {
+      allow read: if true; // the "is this name free?" check
+      allow create: if signedIn()
+        && name.matches('[a-z0-9_]{3,20}')
+        && request.resource.data.keys().hasOnly(['uid'])
+        && request.resource.data.uid == request.auth.uid;
+      allow delete: if signedIn() && (resource.data.uid == request.auth.uid || isSignedInAdmin());
+    }
+
+    // The role must match the private account, so nobody can call themselves a farmer.
+    function validPublicRole(role, uid) {
+      let u = get(/databases/$(database)/documents/users/$(uid)).data;
+      let type = u.get('userType', 'consumer');
+      return role == type
+        || (role == 'organization' && type == 'consumer'
+            && (u.get('isOrganization', false) == true
+                || u.get('questionnaireData', {}).get('consumerType', 'Individual Buyer') != 'Individual Buyer'))
+        || (role == 'admin' && isSignedInAdmin());
+    }
+
+    function validPhoto(p) {
+      return p == ''
+        || (p.size() <= 500 && p.matches('https://res[.]cloudinary[.]com/[A-Za-z0-9_./-]+'))
+        || (p.size() <= 90000 && p.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+'));
+    }
+
+    function validPublicProfile(d, uid) {
+      return d.keys().hasOnly(['displayName', 'username', 'photoURL', 'bio', 'region', 'role', 'cover', 'memberSince', 'updatedAt'])
+        && d.displayName is string && d.displayName.size() > 0 && d.displayName.size() <= 60 && noContactInfo(d.displayName)
+        && d.get('bio', '') is string && d.get('bio', '').size() <= 160 && noContactInfo(d.get('bio', ''))
+        && d.get('region', '') is string && d.get('region', '').size() <= 40
+        && d.get('cover', '') is string && d.get('cover', '').size() <= 20
+        && d.get('memberSince', '') is string && d.get('memberSince', '').size() <= 40
+        && d.get('photoURL', '') is string && validPhoto(d.get('photoURL', ''))
+        && validPublicRole(d.role, uid)
+        && (d.get('username', '') == ''
+            || getAfter(/databases/$(database)/documents/usernames/$(d.username)).data.uid == uid);
+    }
+
+    match /publicProfiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && request.auth.uid == uid && validPublicProfile(request.resource.data, uid);
+      allow delete: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
     }
 
     // Same approval test the app uses (see isApprovedStatus in src/App.js). Users can no

@@ -5,9 +5,9 @@ import "./Prices.css";
 import tomatoesImg from "./images/Découvrez combien de pieds de tomate planter par m² pour une récolte optimale.jpg";
 import maizeImg from "./images/farm2.jpg";
 import poultryImg from "./images/How to Raise Laying Hens - DIY Chicken Feed - Egg Harvesting_.jpg";
-import cattleImg from "./images/cows.jpg";
+import cattleImg from "./images/dash-cattle.jpg";
 import vegetablesImg from "./images/farm3.jpg";
-import grainsImg from "./images/farm4.jpg";
+import grainsImg from "./images/dash-grains.jpg";
 
 const producePrices = [
   {

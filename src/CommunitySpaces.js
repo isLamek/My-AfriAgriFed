@@ -1,6 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { MessageSquare, Newspaper, ShoppingCart } from "lucide-react";
+import farmingImg from "./images/farming.jpg";
+import grainsImg from "./images/dash-grains.jpg";
+import marketImg from "./images/dash-market.jpg";
 import "./CommunitySpaces.css";
 
 // The three places people meet on AfriAgriFed. Each has one job; this strip is
@@ -14,6 +17,7 @@ export const SPACES = [
     blurb: "Share news, photos, tips and questions. Open conversation, no deals.",
     path: "/dashboard",
     state: { page: "feed" },
+    photo: farmingImg,
   },
   {
     id: "demand",
@@ -22,6 +26,7 @@ export const SPACES = [
     job: "Request",
     blurb: "Buyers post a bulk quantity they need. Producers pledge to supply it.",
     path: "/demand-board",
+    photo: grainsImg,
   },
   {
     id: "market",
@@ -31,6 +36,7 @@ export const SPACES = [
     blurb: "Ready-to-sell listings from producers. Pick one and pay.",
     path: "/dashboard",
     state: { page: "prices" },
+    photo: marketImg,
   },
 ];
 
@@ -63,6 +69,7 @@ export default function CommunitySpaces({ active, userType, onSelect }) {
             className={`aaf-space ${on ? "on" : ""}`}
             aria-current={on ? "page" : undefined}
             onClick={() => choose(space)}
+            style={{ "--aaf-space-photo": `url(${space.photo})` }}
           >
             <span className="aaf-space-icon"><Icon size={18} /></span>
             <span className="aaf-space-text">

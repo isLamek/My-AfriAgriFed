@@ -147,7 +147,7 @@
   max-width: 75%;
   align-self: flex-start;
   background: var(--aaf-mist);
-  border-radius: 12px 12px 12px 4px;
+  border-radius: 6px 6px 6px 2px;
   padding: 0.55rem 0.8rem;
 }
 
@@ -155,7 +155,7 @@
   align-self: flex-end;
   background: var(--aaf-baobab);
   color: var(--aaf-white);
-  border-radius: 12px 12px 4px 12px;
+  border-radius: 6px 6px 2px 6px;
 }
 
 .msg-bubble p {

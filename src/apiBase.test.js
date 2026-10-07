@@ -39,6 +39,9 @@ describe("API_BASE_URL", () => {
 
 describe("things that need the backend say so when there is none", () => {
   it("uploads refuse with a plain message", async () => {
+    // No unsigned preset either, whatever the local .env holds.
+    process.env.REACT_APP_CLOUDINARY_CLOUD_NAME = "";
+    process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET = "";
     load({ nodeEnv: "production" });
     const { uploadToCloudinary } = require("./cloudinairyUpload");
     await expect(uploadToCloudinary({ name: "x.png" })).rejects.toThrow(/being set up/i);

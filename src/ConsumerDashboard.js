@@ -42,13 +42,6 @@ import ListingCard from "./ListingCard";
 import { chatWith } from "./chat";
 import { checkForContactInfo, maskContactInfo } from "./contactGuard";
 
-// One place to stop contact details before anything is posted publicly.
-const blockedContact = (text) => {
-  const result = checkForContactInfo(text);
-  if (result.ok) return false;
-  toast.error(result.message);
-  return true;
-};
 import AppShell from "./AppShell";
 import {
   Heart,
@@ -62,6 +55,15 @@ import {
 } from "lucide-react";
 
 import "./ConsumerDashboard.css";
+import { MemberAvatar } from "./Avatar";
+
+// One place to stop contact details before anything is posted publicly.
+const blockedContact = (text) => {
+  const result = checkForContactInfo(text);
+  if (result.ok) return false;
+  toast.error(result.message);
+  return true;
+};
 
 const MAX_POST_LENGTH = 500;
 const FEED_WINDOW = 60; // most recent N posts pulled from Realtime DB
@@ -77,22 +79,6 @@ function formatRelativeTime(timestamp) {
   const days = Math.round(hours / 24);
   if (days < 7) return `${days}d ago`;
   return new Date(timestamp).toLocaleDateString();
-}
-
-const AVATAR_COLORS = ["#044d3a", "#7bb141", "#c3602b", "#2f6fb0", "#7c4fd1", "#0f9488"];
-
-function avatarColor(name) {
-  const str = name || "?";
-  let hash = 0;
-  for (let i = 0; i < str.length; i += 1) hash = str.charCodeAt(i) + ((hash << 5) - hash);
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
-}
-
-function initials(name) {
-  if (!name) return "?";
-  const parts = name.replace(/@.*/, "").split(/[\s._-]+/).filter(Boolean);
-  if (parts.length === 0) return name[0]?.toUpperCase() || "?";
-  return (parts[0][0] + (parts[1]?.[0] || "")).toUpperCase();
 }
 
 // Lightweight engagement ranking (freshness decay + likes/comments weight) -
@@ -600,9 +586,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
   className="post-card"
 >
   <div className="post-header">
-    <span className="post-avatar" style={{ background: avatarColor(post.userName) }}>
-      {initials(post.userName)}
-    </span>
+    <MemberAvatar uid={post.userId} name={post.userName} size={36} className="post-avatar" />
     <div className="post-header-text">
       <h4>
         {post.userName}
@@ -653,9 +637,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
      return (
      <div key={comment.id} className="comment-thread">
        <div className="comment">
-         <span className="comment-avatar" style={{ background: avatarColor(comment.userName || comment.userId) }}>
-           {initials(comment.userName || comment.userId)}
-         </span>
+         <MemberAvatar uid={comment.userId} name={comment.userName || comment.userId} size={28} className="comment-avatar" />
          <div className="comment-body">
            <strong>{comment.userName || "Member"}</strong>
            <p>{maskContactInfo(comment.text)}</p>
@@ -674,9 +656,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
              <div className="comment-replies">
                {replies.map((reply) => (
                  <div key={reply.id} className="comment reply">
-                   <span className="comment-avatar" style={{ background: avatarColor(reply.userName || reply.userId) }}>
-                     {initials(reply.userName || reply.userId)}
-                   </span>
+                   <MemberAvatar uid={reply.userId} name={reply.userName || reply.userId} size={28} className="comment-avatar" />
                    <div className="comment-body">
                      <strong>{reply.userName || "Member"}</strong>
                      <p>{maskContactInfo(reply.text)}</p>

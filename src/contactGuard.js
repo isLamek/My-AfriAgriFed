@@ -12,10 +12,12 @@
 // A phone number is a long run of digits, possibly written with spaces, dashes,
 // dots, brackets or a leading +. Namibian numbers have 9 to 12 digits
 // (061 123456, 081 123 4567, +264 81 123 4567). Dates (2026-10-15 = 8 digits),
-// prices and quantities are shorter, so 9+ digits is the line.
-const PHONE = /(?:\+|\b00)?\(?\d(?:[\s().\-/]{0,2}\d){8,}/g;
+// prices and quantities are shorter, so 9+ digits is the line. A run that
+// runs into a time ("2026-10-07 10:00") is a date, not a number, so a run
+// followed by ":" does not count.
+const PHONE = /(?:\+|\b00)?\(?\d(?:[\s().\-/]{0,2}\d){8,}(?![\d:])/g;
 // The same rule written for the server (RE2 syntax, whole-string match).
-export const SERVER_PHONE_PATTERN = "[0-9]([ ().+/-]{0,2}[0-9]){8,}";
+export const SERVER_PHONE_PATTERN = "[0-9]([ ().+/-]{0,2}[0-9]){8,}([^0-9:]|$)";
 
 const EMAIL = /[A-Za-z0-9._%+-]+\s*(?:@|\(at\)|\[at\]|\sat\s)\s*[A-Za-z0-9-]+(?:\s*(?:\.|\(dot\)|\[dot\]|\sdot\s)\s*[A-Za-z0-9-]+)+/gi;
 const URL = /\b(?:https?:\/\/|www\.)\S+|\b[a-z0-9-]+\.(?:com|na|net|org|io|co|me|info|biz|app|link|ly|store|shop)\b(?:\/\S*)?/gi;

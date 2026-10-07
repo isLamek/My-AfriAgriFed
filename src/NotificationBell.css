@@ -7,7 +7,7 @@
   position: relative;
   border: none;
   background: #ffffff;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   width: 42px;
   height: 42px;
   display: flex;
@@ -26,7 +26,7 @@
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   padding: 1px 6px;
   min-width: 18px;
   line-height: 1.4;
@@ -40,7 +40,7 @@
   max-height: 400px;
   overflow-y: auto;
   background: #ffffff;
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
   padding: 1rem;
   z-index: 50;
@@ -64,7 +64,7 @@
   text-align: left;
   border: none;
   background: #f7f9fc;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   padding: 0.6rem 0.75rem;
   margin-bottom: 0.5rem;
   cursor: pointer;

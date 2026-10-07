@@ -45,25 +45,23 @@ const {
 const commissionRate = Number(PLATFORM_COMMISSION_RATE) || 0.05;
 const appBaseUrl = APP_BASE_URL || "http://localhost:3000";
 
-if (
-  !CLOUDINARY_CLOUD_NAME ||
-  !CLOUDINARY_API_KEY ||
-  !CLOUDINARY_API_SECRET
-) {
-  console.error(
-    "Missing Cloudinary env vars. Set CLOUDINARY_CLOUD_NAME, " +
-    "CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET in your .env file."
-  );
-  process.exit(1);
+// Signed uploads are optional: without these three keys the site uploads
+// with the unsigned preset instead (REACT_APP_CLOUDINARY_UPLOAD_PRESET), so
+// the weather, fire and payment services still start.
+const signedUploads = !!(CLOUDINARY_CLOUD_NAME && CLOUDINARY_API_KEY && CLOUDINARY_API_SECRET);
+if (signedUploads) {
+  cloudinary.config({
+    cloud_name: CLOUDINARY_CLOUD_NAME,
+    api_key: CLOUDINARY_API_KEY,
+    api_secret: CLOUDINARY_API_SECRET
+  });
+} else {
+  console.warn("Cloudinary API key/secret not set: signed uploads are off; the site uses the unsigned preset.");
 }
 
-cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET
-});
-
 app.get("/api/cloudinary-signature", rateLimit({ windowMs: 60000, max: 30 }), (req, res) => {
+  // 503 tells the site to fall back to its unsigned upload preset.
+  if (!signedUploads) return res.status(503).json({ error: "Signed uploads are not configured" });
   try {
     const folder = req.query.folder || "posts";
     const timestamp = Math.round(Date.now() / 1000);

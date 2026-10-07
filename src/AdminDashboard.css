@@ -190,7 +190,7 @@
 
 .remove-admin-btn {
   border: none;
-  border-radius: 6px;
+  border-radius: var(--aaf-radius-sm);
   padding: 0.4rem 0.8rem;
   background: var(--aaf-danger-bg);
   color: var(--aaf-danger);

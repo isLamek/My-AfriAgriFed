@@ -1,0 +1,127 @@
+/* A soft "liquid glass" layer for every signed-in page.
+   Cards become frosted, slightly see-through panes with a light top edge, over
+   a mint background with two faint washes of green, so sections blend into
+   each other instead of being boxed off. Scoped to .aaf-shell so the public
+   home page is untouched. */
+
+.aaf-shell .aaf-shell-main {
+  background:
+    radial-gradient(900px 520px at 88% 6%, rgba(46, 204, 113, 0.1), transparent 62%),
+    radial-gradient(760px 560px at 6% 72%, rgba(181, 228, 140, 0.2), transparent 62%),
+    linear-gradient(135deg, #f8fff8 0%, #e8f5e8 100%);
+  background-attachment: fixed;
+}
+
+/* The photo banner fades into the page instead of ending on a hard line;
+   the content starts inside the fade. */
+.aaf-shell .aaf-shell-topbar {
+  border-bottom: 0;
+  padding-bottom: 3.25rem;
+  margin-bottom: -1.75rem;
+  -webkit-mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+  mask-image: linear-gradient(to bottom, #000 62%, transparent 100%);
+}
+
+.aaf-shell .aaf-shell-content {
+  position: relative; /* paints over the faded banner */
+}
+
+/* ---- the panes ---- */
+.aaf-shell .aaf-shell-main :is(
+  .aaf-card, .post-card, .price-card, .listing-card, .produce-card, .ot-card,
+  .ot-empty-card, .stat-card, .admin-stat-card, .admin-panel, .insight-panel,
+  .research-card, .research-list-card, .farmer-problem-card, .problem-card,
+  .training-card, .training-form-card, .internship-card, .internships-form-card,
+  .promo-card, .payout-card, .profile-document-card, .jump-card, .trend-chart,
+  .promo-ticker
+) {
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.82) 0%, rgba(255, 255, 255, 0.62) 100%);
+  -webkit-backdrop-filter: blur(14px) saturate(140%);
+  backdrop-filter: blur(14px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  box-shadow:
+    0 10px 30px rgba(2, 47, 31, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+}
+
+/* things inside a pane are set apart by a faint tint, not another outline */
+.aaf-shell .aaf-shell-main :is(
+  .comments, .comment-replies, .demand-thread, .msg-thread-head, .msg-compose,
+  .profile-field, .feed-heading, .qty-box, .market-search, .event-type-list li
+) {
+  border-color: transparent;
+  background-color: rgba(2, 47, 31, 0.035);
+}
+
+.aaf-shell .aaf-shell-main .post-actions {
+  border-top-color: rgba(2, 47, 31, 0.06);
+}
+
+/* inputs stay readable but sit softly in the glass */
+.aaf-shell .aaf-shell-main :is(input, textarea, select):not([type="checkbox"]):not([type="radio"]):not([type="range"]) {
+  background-color: rgba(255, 255, 255, 0.72);
+  border-color: rgba(2, 47, 31, 0.1);
+}
+
+.aaf-shell .aaf-shell-main :is(input, textarea, select):focus {
+  background-color: #fff;
+  border-color: #2ecc71;
+  box-shadow: 0 0 0 3px rgba(46, 204, 113, 0.15);
+  outline: none;
+}
+
+/* the sidebar scrolls if it must, but never shows a scrollbar */
+.aaf-sidebar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.aaf-sidebar::-webkit-scrollbar {
+  display: none;
+}
+
+/* short screens: tighten the menu so it fits without scrolling */
+@media (min-width: 901px) and (max-height: 760px) {
+  .aaf-sidebar {
+    padding-top: 0.9rem;
+    padding-bottom: 0.9rem;
+  }
+
+  .aaf-sidebar-brand {
+    padding-bottom: 0.9rem;
+  }
+
+  .aaf-sidebar-nav {
+    gap: 0.7rem;
+  }
+
+  .aaf-sidebar-link,
+  .aaf-sidebar-logout {
+    padding-top: 0.45rem;
+    padding-bottom: 0.45rem;
+  }
+
+  .aaf-sidebar-heading {
+    margin-bottom: 0.3rem;
+  }
+}
+
+/* Phones: same look without the blur, which is heavy on budget handsets. */
+@media (max-width: 900px) {
+  .aaf-shell .aaf-shell-main {
+    background-attachment: scroll;
+  }
+
+  .aaf-shell .aaf-shell-main :is(
+    .aaf-card, .post-card, .price-card, .listing-card, .produce-card, .ot-card,
+    .ot-empty-card, .stat-card, .admin-stat-card, .admin-panel, .insight-panel,
+    .research-card, .research-list-card, .farmer-problem-card, .problem-card,
+    .training-card, .training-form-card, .internship-card, .internships-form-card,
+    .promo-card, .payout-card, .profile-document-card, .jump-card, .trend-chart,
+    .promo-ticker
+  ) {
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+    background: rgba(255, 255, 255, 0.88);
+  }
+}

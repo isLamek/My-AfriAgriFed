@@ -49,7 +49,7 @@
 .insights-brand img {
   width: 34px;
   height: 34px;
-  border-radius: 9px;
+  border-radius: var(--aaf-radius-md);
 }
 
 .insights-public-actions {
@@ -345,7 +345,7 @@
 .promo-ticker-item img {
   width: 28px;
   height: 28px;
-  border-radius: 6px;
+  border-radius: var(--aaf-radius-sm);
   object-fit: cover;
 }
 

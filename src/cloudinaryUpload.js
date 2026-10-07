@@ -64,6 +64,9 @@ function friendlyCloudinaryError(message) {
   if (/upload preset/i.test(text)) {
     return "Uploads are not set up correctly (the Cloudinary upload preset is missing or not unsigned). Please tell the AfriAgriFed team.";
   }
+  if (/cloud_name|unknown api key|invalid cloud/i.test(text)) {
+    return "Uploads are not set up correctly (the Cloudinary cloud name is wrong). Please tell the AfriAgriFed team.";
+  }
   if (/file size too large/i.test(text)) return "That file is too large. Please upload a smaller one.";
   if (/invalid image file|unsupported/i.test(text)) return "That file type isn't supported. Please try a JPG, PNG or PDF.";
   return text || "The upload failed. Please try again.";

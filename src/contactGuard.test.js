@@ -67,6 +67,12 @@ describe("messages and masking", () => {
     expect(findContactInfo("081 123 4567").map((f) => f.type)).toEqual(["phone"]);
     expect(findContactInfo("")).toEqual([]);
   });
+
+  it("does not mistake a date with a time for a phone number", () => {
+    expect(checkForContactInfo("Deliver by 2026-10-07 10:00 please").ok).toBe(true);
+    expect(checkForContactInfo("Pickup 12/10/2026 14:30").ok).toBe(true);
+    expect(findContactInfo("Pickup 12/10/2026, call 081 234 5678").map((f) => f.type)).toEqual(["phone"]);
+  });
 });
 
 describe("the server's simpler rule agrees on the common cases", () => {
@@ -75,7 +81,7 @@ describe("the server's simpler rule agrees on the common cases", () => {
   it.each(["0811234567", "081 123 4567", "+264 81 123 4567", "call (061) 123 456 now"])("server also blocks %s", (t) =>
     expect(server.test(t)).toBe(true)
   );
-  it.each(["1200 kg", "2026-10-15", "N$ 1,500.00", "Order 12345678"])("server also allows %s", (t) =>
+  it.each(["1200 kg", "2026-10-15", "N$ 1,500.00", "Order 12345678", "Deliver by 2026-10-07 10:00", "Pickup 12/10/2026 14:30"])("server also allows %s", (t) =>
     expect(server.test(t)).toBe(false)
   );
 });

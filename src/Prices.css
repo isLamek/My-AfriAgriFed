@@ -35,7 +35,7 @@
 
 .prices-actions button {
   border: none;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   padding: 12px 18px;
   background: #ffffff;
   color: #234717;
@@ -59,7 +59,7 @@
 
 .produce-card {
   background: #ffffff;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   overflow: hidden;
   box-shadow: 0 10px 24px rgba(31, 56, 23, 0.1);
   border: 1px solid rgba(46, 125, 50, 0.12);

@@ -140,7 +140,7 @@
   background: rgba(2, 47, 31, 0.75);
   color: #fff;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   width: 20px;
   height: 20px;
   display: flex;
@@ -185,7 +185,7 @@
   color: var(--aaf-canopy);
   width: 32px;
   height: 32px;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   display: flex;
   align-items: center;
   justify-content: center;

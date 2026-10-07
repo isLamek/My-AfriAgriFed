@@ -52,7 +52,7 @@
   background: rgba(2, 47, 31, 0.75);
   color: #fff;
   border: none;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   width: 24px;
   height: 24px;
   display: flex;
@@ -92,7 +92,7 @@
   display: flex;
   gap: 4px;
   background: var(--aaf-mist);
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   padding: 3px;
 }
 
@@ -103,7 +103,7 @@
   border: none;
   background: transparent;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--aaf-text-muted);
@@ -118,7 +118,7 @@
 
 .market-search {
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   border: 1px solid var(--aaf-border);
   font-family: inherit;
   font-size: 0.85rem;
@@ -172,7 +172,7 @@
   font-size: 0.72rem;
   font-weight: 700;
   padding: 4px 10px;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
 }
 
 .post-header {
@@ -224,7 +224,7 @@
   background: var(--aaf-shoot);
   color: var(--aaf-accent-contrast);
   padding: 2px 8px;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
 }
 
 .post-time {
@@ -238,7 +238,7 @@
   color: var(--aaf-text-muted);
   cursor: pointer;
   padding: 4px;
-  border-radius: 6px;
+  border-radius: var(--aaf-radius-sm);
 }
 
 .post-delete-btn:hover {
@@ -538,7 +538,7 @@
   display: inline-block;
   margin-top: 10px;
   padding: 6px 12px;
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   background: var(--aaf-danger-bg);
   color: var(--aaf-danger);
   font-size: 0.8rem;
@@ -576,7 +576,7 @@
   margin-top: 10px;
   padding: 12px 16px;
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   background: linear-gradient(135deg, #2ecc71, #27ae60);
   color: #fff;
   font: inherit;
@@ -624,7 +624,7 @@
   margin-top: 6px;
   padding: 6px 12px;
   border: 1px solid var(--aaf-border);
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   background: var(--aaf-surface);
   font: inherit;
   font-size: 0.8rem;

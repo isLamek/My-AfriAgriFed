@@ -21,7 +21,7 @@
 .register-card {
   background: rgba(255, 255, 255, 0.85); /* More transparent */
   backdrop-filter: blur(15px);
-  border-radius: 20px;
+  border-radius: var(--aaf-radius-md);
   padding: 40px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
   border: 2px solid rgba(46, 204, 113, 0.8); /* More transparent border */
@@ -170,7 +170,7 @@
 .form-group select {
   padding: 12px 16px;
   border: 2px solid rgba(224, 224, 224, 0.8); /* More transparent */
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   font-size: 16px;
   transition: all 0.3s ease;
   background: rgba(255, 255, 255, 0.8); /* More transparent */
@@ -206,7 +206,7 @@
 .document-group {
   background: rgba(248, 255, 248, 0.7); /* More transparent */
   padding: 20px;
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   border: 2px dashed rgba(46, 204, 113, 0.6); /* More transparent */
 }
 
@@ -228,7 +228,7 @@
   width: 100%;
   padding: 10px;
   border: 1px solid rgba(221, 221, 221, 0.8); /* More transparent */
-  border-radius: 6px;
+  border-radius: var(--aaf-radius-sm);
   background: rgba(255, 255, 255, 0.9);
 }
 
@@ -251,7 +251,7 @@
 .btn-outline {
   padding: 14px 28px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
@@ -308,7 +308,7 @@
 .registration-note {
   background: rgba(255, 243, 205, 0.7); /* More transparent */
   border: 1px solid rgba(255, 234, 167, 0.8); /* More transparent */
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   padding: 15px;
   margin-top: 20px;
 }
@@ -405,7 +405,7 @@
 .terms-container {
   background: rgba(248, 255, 248, 0.7);
   padding: 20px;
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   border: 2px solid rgba(46, 204, 113, 0.6);
 }
 
@@ -427,7 +427,7 @@
 .terms-content {
   background: rgba(255, 255, 255, 0.8);
   padding: 15px;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   border-left: 4px solid #2ecc71;
   font-size: 14px;
   line-height: 1.5;
@@ -537,7 +537,7 @@
 .questionnaire-placeholder {
   background: white;
   padding: 40px;
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   text-align: center;
 }
@@ -658,7 +658,7 @@
 .terms-content {
   background: #f9fcf9;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   margin-top: 15px;
   border: 1px solid #e0e6dd;
   max-height: 300px;

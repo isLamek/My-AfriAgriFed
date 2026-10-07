@@ -148,7 +148,7 @@
 }
 
 .article-meta span {
-  border-radius: 999px;
+  border-radius: var(--aaf-radius-sm);
   padding: 5px 9px;
   background: var(--aaf-mist);
   color: var(--aaf-baobab);

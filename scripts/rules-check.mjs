@@ -9,7 +9,7 @@
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import {
-  addDoc, collection, connectFirestoreEmulator, doc, getDoc, getFirestore, serverTimestamp, setDoc, updateDoc,
+  addDoc, collection, connectFirestoreEmulator, doc, getDoc, getFirestore, serverTimestamp, setDoc, updateDoc, writeBatch,
 } from "firebase/firestore";
 import { connectDatabaseEmulator, getDatabase, push, ref, set } from "firebase/database";
 
@@ -107,6 +107,12 @@ await expectDenied("a Demand Board message with a phone number", () =>
 await expectOk("a normal feed comment", () =>
   set(push(ref(rtdb, "posts/seed_post_1/comments")), { userId: buyer.uid, userName: "Bea", text: "Great news!", createdAt: Date.now() })
 );
+await expectOk("a chat message with a date and time (not a phone number)", () =>
+  addDoc(collection(db, "conversations", convId, "messages"), { senderId: buyer.uid, text: "Deliver by 2026-10-07 10:00 please", createdAt: serverTimestamp() })
+);
+await expectOk("a feed comment with a date and time", () =>
+  set(push(ref(rtdb, "posts/seed_post_1/comments")), { userId: buyer.uid, userName: "Bea", text: "Market day 12/10/2026 14:30", createdAt: Date.now() })
+);
 await expectDenied("a feed comment with a phone number", () =>
   set(push(ref(rtdb, "posts/seed_post_1/comments")), { userId: buyer.uid, userName: "Bea", text: "sms 0811234567", createdAt: Date.now() })
 );
@@ -140,6 +146,30 @@ await expectOk("the admin, testing as a farmer, can post a listing", () =>
 
 const farmer = await as("farmer@aaf.test");
 await expectDenied("a farmer cannot read the buyer's private chat", () => getDoc(doc(db, "conversations", `listing_lst_mahangu_x${farmer.uid}`)).then((s) => { if (!s.exists()) throw Object.assign(new Error("permission-denied"), { code: "permission-denied" }); }));
+
+console.log("\nPublic profiles and usernames");
+const handle = `bea_${Date.now() % 1000000}`; // fresh each run: names stay claimed
+const card = (extra = {}) => ({ displayName: "Bea Buyer", username: "", photoURL: "", bio: "", region: "Khomas", role: "consumer", cover: "", memberSince: "Oct 2026", ...extra });
+const buyer2 = await as("buyer@aaf.test");
+await expectOk("a buyer claims a username and saves their card in one write", () => {
+  const batch = writeBatch(db);
+  batch.set(doc(db, "usernames", handle), { uid: buyer2.uid });
+  batch.set(doc(db, "publicProfiles", buyer2.uid), card({ username: handle, bio: "Fresh veg for our family shop." }));
+  return batch.commit();
+});
+await expectDenied("a buyer calls themselves a farmer", () => setDoc(doc(db, "publicProfiles", buyer2.uid), card({ role: "farmer" })));
+await expectDenied("a bio with a phone number", () => setDoc(doc(db, "publicProfiles", buyer2.uid), card({ bio: "call 081 234 5678" })));
+await expectDenied("a profile photo from another website", () => setDoc(doc(db, "publicProfiles", buyer2.uid), card({ photoURL: "https://evil.example/x.jpg" })));
+await expectOk("a small uploaded photo kept on the card", () => setDoc(doc(db, "publicProfiles", buyer2.uid), card({ username: handle, photoURL: "data:image/jpeg;base64,/9j/4AAQSkZJRg==" })));
+await expectDenied("a username with spaces or capitals", () => setDoc(doc(db, "usernames", "Bad Name"), { uid: buyer2.uid }));
+const farmer2 = await as("farmer@aaf.test");
+await expectOk("a farmer can see the buyer's public card", () => getDoc(doc(db, "publicProfiles", buyer2.uid)));
+await expectDenied("a farmer takes the buyer's username", () => setDoc(doc(db, "usernames", handle), { uid: farmer2.uid }));
+await expectDenied("a farmer puts the buyer's username on their own card", () =>
+  setDoc(doc(db, "publicProfiles", farmer2.uid), card({ displayName: "Ndapewa", role: "farmer", username: handle }))
+);
+await expectDenied("a farmer edits the buyer's card", () => setDoc(doc(db, "publicProfiles", buyer2.uid), card({ displayName: "Hacked" })));
+await expectOk("a farmer saves their own card", () => setDoc(doc(db, "publicProfiles", farmer2.uid), card({ displayName: "Ndapewa Shikongo", role: "farmer", region: "Oshana" })));
 
 await signOut(auth);
 console.log(failures === 0 ? "\nAll rule checks passed.\n" : `\n${failures} rule check(s) FAILED.\n`);

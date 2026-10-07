@@ -9,7 +9,7 @@
 
 .user-card {
   background: var(--aaf-surface);
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   padding: 1.5rem;
   margin-bottom: 1.25rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
@@ -18,7 +18,7 @@
 
 .application-card {
   background: var(--aaf-surface);
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   padding: 1.5rem;
   margin-bottom: 1.25rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
@@ -33,7 +33,7 @@
 
 .document-review-card {
   background: var(--aaf-surface);
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   padding: 1.25rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   border-left: 6px solid #7c3aed;
@@ -98,7 +98,7 @@
 
 .admin-actions button {
   padding: 0.6rem 1.2rem;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   border: none;
   font-weight: 600;
   cursor: pointer;
@@ -128,7 +128,7 @@
   color: var(--aaf-text);
   background: #f1f5f9;
   padding: 0.75rem;
-  border-radius: 6px;
+  border-radius: var(--aaf-radius-sm);
 }
 
 .admin-subtitle.first {

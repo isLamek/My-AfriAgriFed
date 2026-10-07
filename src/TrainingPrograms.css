@@ -20,7 +20,7 @@
 
 .training-form-card {
   background: var(--aaf-surface);
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   padding: 1.5rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
   align-self: start;
@@ -45,7 +45,7 @@
 .training-form-card textarea,
 .training-form-card select {
   padding: 0.6rem 0.7rem;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   border: 1px solid var(--aaf-border);
   font-family: inherit;
 }
@@ -58,7 +58,7 @@
 
 .publish-btn {
   border: none;
-  border-radius: 8px;
+  border-radius: var(--aaf-radius-sm);
   padding: 0.8rem;
   background: var(--aaf-primary);
   color: var(--aaf-surface);
@@ -74,7 +74,7 @@
 
 .training-card {
   background: var(--aaf-surface);
-  border-radius: 12px;
+  border-radius: var(--aaf-radius-md);
   padding: 1.25rem;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.05);
 }
