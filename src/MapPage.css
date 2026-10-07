@@ -348,10 +348,10 @@
     flex: none;
   }
 
+  /* wraps onto a second line instead of a sideways scroll */
   .fv-layers {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    flex: 1 1 0;
+    flex-wrap: wrap;
+    flex: 1 1 100%;
     min-width: 0;
   }
 
@@ -945,4 +945,114 @@ p.fv-error {
   display: inline-flex;
   align-items: center;
   gap: 6px;
+}
+
+/* ---- weather readout that follows the cursor (farmview/cursorReadout.js) ---- */
+.fv-hover {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  display: grid;
+  gap: 2px;
+  min-width: 150px;
+  padding: 8px 11px;
+  border-radius: var(--aaf-radius-sm);
+  background: rgba(2, 47, 31, 0.78);
+  -webkit-backdrop-filter: blur(10px) saturate(140%);
+  backdrop-filter: blur(10px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+  color: #fff;
+  font-size: 0.8rem;
+  line-height: 1.35;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.fv-hover[hidden] {
+  display: none;
+}
+
+.fv-hover-place {
+  font-weight: 700;
+  color: #b5e48c;
+}
+
+.fv-hover-coords {
+  margin-top: 2px;
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ---- "My location" ---- */
+.fv-locate {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fv-me {
+  width: 16px;
+  height: 16px;
+  border: 3px solid #fff;
+  border-radius: 50%;
+  background: #2f80ed;
+  box-shadow: 0 0 0 6px rgba(47, 128, 237, 0.25), 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+/* ---- phones and tablets: fold the layer list behind one button ---- */
+.fv-layers-toggle {
+  display: none;
+}
+
+@media (max-width: 1100px) {
+  .fv-layers-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 40px;
+    padding: 0 0.75rem;
+    border: 1px solid rgba(2, 47, 31, 0.12);
+    border-radius: var(--aaf-radius-sm);
+    background: #fff;
+    font: inherit;
+    font-size: 0.86rem;
+    font-weight: 600;
+    color: var(--aaf-canopy);
+    cursor: pointer;
+  }
+
+  .fv-layers-toggle span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .fv-layers-chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }
+
+  .fv-controls.open .fv-layers-chevron {
+    transform: rotate(180deg);
+  }
+
+  .fv-controls:not(.open) > :not(.fv-seg):not(.fv-layers-toggle) {
+    display: none;
+  }
+
+  .fv-controls.open {
+    max-height: 70%;
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 1100px) {
+  /* zoom buttons below the control bar, not under it */
+  .fv-wrap .maplibregl-ctrl-top-right {
+    top: 64px;
+  }
 }

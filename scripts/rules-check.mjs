@@ -171,6 +171,25 @@ await expectDenied("a farmer puts the buyer's username on their own card", () =>
 await expectDenied("a farmer edits the buyer's card", () => setDoc(doc(db, "publicProfiles", buyer2.uid), card({ displayName: "Hacked" })));
 await expectOk("a farmer saves their own card", () => setDoc(doc(db, "publicProfiles", farmer2.uid), card({ displayName: "Ndapewa Shikongo", role: "farmer", region: "Oshana" })));
 
+console.log("\nMarket Map pins and listing photos");
+const listing = (extra = {}) => ({ product: "Rules check onions", price: 12, unit: "kg", quantity: 10, imageUrl: "", sellerId: farmer2.uid, sellerName: "Ndapewa", sellerSubaccountId: null, createdAt: serverTimestamp(), ...extra });
+const oshakati = { lat: -17.79, lng: 15.7, label: "Near Oshakati", region: "Oshana" };
+await expectOk("a listing with a pin in Namibia and a stored photo", () =>
+  addDoc(collection(db, "marketPrices"), listing({ location: oshakati, imageUrl: "data:image/jpeg;base64,/9j/4AAQSkZJRg==" }))
+);
+await expectDenied("a listing pinned outside Namibia", () => addDoc(collection(db, "marketPrices"), listing({ location: { ...oshakati, lat: 51.5, lng: -0.12 } })));
+await expectDenied("a listing pin labelled with a phone number", () => addDoc(collection(db, "marketPrices"), listing({ location: { ...oshakati, label: "call 081 234 5678" } })));
+await expectDenied("a listing photo from another website", () => addDoc(collection(db, "marketPrices"), listing({ imageUrl: "https://evil.example/x.jpg" })));
+await expectDenied("a pin with extra hidden fields", () => addDoc(collection(db, "marketPrices"), listing({ location: { ...oshakati, exact: "farm gate" } })));
+await as("buyer@aaf.test");
+await expectOk("a Demand Board request with a delivery pin", () =>
+  addDoc(collection(db, "demandRequests"), {
+    title: "Rules check: onions for the canteen", product: "Onions", quantityNeeded: 50, unit: "kg", deadline: null, notes: "",
+    location: { lat: -22.57, lng: 17.08, label: "Windhoek", region: "Khomas" },
+    buyerId: auth.currentUser.uid, buyerName: "Bea", buyerType: "consumer", status: "open", createdAt: serverTimestamp(),
+  })
+);
+
 await signOut(auth);
 console.log(failures === 0 ? "\nAll rule checks passed.\n" : `\n${failures} rule check(s) FAILED.\n`);
 process.exit(failures === 0 ? 0 : 1);

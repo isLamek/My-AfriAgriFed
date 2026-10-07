@@ -23,6 +23,7 @@ import {
   Map as MapIcon,
   Truck,
   MessageCircle,
+  MapPinned,
 } from "lucide-react";
 
 const iconProps = { size: 18, strokeWidth: 2 };
@@ -41,6 +42,7 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
   }
 
   mainItems.push({ label: "Demand Board", hint: "Request: buyers post bulk needs, producers pledge", icon: <MessageSquare {...iconProps} />, path: "/demand-board" });
+  mainItems.push({ label: "Market Map", hint: "Where produce is for sale and where it's wanted", icon: <MapPinned {...iconProps} />, path: "/market-map" });
 
   if (userType === "farmer") {
     mainItems.push({ label: "My Listings", icon: <Tags {...iconProps} />, path: "/my-listings" });
@@ -58,7 +60,7 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
   sections.push({
     heading: "Insights",
     items: [
-      { label: "Map", icon: <MapIcon {...iconProps} />, path: "/map" },
+      { label: "Weather Map", hint: "Live weather, satellite and fire hotspots", icon: <MapIcon {...iconProps} />, path: "/map" },
       { label: "Data Dashboard", icon: <BarChart3 {...iconProps} />, path: "/data" },
       { label: "Statistics", icon: <LineChart {...iconProps} />, path: "/statistics" },
       { label: "Promotions", icon: <Megaphone {...iconProps} />, path: "/promotions" },

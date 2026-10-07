@@ -322,3 +322,111 @@ body {
   word-break: break-word;
   white-space: pre-wrap;
 }
+
+/* No visible scrollbars anywhere (the owner's choice). Everything still
+   scrolls with a wheel, trackpad, keyboard or finger; rows of buttons wrap
+   instead of scrolling sideways. */
+html,
+body,
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+/* Tables become stacked cards on phones: each row a card, each value with
+   its column name (from data-label), so nothing scrolls sideways. */
+@media (max-width: 640px) {
+  .aaf-stack-table,
+  .aaf-stack-table tbody,
+  .aaf-stack-table tr,
+  .aaf-stack-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .aaf-stack-table thead {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+
+  .aaf-stack-table tr {
+    margin-bottom: 0.6rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: var(--aaf-radius-sm);
+    background: rgba(2, 47, 31, 0.035);
+  }
+
+  .aaf-stack-table td {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.35rem 0;
+    border: 0;
+    text-align: right;
+    word-break: break-word;
+  }
+
+  .aaf-stack-table td[data-label]::before {
+    content: attr(data-label);
+    flex-shrink: 0;
+    font-weight: 600;
+    color: var(--aaf-text-muted);
+    text-align: left;
+  }
+
+  .aaf-stack-table td:not([data-label]) {
+    justify-content: flex-end;
+  }
+}
+
+/* Touch screens: every tap target at least about 40 px tall (fingers, not
+   mouse pointers), and form text at 16 px so phones don't zoom in on focus. */
+@media (pointer: coarse), (max-width: 900px) {
+  .post-action-btn,
+  .comment-actions button,
+  .create-post-link,
+  .feed-mode-toggle button,
+  .aaf-btn,
+  .aaf-btn-sm,
+  .mm-chip,
+  .profile-tab,
+  .loc-gps,
+  .demand-filters button,
+  .ot-filter,
+  .test-role-banner button,
+  .aaf-member-chip,
+  .aaf-sidebar-link,
+  .aaf-sidebar-logout,
+  .fv-layers button,
+  .fv-seg button {
+    min-height: 40px;
+  }
+
+  .comment-actions button,
+  .create-post-link {
+    display: inline-flex;
+    align-items: center;
+    padding-left: 6px;
+    padding-right: 6px;
+  }
+
+  .aaf-shell input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  .aaf-shell select,
+  .aaf-shell textarea {
+    font-size: 16px;
+    min-height: 42px;
+  }
+
+  .aaf-shell textarea {
+    min-height: 84px;
+  }
+}

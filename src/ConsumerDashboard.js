@@ -8,7 +8,9 @@ import {
   collection,
   doc,
   getDoc,
-  onSnapshot
+  onSnapshot,
+  query as firestoreQuery,
+  where
 } from "firebase/firestore";
 
 import {
@@ -52,7 +54,10 @@ import {
   X,
   Sparkles,
   Clock,
+  Store,
 } from "lucide-react";
+import FeedMarketCard from "./FeedMarketCard";
+import { marketFeedItems, mixFeed } from "./feedMix";
 
 import "./ConsumerDashboard.css";
 import { MemberAvatar } from "./Avatar";
@@ -101,6 +106,24 @@ export default function ConsumerDashboard({ role = "consumer" }) {
 
   const [posts, setPosts] = useState([]);
   const [prices, setPrices] = useState([]);
+  const [demands, setDemands] = useState([]);
+  // market updates in the feed: on by default, remembered per browser
+  const [showMarket, setShowMarket] = useState(() => {
+    try {
+      return localStorage.getItem("aaf_feed_market") !== "off";
+    } catch {
+      return true;
+    }
+  });
+  const toggleMarket = () =>
+    setShowMarket((on) => {
+      try {
+        localStorage.setItem("aaf_feed_market", on ? "off" : "on");
+      } catch {
+        // storage blocked: the choice lasts for this visit
+      }
+      return !on;
+    });
 
   const [marketSearch, setMarketSearch] = useState("");
 
@@ -181,6 +204,22 @@ export default function ConsumerDashboard({ role = "consumer" }) {
     }
     return copy;
   }, [posts, feedMode]);
+
+  // Open Demand Board requests, for market cards in the feed.
+  useEffect(() => {
+    const unsubscribe = onSnapshot(
+      firestoreQuery(collection(db, "demandRequests"), where("status", "==", "open")),
+      (snapshot) => setDemands(snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))),
+      () => setDemands([])
+    );
+    return () => unsubscribe();
+  }, []);
+
+  // Posts with listings and requests in between (their own kind of card).
+  const feedItems = useMemo(
+    () => mixFeed(rankedPosts, showMarket ? marketFeedItems(prices, demands) : [], feedMode),
+    [rankedPosts, showMarket, prices, demands, feedMode]
+  );
 
   /*
   ==================================
@@ -561,13 +600,35 @@ export default function ConsumerDashboard({ role = "consumer" }) {
               >
                 <Clock size={14} /> Recent
               </button>
+              <button
+                className={`feed-market-toggle ${showMarket ? "active" : ""}`}
+                onClick={toggleMarket}
+                aria-pressed={showMarket}
+                title="Show new marketplace listings and Demand Board requests between posts"
+              >
+                <Store size={14} /> Market updates
+              </button>
             </div>
           </div>
 
-          {rankedPosts.length === 0 ? (
+          {feedItems.length === 0 ? (
             <p className="dashboard-empty-state">No posts yet. Be the first to share something.</p>
           ) : (
-          rankedPosts.map(post => {
+          feedItems.map(item => {
+            if (item.feedKind !== "post") {
+              return (
+                <FeedMarketCard
+                  key={`${item.feedKind}-${item.id}`}
+                  item={item}
+                  onOpenMarketplace={() => {
+                    setSelectedPage("prices");
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    return true;
+                  }}
+                />
+              );
+            }
+            const post = item.data;
             const uid = auth.currentUser?.uid;
             const liked = !!post.likes?.[uid];
             const likeCount = post.likes ? Object.keys(post.likes).length : 0;

@@ -75,7 +75,7 @@ export default function MyOrders() {
             No orders yet. Purchases you make on the Marketplace will show up here.
           </p>
         ) : (
-          <table className="orders-table">
+          <table className="orders-table aaf-stack-table">
             <thead>
               <tr>
                 <th>Product</th>
@@ -89,18 +89,18 @@ export default function MyOrders() {
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td>
+                  <td data-label="Product">
                     {order.product}
                     {quantityText(order) && <span className="order-qty"> · {quantityText(order)}</span>}
                   </td>
-                  <td>
+                  <td data-label="Amount">
                     {order.currency || "NAD"} {order.amount}
                   </td>
-                  <td>
+                  <td data-label="Status">
                     <span className={`order-status ${normaliseStatus(order.status)}`}>{STATUS_LABELS[normaliseStatus(order.status)]}</span>
                   </td>
-                  <td>{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : "—"}</td>
-                  <td className="order-ref">{order.transactionId}</td>
+                  <td data-label="Date">{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : "—"}</td>
+                  <td data-label="Reference" className="order-ref">{order.transactionId}</td>
                   <td>
                     <button className="order-track" onClick={() => navigate("/track-orders")}>Track</button>
                   </td>

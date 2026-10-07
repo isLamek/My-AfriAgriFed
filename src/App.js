@@ -41,6 +41,7 @@ import CookieBanner from "./CookieBanner";
 
 // Lazy-loaded so the map library only downloads when someone opens the map.
 const MapPage = lazyWithReload(() => import("./MapPage"));
+const MarketMap = lazyWithReload(() => import("./MarketMap"));
 
 const isApprovedStatus = (userData) =>
   userData.approved === true ||
@@ -297,6 +298,16 @@ function App() {
         element={
           <ProtectedRoute>
             <DemandBoard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/market-map"
+        element={
+          <ProtectedRoute>
+            <React.Suspense fallback={<p style={{ padding: 24 }}>Loading the market map…</p>}>
+              <MarketMap />
+            </React.Suspense>
           </ProtectedRoute>
         }
       />

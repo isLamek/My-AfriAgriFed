@@ -106,3 +106,62 @@
     margin: 0 1.25rem 0.75rem;
   }
 }
+
+.test-role-switch {
+  position: relative;
+}
+
+.test-role-banner .test-role-switch > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.test-role-menu {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  z-index: 50;
+  display: grid;
+  min-width: 210px;
+  padding: 5px;
+  border-radius: var(--aaf-radius-sm);
+  background: rgba(255, 255, 255, 0.96);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  box-shadow: 0 12px 30px rgba(2, 47, 31, 0.2);
+}
+
+.test-role-banner .test-role-menu button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 0.5rem 0.65rem;
+  border: 0;
+  border-radius: var(--aaf-radius-sm);
+  background: transparent;
+  color: var(--aaf-canopy);
+  font-weight: 600;
+  text-align: left;
+}
+
+.test-role-banner .test-role-menu button:hover {
+  background: rgba(46, 204, 113, 0.12);
+}
+
+.test-role-banner .test-role-menu button.on {
+  color: #1e8449;
+}
+
+.test-role-menu small {
+  margin-left: auto;
+  font-weight: 500;
+  color: var(--aaf-text-muted);
+}
+
+.test-role-banner .test-role-menu .test-role-admin {
+  margin-top: 4px;
+  border-top: 1px solid rgba(2, 47, 31, 0.08);
+  border-radius: 0 0 var(--aaf-radius-sm) var(--aaf-radius-sm);
+}

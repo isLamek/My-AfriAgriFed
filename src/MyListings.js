@@ -25,9 +25,11 @@ import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import "./MyListings.css";
 import "./MyOrders.css";
+import LocationPicker from "./LocationPicker";
+import { shrinkPhoto } from "./produceImages";
 
 const API_URL = API_BASE_URL;
-const emptyListing = { product: "", price: "", unit: "kg", quantity: "" };
+const emptyListing = { product: "", price: "", unit: "kg", quantity: "", location: null };
 
 export default function MyListings() {
   const [subaccountId, setSubaccountId] = useState(undefined); // undefined = loading
@@ -148,7 +150,7 @@ export default function MyListings() {
 
   const startEdit = (listing) => {
     setEditingId(listing.id);
-    setFormData({ product: listing.product, price: listing.price, unit: listing.unit || "kg", quantity: listing.quantity ?? "" });
+    setFormData({ product: listing.product, price: listing.price, unit: listing.unit || "kg", quantity: listing.quantity ?? "", location: listing.location || null });
     setExistingImageUrl(listing.imageUrl || null);
     setImageFile(null);
     setImagePreview(null);
@@ -182,8 +184,15 @@ export default function MyListings() {
       let imageUrl = existingImageUrl || "";
 
       if (imageFile) {
-        const upload = await uploadToCloudinary(imageFile, "marketplace");
-        imageUrl = upload.secure_url;
+        try {
+          const upload = await uploadToCloudinary(imageFile, "marketplace");
+          imageUrl = upload.secure_url;
+        } catch (uploadError) {
+          // Photo uploads aren't set up (or Cloudinary refused): keep a
+          // compressed copy on the listing so buyers still see the photo.
+          if (/too large|isn't supported|too detailed/i.test(uploadError.message)) throw uploadError;
+          imageUrl = await shrinkPhoto(imageFile);
+        }
       }
 
       const payload = {
@@ -195,6 +204,8 @@ export default function MyListings() {
         sellerId: user.uid,
         sellerName: user.displayName || user.email,
         sellerSubaccountId: subaccountId || null,
+        // optional pin on the Market Map (area only, see marketLocation.js)
+        location: formData.location || null,
       };
 
       if (editingId) {
@@ -362,6 +373,10 @@ export default function MyListings() {
             )}
             <input type="file" accept="image/*" onChange={(e) => handleImageSelect(e.target.files?.[0])} />
           </label>
+
+          <div className="listing-location-field">
+            <LocationPicker value={formData.location} onChange={(location) => setFormData((prev) => ({ ...prev, location }))} />
+          </div>
 
           <div className="listing-form-actions">
             <button className="aaf-btn aaf-btn-primary" disabled={saving}>

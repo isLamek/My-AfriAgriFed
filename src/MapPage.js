@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Flame, Layers, MapPin, Pause, Play, Wind } from "lucide-react";
+import { ChevronDown, Flame, Layers, LocateFixed, MapPin, Pause, Play, Wind } from "lucide-react";
+import toast from "react-hot-toast";
 // The "!" prefix skips Create React App's Babel pass over the library. Babel
 // rewrites the functions MapLibre ships to its web worker and breaks the
 // production build; the library is already compiled, so leave it alone.
@@ -23,6 +24,7 @@ import { fetchSatelliteTimes, frameTimes, satelliteTileUrl } from "./farmview/sa
 import { REGIONS_URL, findRegion, labelPoint, regionLabel } from "./farmview/regions";
 import WindParticles from "./farmview/windParticles";
 import NoMapFallback, { supportsWebGL } from "./farmview/NoMapFallback";
+import { attachReadout } from "./farmview/cursorReadout";
 import "./MapPage.css";
 
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
@@ -60,6 +62,11 @@ export default function MapPage() {
   const hourRef = useRef(0);
   const placingRef = useRef(false);
   const farmMarkersRef = useRef([]);
+  const regionsRef = useRef(null);
+  const meMarkerRef = useRef(null);
+  const [locating, setLocating] = useState(false);
+  // phones and tablets: the layer list folds away so the map gets the screen
+  const [layersOpen, setLayersOpen] = useState(false);
 
   const { theme, navSections, logout, userType } = useAccountContext("/map");
   const isFarmer = userType === "farmer";
@@ -102,7 +109,12 @@ export default function MapPage() {
     let cancelled = false;
     fetch(REGIONS_URL)
       .then((r) => r.json())
-      .then((json) => !cancelled && setRegions({ ...json, features: json.features.map((f, i) => ({ ...f, id: i })) }))
+      .then((json) => {
+        if (cancelled) return;
+        const withIds = { ...json, features: json.features.map((f, i) => ({ ...f, id: i })) };
+        regionsRef.current = withIds;
+        setRegions(withIds);
+      })
       .catch(() => {});
     fetchNationalGrid()
       .then((g) => {
@@ -152,7 +164,6 @@ export default function MapPage() {
     setMapReady(false);
     setOverlaysReady(false);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    map.addControl(new maplibregl.GeolocateControl({ trackUserLocation: false }), "top-right");
     mapRef.current = map;
     if (process.env.NODE_ENV !== "production") window.__fvMap = map; // handy when debugging in dev tools
 
@@ -168,6 +179,8 @@ export default function MapPage() {
     // "style.load" (not "load"): "load" waits for the first satellite tiles,
     // which on a slow connection would hold back the overlays.
     map.once("style.load", () => setMapReady(true));
+    // the forecast for the spot under the cursor (or under a finger)
+    const detachReadout = attachReadout(map, () => ({ grid: gridRef.current, hour: hourRef.current, regions: regionsRef.current }));
     map.on("click", (e) => {
       const spot = { lat: e.lngLat.lat, lng: e.lngLat.lng };
       if (placingRef.current) {
@@ -184,6 +197,9 @@ export default function MapPage() {
     });
 
     return () => {
+      detachReadout();
+      meMarkerRef.current?.remove();
+      meMarkerRef.current = null;
       windRef.current?.destroy();
       windRef.current = null;
       domMarkersRef.current.forEach((m) => m.remove());
@@ -517,6 +533,49 @@ export default function MapPage() {
 
   const flyToBounds = useCallback((bounds) => mapRef.current?.fitBounds(bounds, { padding: framePadding(), duration: 900 }), []);
 
+  // "My location": fly there, mark it, and open that spot's weather. The
+  // position stays in this browser; it is never saved or sent anywhere.
+  const locateMe = useCallback(() => {
+    if (!navigator.geolocation) {
+      toast.error("This browser can't share your location.");
+      return;
+    }
+    setLocating(true);
+    navigator.geolocation.getCurrentPosition(
+      ({ coords }) => {
+        setLocating(false);
+        const map = mapRef.current;
+        if (!map) return;
+        const [west, south, east, north] = NAMIBIA_BOUNDS;
+        if (coords.longitude < west || coords.longitude > east || coords.latitude < south || coords.latitude > north) {
+          toast("You seem to be outside Namibia, so the map can't show your spot.");
+          return;
+        }
+        const spot = { lat: coords.latitude, lng: coords.longitude };
+        if (!meMarkerRef.current) {
+          const el = document.createElement("div");
+          el.className = "fv-me";
+          el.title = "You are here";
+          meMarkerRef.current = new maplibregl.Marker({ element: el });
+        }
+        meMarkerRef.current.setLngLat([spot.lng, spot.lat]).addTo(map);
+        map.flyTo({ center: [spot.lng, spot.lat], zoom: Math.max(map.getZoom(), 10), padding: framePadding(), duration: 1200 });
+        setDraft(null);
+        setSelectedFarmId(null);
+        setPicked(spot);
+      },
+      (error) => {
+        setLocating(false);
+        toast.error(
+          error.code === 1
+            ? "Location is blocked for this site. Allow it in your browser's address bar, then try again."
+            : "Your location couldn't be found. Please try again outdoors or with Wi-Fi on."
+        );
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
+    );
+  }, []);
+
   const goToRegion = (name) => {
     const feature = regions?.features.find((f) => f.properties.name === name);
     if (feature) flyToBounds(bboxOf(feature.geometry));
@@ -555,7 +614,7 @@ export default function MapPage() {
       <div className="fv-wrap" hidden={noMap}>
         <div className="fv-map" data-band="mid" ref={containerRef} />
 
-        <div className="fv-controls aaf-card">
+        <div className={`fv-controls aaf-card ${layersOpen ? "open" : ""}`}>
           <div className="fv-seg" role="group" aria-label="Map type">
             {Object.entries(BASEMAPS).map(([id, b]) => (
               <button key={id} className={basemap === id ? "on" : ""} onClick={() => setBasemap(id)}>
@@ -563,6 +622,11 @@ export default function MapPage() {
               </button>
             ))}
           </div>
+          <button type="button" className="fv-layers-toggle" onClick={() => setLayersOpen((v) => !v)} aria-expanded={layersOpen}>
+            <Layers size={14} />
+            <span>{[layer.kind !== "none" ? layer.label : null, windOn ? "Wind" : null, firesOn ? "Fires" : null].filter(Boolean).join(" + ") || "Layers"}</span>
+            <ChevronDown size={14} className="fv-layers-chevron" />
+          </button>
 
           <p className="fv-label"><Layers size={14} /> Weather</p>
           <div className="fv-layers">
@@ -640,6 +704,9 @@ export default function MapPage() {
           <div className="fv-jump">
             <p className="fv-label"><MapPin size={14} /> Go to</p>
             <div className="fv-layers">
+              <button className="fv-locate" onClick={locateMe} disabled={locating}>
+                <LocateFixed size={13} /> {locating ? "Finding you..." : "My location"}
+              </button>
               <button onClick={() => flyToBounds(VIEWS.namibia.bounds)}>All Namibia</button>
               <button onClick={() => flyToBounds(VIEWS.oshana.bounds)}>Oshana</button>
             </div>

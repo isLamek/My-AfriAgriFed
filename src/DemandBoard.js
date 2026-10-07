@@ -33,8 +33,9 @@ import {
   validatePledge,
 } from "./demandRules";
 import "./DemandBoard.css";
+import LocationPicker from "./LocationPicker";
 
-const emptyDemand = { title: "", product: "", quantityNeeded: "", unit: "kg", deadline: "", notes: "" };
+const emptyDemand = { title: "", product: "", quantityNeeded: "", unit: "kg", deadline: "", notes: "", location: null };
 
 const STEPS = [
   { n: 1, title: "A buyer posts a need", body: "What, how much, and by when. A school, a shop, a restaurant, or anyone buying in bulk." },
@@ -97,6 +98,8 @@ export default function DemandBoard() {
         unit: formData.unit,
         deadline: formData.deadline || null,
         notes: formData.notes.trim(),
+        // optional pin on the Market Map (area only, see marketLocation.js)
+        location: formData.location || null,
         buyerId: user.uid,
         buyerName: user.displayName || user.email,
         buyerType: userType,
@@ -214,6 +217,13 @@ export default function DemandBoard() {
               />
               <FieldError>{errors.notes}</FieldError>
             </label>
+            <div className="demand-form-notes">
+              <LocationPicker
+                label="Deliver to (optional, puts a pin on the Market Map)"
+                value={formData.location}
+                onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
+              />
+            </div>
             <button className="aaf-btn aaf-btn-primary" disabled={saving}>
               {saving ? "Posting..." : "Post request"}
             </button>

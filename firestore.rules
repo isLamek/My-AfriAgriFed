@@ -202,10 +202,34 @@ service cloud.firestore {
         );
     }
 
+    // Optional Market Map pin on a listing or request: an area inside Namibia.
+    function validLocation(loc) {
+      return loc == null
+        || (loc is map
+            && loc.keys().hasOnly(['lat', 'lng', 'label', 'region'])
+            && loc.lat is number && loc.lat >= -29.6 && loc.lat <= -16.5
+            && loc.lng is number && loc.lng >= 11.2 && loc.lng <= 25.8
+            && loc.label is string && loc.label.size() > 0 && loc.label.size() <= 60 && noContactInfo(loc.label)
+            && loc.get('region', '') is string && loc.get('region', '').size() <= 40);
+    }
+
+    // A listing photo: a Cloudinary link, or a small stored copy when uploads
+    // aren't set up yet (src/produceImages.js shrinkPhoto).
+    function validListingImage(p) {
+      return p == null || p == ''
+        || (p is string && ((p.size() <= 500 && p.matches('https://res[.]cloudinary[.]com/[A-Za-z0-9_./-]+'))
+            || (p.size() <= 160000 && p.matches('data:image/jpeg;base64,[A-Za-z0-9+/=]+'))));
+    }
+
     match /marketPrices/{id} {
       allow read: if true;
-      allow create: if signedIn() && isApprovedFarmer() && request.resource.data.sellerId == request.auth.uid;
-      allow update, delete: if signedIn() && (resource.data.sellerId == request.auth.uid || isSignedInAdmin());
+      allow create: if signedIn() && isApprovedFarmer() && request.resource.data.sellerId == request.auth.uid
+        && validLocation(request.resource.data.get('location', null))
+        && validListingImage(request.resource.data.get('imageUrl', ''));
+      allow update, delete: if signedIn() && (resource.data.sellerId == request.auth.uid || isSignedInAdmin())
+        && (request.method == 'delete'
+            || (validLocation(request.resource.data.get('location', null))
+                && validListingImage(request.resource.data.get('imageUrl', ''))));
     }
 
     // Safe, PII-free aggregate counts for the public Data Dashboard.
@@ -329,7 +353,8 @@ service cloud.firestore {
         && d.quantityNeeded is number && d.quantityNeeded > 0 && d.quantityNeeded <= 10000000
         && d.unit in ['kg', 'ton', 'unit', 'crate', 'litre']
         && (d.get('notes', '') is string) && d.get('notes', '').size() <= 600
-        && noContactInfo(d.get('notes', '')) && noContactInfo(d.title);
+        && noContactInfo(d.get('notes', '')) && noContactInfo(d.title)
+        && validLocation(d.get('location', null));
     }
 
     match /demandRequests/{id} {

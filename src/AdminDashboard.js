@@ -350,7 +350,7 @@ export default function AdminDashboard() {
           </form>
         )}
 
-        <table className="admin-table">
+        <table className="admin-table aaf-stack-table">
           <thead>
             <tr>
               <th>Email</th>
@@ -362,9 +362,9 @@ export default function AdminDashboard() {
           <tbody>
             {admins.map((adminDoc) => (
               <tr key={adminDoc.id}>
-                <td>{adminDoc.email}</td>
-                <td>{adminDoc.role}</td>
-                <td>{adminDoc.addedBy || "—"}</td>
+                <td data-label="Email">{adminDoc.email}</td>
+                <td data-label="Role">{adminDoc.role}</td>
+                <td data-label="Added by">{adminDoc.addedBy || "—"}</td>
                 {canManageAdmins(profile.role) && (
                   <td>
                     <button className="remove-admin-btn" onClick={() => removeAdmin(adminDoc)}>

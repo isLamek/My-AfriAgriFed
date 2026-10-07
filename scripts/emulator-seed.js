@@ -116,10 +116,10 @@ async function main() {
 
   // ---- marketplace -----------------------------------------------------------------
   const listings = [
-    { id: "lst_mahangu", seller: "farmer", product: "Mahangu (pearl millet)", price: 18, unit: "kg", quantity: 400 },
-    { id: "lst_cowpeas", seller: "farmer", product: "Cowpeas (omakunde)", price: 32, unit: "kg", quantity: 4 },
+    { id: "lst_mahangu", seller: "farmer", product: "Mahangu (pearl millet)", price: 18, unit: "kg", quantity: 400, location: { lat: -17.788, lng: 15.699, label: "Oshakati", region: "Oshana" } },
+    { id: "lst_cowpeas", seller: "farmer", product: "Cowpeas (omakunde)", price: 32, unit: "kg", quantity: 4, location: { lat: -17.79, lng: 15.72, label: "Near Oshakati", region: "Oshana" } },
     { id: "lst_spinach", seller: "farmer2", product: "Fresh spinach", price: 15, unit: "bunch", quantity: 0 },
-    { id: "lst_goat", seller: "farmer2", product: "Boer goat (live)", price: 1800, unit: "unit", quantity: 6 },
+    { id: "lst_goat", seller: "farmer2", product: "Boer goat (live)", price: 1800, unit: "unit", quantity: 6, location: { lat: -22.57, lng: 17.083, label: "Windhoek", region: "Khomas" } },
   ];
   for (const l of listings) {
     const seller = ACCOUNTS.find((a) => a.key === l.seller);
@@ -132,6 +132,7 @@ async function main() {
       sellerId: uid[l.seller],
       sellerName: seller.name,
       sellerSubaccountId: l.seller === "farmer" ? "RS_TEST_SEED" : null,
+      location: l.location || null,
       createdAt: ago(60 * 24 * 2),
     });
   }
@@ -144,6 +145,7 @@ async function main() {
     unit: "kg",
     deadline: isoDay(14),
     notes: "Delivery to Ongwediva. Clean, dry grain.",
+    location: { lat: -17.785, lng: 15.767, label: "Ongwediva", region: "Oshana" },
     buyerId: uid.org,
     buyerName: "Ongwediva Fresh Market",
     buyerType: "consumer",

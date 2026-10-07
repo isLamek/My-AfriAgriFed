@@ -1,0 +1,78 @@
+.loc-picker {
+  display: grid;
+  gap: 6px;
+}
+
+.loc-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--aaf-text-muted);
+}
+
+.loc-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.loc-row select {
+  flex: 1 1 200px;
+  min-width: 0;
+  padding: 0.55rem 0.7rem;
+  border: 1px solid rgba(2, 47, 31, 0.1);
+  border-radius: var(--aaf-radius-sm);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.loc-gps {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid rgba(46, 204, 113, 0.5);
+  border-radius: var(--aaf-radius-sm);
+  background: rgba(46, 204, 113, 0.08);
+  color: #1e8449;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.loc-gps:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.loc-chosen,
+.loc-hint,
+.loc-error {
+  margin: 0;
+  font-size: 0.78rem;
+}
+
+.loc-chosen {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #1e8449;
+}
+
+.loc-chosen button {
+  display: inline-flex;
+  margin-left: 4px;
+  padding: 2px;
+  border: 0;
+  background: none;
+  color: var(--aaf-text-muted);
+  cursor: pointer;
+}
+
+.loc-hint {
+  color: var(--aaf-text-muted);
+}
+
+.loc-error {
+  color: var(--aaf-danger, #c0392b);
+}

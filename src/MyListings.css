@@ -204,3 +204,7 @@
 .listings-grid .dashboard-empty-state {
   grid-column: 1 / -1;
 }
+
+.listing-location-field {
+  grid-column: 1 / -1;
+}

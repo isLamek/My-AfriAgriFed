@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { MessageSquare, Minus, Plus, ShieldCheck } from "lucide-react";
 import { clampQuantity, formatNad, lineTotal, stockLabel } from "./purchase";
 import { maskContactInfo } from "./contactGuard";
+import { exampleProducePhoto, fallBackToExample } from "./produceImages";
 
 export const PAYMENT_METHODS = "Card, mobile money or bank transfer, all handled securely by our payment partner";
 
@@ -25,7 +26,14 @@ export default function ListingCard({ listing, isOwn, onBuy, onMessage }) {
 
   return (
     <div className={`price-card ${soldOut ? "sold-out" : ""}`}>
-      {listing.imageUrl && <img src={listing.imageUrl} alt={listing.product} className="price-card-image" />}
+      {listing.imageUrl ? (
+        <img src={listing.imageUrl} alt={listing.product} className="price-card-image" onError={fallBackToExample(listing.product)} />
+      ) : (
+        <div className="price-card-photo-example">
+          <img src={exampleProducePhoto(listing.product)} alt="" className="price-card-image" />
+          <span>Example photo</span>
+        </div>
+      )}
       <h3>{maskContactInfo(listing.product)}</h3>
 
       <p className="price-line">

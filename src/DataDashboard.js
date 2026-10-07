@@ -75,7 +75,7 @@ export default function DataDashboard() {
             <p className="insight-empty">No priced listings yet. They appear here as producers post to the marketplace.</p>
           ) : (
             <div className="insight-table-wrap">
-              <table className="insight-table">
+              <table className="insight-table aaf-stack-table">
                 <thead>
                   <tr>
                     <th>Product</th>
@@ -89,12 +89,12 @@ export default function DataDashboard() {
                 <tbody>
                   {prices.slice(0, 12).map((row) => (
                     <tr key={`${row.product}|${row.unit}`}>
-                      <td>{row.product}</td>
-                      <td>{row.unit}</td>
-                      <td className="num">{row.listings}</td>
-                      <td className="num">{money(row.min)}</td>
-                      <td className="num">{money(row.avg)}</td>
-                      <td className="num">{money(row.max)}</td>
+                      <td data-label="Product">{row.product}</td>
+                      <td data-label="Unit">{row.unit}</td>
+                      <td data-label="Listings" className="num">{row.listings}</td>
+                      <td data-label="Lowest" className="num">{money(row.min)}</td>
+                      <td data-label="Average" className="num">{money(row.avg)}</td>
+                      <td data-label="Highest" className="num">{money(row.max)}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -113,7 +113,7 @@ export default function DataDashboard() {
             <p className="insight-empty">No open requests right now.</p>
           ) : (
             <div className="insight-table-wrap">
-              <table className="insight-table">
+              <table className="insight-table aaf-stack-table">
                 <thead>
                   <tr>
                     <th>Product</th>
@@ -124,9 +124,9 @@ export default function DataDashboard() {
                 <tbody>
                   {demand.topProducts.slice(0, 12).map((row) => (
                     <tr key={row.product}>
-                      <td>{row.product}</td>
-                      <td className="num">{row.requests}</td>
-                      <td>{formatQuantities(row.quantities)}</td>
+                      <td data-label="Product">{row.product}</td>
+                      <td data-label="Requests" className="num">{row.requests}</td>
+                      <td data-label="Quantity wanted">{formatQuantities(row.quantities)}</td>
                     </tr>
                   ))}
                 </tbody>
