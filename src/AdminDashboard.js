@@ -14,7 +14,6 @@ import {
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
 import toast from "react-hot-toast";
-import { Store, Wheat, Microscope, CheckCircle2 } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import { ADMIN_ROLES, canManageAdmins, claimFounderSeat, getAdminProfile } from "./admin";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
@@ -22,14 +21,8 @@ import { buildNavSections } from "./navConfig";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import appIcon from "./images/seed-mark.png";
+import AdminTestRole from "./AdminTestRole";
 import "./AdminDashboard.css";
-
-const JUMP_TO_DASHBOARDS = [
-  { label: "Consumer Dashboard", path: "/dashboard", icon: <Store size={20} /> },
-  { label: "Farmer Dashboard", path: "/farmerdashboard", icon: <Wheat size={20} /> },
-  { label: "Institution Dashboard", path: "/institutiondashboard", icon: <Microscope size={20} /> },
-  { label: "Verification Queue", path: "/admin", icon: <CheckCircle2 size={20} /> },
-];
 
 const COUNTED_COLLECTIONS = [
   { key: "users", label: "Registered Users", collection: "users" },
@@ -285,17 +278,7 @@ export default function AdminDashboard() {
       onLogout={logout}
       theme="admin"
     >
-      <section className="jump-to-dashboards">
-        <p className="aaf-eyebrow">Jump to a dashboard</p>
-        <div className="jump-grid">
-          {JUMP_TO_DASHBOARDS.map((item) => (
-            <button key={item.path} className="jump-card" onClick={() => navigate(item.path)}>
-              <span className="jump-icon">{item.icon}</span>
-              {item.label}
-            </button>
-          ))}
-        </div>
-      </section>
+      <AdminTestRole />
 
       <section className="admin-dash-grid">
         {COUNTED_COLLECTIONS.map((item) => (

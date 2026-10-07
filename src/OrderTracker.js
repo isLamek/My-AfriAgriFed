@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { Check, ChevronDown, ChevronUp, Package, ShoppingBag, Store } from "lucide-react";
+import { Check, ChevronDown, ChevronUp, MessageCircle, Package, ShoppingBag, Store } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { chatWith } from "./chat";
 import { quantityText } from "./purchase";
 import { auth, db } from "./firebaseConfig";
 import AppShell from "./AppShell";
@@ -28,7 +30,7 @@ const formatWhen = (ms) =>
 const createdMs = (order) => (order.createdAt?.toDate ? order.createdAt.toDate().getTime() : 0);
 
 /** One order: summary, step-by-step progress, and the buttons this person may press. */
-export function OrderCard({ order, uid, side, busy, onAdvance }) {
+export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
   const [note, setNote] = useState("");
   const [showLog, setShowLog] = useState(false);
 
@@ -56,7 +58,14 @@ export function OrderCard({ order, uid, side, busy, onAdvance }) {
             {createdMs(order) ? ` · ${new Date(createdMs(order)).toLocaleDateString()}` : ""}
           </p>
         </div>
-        <span className={`ot-badge ${status}`}>{STATUS_LABELS[status]}</span>
+        <div className="ot-head-side">
+          <span className={`ot-badge ${status}`}>{STATUS_LABELS[status]}</span>
+          {onMessage && (
+            <button type="button" className="ot-message" onClick={() => onMessage(order)}>
+              <MessageCircle size={14} aria-hidden="true" /> Message {side === "selling" ? "buyer" : "seller"}
+            </button>
+          )}
+        </div>
       </header>
 
       {order.oversold && (
@@ -127,6 +136,7 @@ export function OrderCard({ order, uid, side, busy, onAdvance }) {
 
 export default function OrderTracker() {
   const { theme, navSections, logout, userType } = useAccountContext("/track-orders");
+  const navigate = useNavigate();
   const uid = auth.currentUser?.uid;
 
   const [buying, setBuying] = useState(null); // null = still loading
@@ -232,7 +242,21 @@ export default function OrderTracker() {
 
       <div className="ot-list">
         {visible.map((order) => (
-          <OrderCard key={order.id} order={order} uid={uid} side={side} busy={busyId === order.id} onAdvance={handleAdvance} />
+          <OrderCard
+            key={order.id}
+            order={order}
+            uid={uid}
+            side={side}
+            busy={busyId === order.id}
+            onAdvance={handleAdvance}
+            onMessage={(o) =>
+              chatWith(navigate, {
+                otherId: side === "selling" ? o.buyerId : o.sellerId,
+                otherName: side === "selling" ? o.buyerName : o.sellerName,
+                topic: { kind: "order", id: o.id, title: o.product || "Order" },
+              })
+            }
+          />
         ))}
       </div>
     </AppShell>

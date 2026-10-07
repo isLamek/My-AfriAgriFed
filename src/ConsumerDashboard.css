@@ -564,3 +564,75 @@
   font-size: 0.85rem;
   font-weight: 600;
 }
+
+/* ---- Pay now and the payment guarantee -------------------------------------- */
+.price-card .qty-box {
+  margin-top: 10px;
+}
+
+.pay-now-btn {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2ecc71, #27ae60);
+  color: #fff;
+  font: inherit;
+  font-size: 0.98rem;
+  font-weight: 800;
+  letter-spacing: 0.2px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(46, 204, 113, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.pay-now-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 15px 35px rgba(46, 204, 113, 0.5);
+}
+
+.pay-now-btn:disabled {
+  background: #d1d5db;
+  color: #4b5563;
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+.price-card .pay-guarantee {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 2px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--aaf-success);
+}
+
+.price-card .pay-methods {
+  margin: 0 0 6px;
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--aaf-text-muted);
+}
+
+.price-message-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--aaf-border);
+  border-radius: 999px;
+  background: var(--aaf-surface);
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--aaf-primary);
+  cursor: pointer;
+}
+
+.price-message-btn:hover {
+  border-color: var(--aaf-primary);
+}

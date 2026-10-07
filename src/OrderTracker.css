@@ -314,3 +314,29 @@
     margin-left: auto;
   }
 }
+
+.ot-head-side {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.ot-message {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border: 1px solid var(--aaf-border);
+  border-radius: 999px;
+  background: var(--aaf-surface);
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--aaf-primary);
+  cursor: pointer;
+}
+
+.ot-message:hover {
+  border-color: var(--aaf-primary);
+}

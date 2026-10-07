@@ -1,0 +1,108 @@
+.test-role {
+  margin-bottom: 1.25rem;
+}
+
+.test-role-head {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  color: var(--aaf-primary);
+}
+
+.test-role-head h2 {
+  margin: 0 0 4px;
+  font-size: 1.15rem;
+  color: var(--aaf-canopy);
+}
+
+.test-role-head p {
+  margin: 0;
+  font-size: 0.86rem;
+  color: var(--aaf-text-muted);
+}
+
+.test-role-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.test-role-btn {
+  display: grid;
+  gap: 4px;
+  justify-items: start;
+  padding: 14px 16px;
+  border: 1px solid var(--aaf-border);
+  border-radius: 16px;
+  background: var(--aaf-surface);
+  font: inherit;
+  text-align: left;
+  color: var(--aaf-text);
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.test-role-btn svg {
+  color: var(--aaf-primary);
+}
+
+.test-role-btn strong {
+  font-size: 0.98rem;
+}
+
+.test-role-btn span {
+  font-size: 0.78rem;
+  color: var(--aaf-text-muted);
+}
+
+.test-role-btn:hover:not(:disabled) {
+  transform: translateY(-3px);
+  border-color: var(--aaf-primary);
+  box-shadow: 0 10px 25px rgba(2, 47, 31, 0.12);
+}
+
+.test-role-btn.on {
+  border-color: var(--aaf-primary);
+  background: var(--aaf-success-bg);
+}
+
+.test-role-btn:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.test-role-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0 2rem 0.75rem;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #2d5016, #044d3a);
+  color: #fff;
+  font-size: 0.84rem;
+}
+
+.test-role-banner span {
+  flex: 1 1 240px;
+}
+
+.test-role-banner button {
+  border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 999px;
+  background: transparent;
+  padding: 4px 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+}
+
+@media (max-width: 900px) {
+  .test-role-banner {
+    margin: 0 1.25rem 0.75rem;
+  }
+}

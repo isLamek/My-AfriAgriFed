@@ -1,6 +1,8 @@
 // Rules for the Demand Board that don't need Firebase, so they can be tested.
 // firestore.rules enforces the same limits on the server.
 
+import { checkForContactInfo } from "./contactGuard";
+
 export const DEMAND_UNITS = ["kg", "ton", "unit", "crate", "litre"];
 export const LIMITS = { title: 120, product: 80, notes: 600, pledgeNote: 200, quantity: 1e7 };
 
@@ -22,6 +24,9 @@ export function validateDemand({ title, product, quantityNeeded, unit, deadline,
   if (!DEMAND_UNITS.includes(unit)) errors.unit = "Choose a unit.";
   if (deadline && (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) || deadline < today)) errors.deadline = "Choose today or a later date.";
   if (text(notes).length > LIMITS.notes) errors.notes = `Keep notes under ${LIMITS.notes} characters.`;
+  // No phone numbers, e-mails or links: buyers and producers talk in Messages.
+  const contact = checkForContactInfo(`${text(title)}\n${text(notes)}`);
+  if (!errors.notes && !contact.ok) errors.notes = contact.message;
   return errors;
 }
 
@@ -31,6 +36,8 @@ export function validatePledge({ quantity, note }, demand) {
   if (!Number.isFinite(qty) || qty <= 0) errors.quantity = "Enter how much you can supply.";
   else if (qty > LIMITS.quantity) errors.quantity = "That quantity looks too large.";
   if (text(note).length > LIMITS.pledgeNote) errors.note = `Keep the note under ${LIMITS.pledgeNote} characters.`;
+  const contact = checkForContactInfo(text(note));
+  if (!errors.note && !contact.ok) errors.note = contact.message;
   if (demand && demand.status === "fulfilled") errors.demand = "This request is already fulfilled.";
   return errors;
 }

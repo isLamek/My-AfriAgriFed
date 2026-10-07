@@ -19,6 +19,8 @@ import Prices from "./Prices";
 import Profile from "./Profile";
 import MyOrders from "./MyOrders";
 import OrderTracker from "./OrderTracker";
+import Messages from "./Messages";
+import useAccountContext from "./useAccountContext";
 import DemandBoard from "./DemandBoard";
 import PageAccessGate from "./PageAccessGate";
 import Research from "./Research";
@@ -43,6 +45,17 @@ const isApprovedStatus = (userData) =>
   userData.status === "verified" ||
   userData.accountStatus?.registrationStatus === "verified" ||
   userData.accountStatus?.documentStatus === "approved";
+
+// /dashboard shows the Community Feed and Marketplace as the signed-in person:
+// farmers get the farmer version (their menu, "My Listings"), institutions their
+// own desk. Before, /dashboard always showed the buyer version, so a farmer who
+// clicked "Community Feed" in the menu lost their farmer menu.
+function RoleHome() {
+  const { userType, profileLoaded } = useAccountContext("/dashboard");
+  if (!profileLoaded) return <p style={{ padding: 24 }}>Loading...</p>;
+  if (userType === "institution") return <Navigate to="/institutiondashboard" replace />;
+  return <ConsumerDashboard role={userType === "farmer" ? "farmer" : "consumer"} />;
+}
 
 function ProtectedRoute({ children }) {
   const [user, setUser] = React.useState(auth.currentUser);
@@ -209,7 +222,7 @@ function App() {
         path="/dashboard"
         element={
           <ProtectedRoute>
-            <ConsumerDashboard />
+            <RoleHome />
           </ProtectedRoute>
         }
       />
@@ -276,6 +289,9 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+      <Route path="/messages/:conversationId" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
 
       <Route
         path="/track-orders"

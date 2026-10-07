@@ -128,7 +128,7 @@ await expectOk("an admin switches their own profile to 'farmer' for testing", ()
   setDoc(doc(db, "users", admin.uid), {
     uid: admin.uid, userType: "farmer", approved: true, status: "verified",
     accountStatus: { registrationStatus: "verified", documentStatus: "approved" },
-    personalInfo: { email: "admin@aaf.test", firstName: "Ada" }, adminTestRole: true,
+    personalInfo: { email: "admin@aaf.test", firstName: "Ada" }, adminTestRole: "farmer",
   }, { merge: true })
 );
 await expectOk("the admin, testing as a farmer, can pledge", () =>

@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Menu, LogOut, PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import seedMark from "./images/seed-mark-reversed.png";
 import { VerifyEmailBanner } from "./VerifyEmail";
+import { TestRoleBanner } from "./AdminTestRole";
 import "./AppShell.css";
 
 function readStoredCollapsed() {
@@ -118,6 +119,7 @@ export default function AppShell({
         </header>
 
         <VerifyEmailBanner />
+        <TestRoleBanner />
         <main className="aaf-shell-content aaf-animate-in">{children}</main>
       </div>
     </div>

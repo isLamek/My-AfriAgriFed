@@ -1,49 +1,8 @@
-import { API_BASE_URL as API_URL, NO_BACKEND_MESSAGE } from "./apiBase";
+// Older pages import uploads from here. The real work is in cloudinaryUpload.js,
+// which uploads through the backend when there is one, or straight to Cloudinary
+// with a free unsigned upload preset when there is not.
+import { uploadToCloudinary as upload } from "./cloudinaryUpload";
 
-export const uploadToCloudinary = async (file, folder = "posts") => {
-  if (!file) {
-    throw new Error("No file provided");
-  }
-  if (!API_URL) {
-    throw new Error(NO_BACKEND_MESSAGE); // no backend configured yet
-  }
-
-  // 1) Ask our server for a signed upload payload
-  const signatureResponse = await fetch(
-    `${API_URL}/api/cloudinary-signature?folder=${encodeURIComponent(folder)}`
-  );
-
-
-  
-
-  if (!signatureResponse.ok) {
-    throw new Error("Failed to get Cloudinary signature");
-  }
-
-  const { timestamp, signature, apiKey, cloudName } =  await signatureResponse.json();;
-
-  // 2) Send the file directly to Cloudinary.
-  // The fields here must match exactly what the server signed.
-  const formData = new FormData();
-  formData.append("file", file);
-  formData.append("api_key", apiKey);
-  formData.append("timestamp", timestamp);
-  formData.append("signature", signature);
-  formData.append("folder", folder);
-
-  const uploadResponse = await fetch(
-    `https://api.cloudinary.com/v1_1/${cloudName}/auto/upload`,
-    { method: "POST", body: formData }
-  );
-
-  const data = await uploadResponse.json();
-
-  if (!uploadResponse.ok) {
-    console.error(data);
-    throw new Error(
-      data.error?.message || "Cloudinary upload failed"
-    );
-  }
-
-  return data; // { secure_url, public_id, ... }
-};
+// Photos get the photo rules (size, formats); anything else (PDF, Word, scans) the document rules.
+export const uploadToCloudinary = (file, folder = "posts") =>
+  upload(file, folder, { kind: file && /^image\//.test(file.type || "") ? "image" : "document" });

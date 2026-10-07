@@ -381,3 +381,23 @@
   font-size: 0.8rem;
   color: var(--aaf-text-muted);
 }
+
+.demand-message-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0.9rem 0.6rem 0 0;
+  padding: 6px 12px;
+  border: 1px solid var(--aaf-border);
+  border-radius: 999px;
+  background: var(--aaf-surface);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--aaf-primary);
+  cursor: pointer;
+}
+
+.demand-pledges .pledge-message {
+  color: var(--aaf-primary);
+}

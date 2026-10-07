@@ -22,6 +22,7 @@ import {
   MessageSquare,
   Map as MapIcon,
   Truck,
+  MessageCircle,
 } from "lucide-react";
 
 const iconProps = { size: 18, strokeWidth: 2 };
@@ -65,6 +66,7 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
   });
 
   const accountItems = [
+    { label: "Messages", hint: "Private chats with buyers and sellers", icon: <MessageCircle {...iconProps} />, path: "/messages" },
     { label: "Order Tracker", icon: <Truck {...iconProps} />, path: "/track-orders" },
     { label: "My Orders", icon: <Receipt {...iconProps} />, path: "/my-orders" },
     { label: "Profile", icon: <User {...iconProps} />, path: "/profile" },

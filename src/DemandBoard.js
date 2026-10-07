@@ -18,6 +18,9 @@ import useAccountContext from "./useAccountContext";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import CommunitySpaces from "./CommunitySpaces";
+import { useNavigate } from "react-router-dom";
+import { checkForContactInfo, maskContactInfo } from "./contactGuard";
+import { chatWith } from "./chat";
 import {
   DEMAND_UNITS,
   FILTERS,
@@ -45,6 +48,7 @@ function FieldError({ children }) {
 
 export default function DemandBoard() {
   const { userType, isAdminUser, theme, navSections, logout } = useAccountContext("/demand-board");
+  const navigate = useNavigate();
   const uid = auth.currentUser?.uid;
   const isFarmer = userType === "farmer";
 
@@ -246,6 +250,13 @@ export default function DemandBoard() {
             currentName={auth.currentUser?.displayName || auth.currentUser?.email}
             canPledge={isFarmer}
             isAdminUser={isAdminUser}
+            onMessage={(otherId, otherName) =>
+              chatWith(navigate, {
+                otherId,
+                otherName,
+                topic: { kind: "demand", id: demand.id, title: demand.title, ownerId: demand.buyerId },
+              })
+            }
           />
         ))}
       </section>
@@ -253,7 +264,7 @@ export default function DemandBoard() {
   );
 }
 
-function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, currentUid, currentName, canPledge, isAdminUser }) {
+function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, currentUid, currentName, canPledge, isAdminUser, onMessage }) {
   const [pledges, setPledges] = useState([]);
   const [pledgeQty, setPledgeQty] = useState("");
   const [pledgeNote, setPledgeNote] = useState("");
@@ -321,6 +332,11 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
   const sendMessage = async (event) => {
     event.preventDefault();
     if (!messageText.trim()) return;
+    const contact = checkForContactInfo(messageText);
+    if (!contact.ok) {
+      toast.error(contact.message);
+      return;
+    }
     try {
       await addDoc(collection(db, "demandRequests", demand.id, "messages"), {
         authorId: currentUid,
@@ -361,7 +377,7 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
         )}
       </div>
 
-      {demand.notes && <p className="demand-notes">{demand.notes}</p>}
+      {demand.notes && <p className="demand-notes">{maskContactInfo(demand.notes)}</p>}
 
       <div className="demand-progress">
         <div className="demand-progress-bar" role="progressbar" aria-valuenow={summary.percent} aria-valuemin={0} aria-valuemax={100}>
@@ -380,10 +396,15 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
             <li key={p.id}>
               <span>
                 <strong>{p.farmerName}</strong> · {p.quantity} {demand.unit}
-                {p.note ? <em> · {p.note}</em> : null}
+                {p.note ? <em> · {maskContactInfo(p.note)}</em> : null}
               </span>
               {p.farmerId === currentUid && !fulfilled && (
                 <button type="button" onClick={() => withdrawPledge(p)} aria-label="Withdraw pledge">Withdraw</button>
+              )}
+              {isOwnDemand && p.farmerId !== currentUid && onMessage && (
+                <button type="button" className="pledge-message" onClick={() => onMessage(p.farmerId, p.farmerName)}>
+                  Message
+                </button>
               )}
             </li>
           ))}
@@ -421,6 +442,12 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
         <p className="demand-hint">Only producer accounts can pledge. Use the discussion to ask the buyer a question.</p>
       )}
 
+      {canPledge && !isOwnDemand && onMessage && (
+        <button type="button" className="demand-message-btn" onClick={() => onMessage(demand.buyerId, demand.buyerName)}>
+          <MessageSquare size={14} aria-hidden="true" /> Message buyer privately
+        </button>
+      )}
+
       <button className="demand-thread-toggle" onClick={onToggleThread}>
         <MessageSquare size={15} /> {isOpenThread ? "Hide discussion" : "Open discussion"}
       </button>
@@ -434,7 +461,7 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
               messages.map((msg) => (
                 <div key={msg.id} className={`demand-message ${msg.authorId === currentUid ? "own" : ""}`}>
                   <span className="demand-message-author">{msg.authorName}</span>
-                  <p>{msg.text}</p>
+                  <p>{maskContactInfo(msg.text)}</p>
                 </div>
               ))
             )}

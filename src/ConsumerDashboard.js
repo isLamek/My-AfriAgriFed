@@ -39,6 +39,16 @@ import { buildNavSections } from "./navConfig";
 import { useLocation, useNavigate } from "react-router-dom";
 import CommunitySpaces from "./CommunitySpaces";
 import ListingCard from "./ListingCard";
+import { chatWith } from "./chat";
+import { checkForContactInfo, maskContactInfo } from "./contactGuard";
+
+// One place to stop contact details before anything is posted publicly.
+const blockedContact = (text) => {
+  const result = checkForContactInfo(text);
+  if (result.ok) return false;
+  toast.error(result.message);
+  return true;
+};
 import AppShell from "./AppShell";
 import {
   Heart,
@@ -225,6 +235,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
 
     if ((!postText.trim() && !selectedImage) || posting)
       return;
+    if (blockedContact(postText)) return;
 
     setPosting(true);
 
@@ -311,6 +322,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
   */
   const addComment = async (postId) => {
     if (!commentText[postId]?.trim()) return;
+    if (blockedContact(commentText[postId])) return;
 
     const commentsRef = ref(
       database,
@@ -348,6 +360,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
   const addReply = async (postId, commentId) => {
     const key = `${postId}_${commentId}`;
     if (!replyText[key]?.trim()) return;
+    if (blockedContact(replyText[key])) return;
 
     try {
       await set(push(ref(database, `posts/${postId}/comments/${commentId}/replies`)), {
@@ -525,6 +538,13 @@ export default function ConsumerDashboard({ role = "consumer" }) {
                     onBuy={(listing, quantity) =>
                       startCheckout({ listingId: listing.id, quantity, product: listing.product, sellerId: listing.sellerId })
                     }
+                    onMessage={(listing) =>
+                      chatWith(navigate, {
+                        otherId: listing.sellerId,
+                        otherName: listing.sellerName,
+                        topic: { kind: "listing", id: listing.id, title: listing.product, ownerId: listing.sellerId },
+                      })
+                    }
                   />
                 ))}
               </div>
@@ -597,7 +617,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
     )}
   </div>
 
-  {post.content && <p>{post.content}</p>}
+  {post.content && <p>{maskContactInfo(post.content)}</p>}
 
   {/* DISPLAY IMAGE */}
 
@@ -638,7 +658,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
          </span>
          <div className="comment-body">
            <strong>{comment.userName || "Member"}</strong>
-           <p>{comment.text}</p>
+           <p>{maskContactInfo(comment.text)}</p>
            <div className="comment-actions">
              <button onClick={() => setOpenReplyKey(openReplyKey === replyKey ? null : replyKey)}>
                Reply
@@ -659,7 +679,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
                    </span>
                    <div className="comment-body">
                      <strong>{reply.userName || "Member"}</strong>
-                     <p>{reply.text}</p>
+                     <p>{maskContactInfo(reply.text)}</p>
                      {reply.userId === auth.currentUser?.uid && (
                        <div className="comment-actions">
                          <button onClick={() => deleteReply(post.id, comment.id, reply.id)} className="comment-delete">

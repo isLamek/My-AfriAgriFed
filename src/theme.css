@@ -214,3 +214,39 @@ body {
     animation: none;
   }
 }
+
+/* ---- shared helpers used across pages ------------------------------------- */
+.aaf-btn-secondary {
+  background: var(--aaf-surface);
+  color: var(--aaf-primary);
+  border: 1px solid var(--aaf-border);
+}
+
+.aaf-btn-secondary:hover {
+  border-color: var(--aaf-primary);
+}
+
+.aaf-btn-sm {
+  padding: 6px 12px;
+  font-size: 0.82rem;
+}
+
+.aaf-empty {
+  margin: 0;
+  padding: 1rem;
+  color: var(--aaf-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.aaf-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}

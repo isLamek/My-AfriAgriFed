@@ -12,14 +12,19 @@ import { buildNavSections } from "./navConfig";
  */
 export default function useAccountContext(activePath) {
   const [userType, setUserType] = useState(null);
+  const [profileLoaded, setProfileLoaded] = useState(false);
   const [isAdminUser, setIsAdminUser] = useState(false);
   const [isOrganization, setIsOrganization] = useState(false);
 
   useEffect(() => {
     const uid = auth.currentUser?.uid;
-    if (!uid) return;
+    if (!uid) {
+      setProfileLoaded(true);
+      return;
+    }
     getAdminProfile(auth.currentUser).then((profile) => setIsAdminUser(!!profile));
     getDoc(doc(db, "users", uid)).then((snap) => {
+      setProfileLoaded(true);
       if (!snap.exists()) return;
       const data = snap.data();
       setUserType(data.userType || null);
@@ -27,7 +32,7 @@ export default function useAccountContext(activePath) {
         data.isOrganization === true ||
           (!!data.questionnaireData?.consumerType && data.questionnaireData.consumerType !== "Individual Buyer")
       );
-    });
+    }).catch(() => setProfileLoaded(true)); // a failed read must not leave pages waiting forever
   }, []);
 
   const logout = useCallback(async () => {
@@ -47,5 +52,5 @@ export default function useAccountContext(activePath) {
 
   const navSections = buildNavSections({ userType, isAdmin: isAdminUser, activePath });
 
-  return { userType, isAdminUser, theme, navSections, logout };
+  return { userType, profileLoaded, isAdminUser, theme, navSections, logout };
 }
