@@ -9,6 +9,7 @@ const { rateLimit } = require("./server/rateLimit");
 const weather = require("./server/weather");
 const fires = require("./server/fires");
 const checkout = require("./server/checkout");
+const chat = require("./server/chat");
 const { initAdmin } = require("./server/firebaseAdmin");
 
 const app = express();
@@ -39,6 +40,9 @@ const {
   APP_BASE_URL,
   OPEN_METEO_API_KEY,
   FIRMS_MAP_KEY,
+  OPENROUTER_API_KEY,
+  OPENROUTER_MODEL,
+  OPENROUTER_PROVIDERS,
   PORT
 } = process.env;
 
@@ -135,6 +139,22 @@ const weatherService = weather.register(app, {
 });
 fires.register(app, { cache: upstreamCache, mapKey: FIRMS_MAP_KEY || "", limiter: dataLimiter });
 
+/*
+==================================
+THE AAF ASSISTANT (chatbot)
+The browser posts the conversation here and this server adds the system prompt
+and the OpenRouter key, so neither is ever shipped to a visitor. See
+server/chat.js. Without OPENROUTER_API_KEY the assistant stays hidden.
+==================================
+*/
+chat.register(app, {
+  apiKey: OPENROUTER_API_KEY || "",
+  model: OPENROUTER_MODEL || "",
+  providers: OPENROUTER_PROVIDERS || "",
+  appBaseUrl,
+  limiter: rateLimit({ windowMs: 60000, max: Number(process.env.CHAT_RATE_LIMIT_PER_MINUTE) || 20 }),
+});
+
 // Lets the website show only what this server can actually do.
 app.get("/api/features", (req, res) => {
   res.json({
@@ -142,6 +162,7 @@ app.get("/api/features", (req, res) => {
     commercialWeather: !!OPEN_METEO_API_KEY,
     fires: !!FIRMS_MAP_KEY,
     payments: !!(FLW_SECRET_KEY && firebaseAdmin),
+    chat: !!OPENROUTER_API_KEY,
   });
 });
 
@@ -153,5 +174,8 @@ app.listen(port, () => {
   console.log(`Server running on port ${port}`);
   if (!OPEN_METEO_API_KEY) console.warn("OPEN_METEO_API_KEY not set: using Open-Meteo's free, NON-COMMERCIAL tier.");
   if (!FIRMS_MAP_KEY) console.warn("FIRMS_MAP_KEY not set: the fire layer is switched off.");
+  if (!OPENROUTER_API_KEY) console.warn("OPENROUTER_API_KEY not set: the AAF Assistant is switched off.");
   weatherService.startWarming();
+  // Opens the connection to OpenRouter so the first question is not the slow one.
+  chat.warmUp({ apiKey: OPENROUTER_API_KEY || "" });
 });

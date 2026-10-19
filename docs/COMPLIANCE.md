@@ -19,7 +19,7 @@ now, and what is still yours to do. Updated 6 October 2026.
 | Data deletion requests | ✅ | Profile → Privacy: download your data (JSON) or request deletion. Requests appear on the Admin dashboard with the steps to follow. |
 | Unsubscribe link in emails | ✅ | The app sends no marketing e-mail (only Firebase's own verification and password e-mails). The Privacy policy promises consent and an unsubscribe link if that changes. |
 | Real business details | ⚠️ | `src/business.js` feeds the footer, the contact section and the legal pages. **Add your BIPA registration number and registered name there** once you have them. |
-| Remove unsupported claims | ✅ | Removed: the "AI Assistant" bubble (there is none), "documents verified within 24 hours", made-up average prices on the old Prices page, and "Real-time analytics". |
+| Remove unsupported claims | ✅ | Removed: "documents verified within 24 hours", made-up average prices on the old Prices page, and "Real-time analytics". The home page's "AI Assistant" bubble was a picture with a scripted greeting; it is now a working assistant (`server/chat.js`, `src/AIChat.js`) that states it cannot see live data. |
 | Remove fake reviews | ✅ | None found. There are no testimonials or star ratings. |
 | Remove dark patterns | ✅ | The contact form used to say "Message Sent!" without sending anything; it now opens the visitor's e-mail app. The cookie banner has no pre-ticked boxes and an equal "decline". |
 | Remove hidden fees | ✅ | Buyers see "You pay N$X" on every listing. Sellers see the 5% commission on the payout form, the listing form and their overview. Delivery charges must be written in the listing. Promotion and page-access prices are shown before paying. |

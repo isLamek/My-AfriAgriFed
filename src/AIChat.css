@@ -1,0 +1,392 @@
+/*
+  AAF Assistant. Uses the brand tokens from theme.css only - no one-off hex
+  codes, no gradients - so it sits inside the app rather than on top of it.
+*/
+
+.aaf-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ---------- Launcher ---------- */
+
+.aaf-chat-launcher {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  z-index: 1200; /* above the dashboard sidebar, below the cookie banner */
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 16px;
+  font-family: var(--aaf-font);
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--aaf-white);
+  background: var(--aaf-primary);
+  border: 1px solid var(--aaf-primary);
+  border-radius: var(--aaf-radius-md);
+  box-shadow: var(--aaf-shadow-sm);
+  cursor: pointer;
+}
+
+.aaf-chat-launcher:hover {
+  background: var(--aaf-baobab-dark);
+}
+
+.aaf-chat-launcher:focus-visible,
+.aaf-chat-panel button:focus-visible,
+.aaf-chat-panel textarea:focus-visible {
+  outline: 2px solid var(--aaf-shoot);
+  outline-offset: 2px;
+}
+
+/* ---------- Panel ---------- */
+
+.aaf-chat-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 78px;
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  width: 380px;
+  max-width: calc(100vw - 32px);
+  height: 540px;
+  max-height: calc(100vh - 120px);
+  font-family: var(--aaf-font);
+  color: var(--aaf-text);
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-lg);
+  box-shadow: var(--aaf-shadow-lg);
+  overflow: hidden;
+}
+
+.aaf-chat-panel-home {
+  /* The home page keeps its bot in this corner; sit clear of it. */
+  bottom: 140px;
+}
+
+.aaf-chat-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--aaf-primary);
+  color: var(--aaf-white);
+}
+
+.aaf-chat-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.aaf-chat-header p {
+  margin: 2px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.35;
+  opacity: 0.85;
+}
+
+.aaf-chat-header-actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.aaf-chat-header-actions button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  color: var(--aaf-white);
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--aaf-radius-sm);
+  cursor: pointer;
+}
+
+.aaf-chat-header-actions button:hover {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+/*
+  "Clear chat" sits at the bottom next to the disclaimer, not in the header:
+  up there it crowded the close button.
+*/
+.aaf-chat-clear {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 5px;
+  padding: 5px 9px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--aaf-text-muted);
+  white-space: nowrap;
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  cursor: pointer;
+}
+
+.aaf-chat-clear:hover {
+  color: var(--aaf-danger);
+  border-color: var(--aaf-danger);
+}
+
+/* ---------- Log ---------- */
+
+.aaf-chat-log {
+  flex: 1;
+  padding: 14px;
+  overflow-y: auto;
+  background: var(--aaf-bg);
+}
+
+.aaf-chat-msg {
+  max-width: 88%;
+  margin-bottom: 10px;
+  padding: 9px 12px;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  border-radius: var(--aaf-radius-md);
+  overflow-wrap: break-word;
+}
+
+.aaf-chat-msg p {
+  margin: 0 0 8px;
+}
+
+.aaf-chat-msg p:last-child {
+  margin-bottom: 0;
+}
+
+.aaf-chat-msg.assistant {
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+}
+
+.aaf-chat-msg.user {
+  margin-left: auto;
+  color: var(--aaf-white);
+  background: var(--aaf-primary);
+  border: 1px solid var(--aaf-primary);
+}
+
+/*
+  The caret on the reply being typed. It is drawn after the last block of text
+  rather than inserted into it, so the words themselves stay selectable and the
+  screen reader is not read a stray character.
+*/
+.aaf-chat-msg.typing > :last-child::after {
+  content: "";
+  display: inline-block;
+  width: 2px;
+  height: 0.95em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--aaf-primary);
+  animation: aaf-chat-caret 1s steps(1) infinite;
+}
+
+@keyframes aaf-chat-caret {
+  0%, 50% { opacity: 1; }
+  50.01%, 100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aaf-chat-msg.typing > :last-child::after { animation: none; }
+}
+
+.aaf-chat-list {
+  margin: 0 0 8px;
+  padding-left: 18px;
+}
+
+.aaf-chat-list:last-child {
+  margin-bottom: 0;
+}
+
+.aaf-chat-list li {
+  margin-bottom: 3px;
+}
+
+/* ---------- Suggestions ---------- */
+
+.aaf-chat-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.aaf-chat-suggestions button {
+  padding: 7px 11px;
+  font-family: inherit;
+  font-size: 0.78rem;
+  color: var(--aaf-primary);
+  text-align: left;
+  background: var(--aaf-surface);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  cursor: pointer;
+}
+
+.aaf-chat-suggestions button:hover:not(:disabled) {
+  border-color: var(--aaf-primary);
+}
+
+.aaf-chat-suggestions button:disabled {
+  color: var(--aaf-text-muted);
+  cursor: not-allowed;
+}
+
+/* ---------- Typing indicator ---------- */
+
+.aaf-chat-typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 2px 0;
+}
+
+.aaf-chat-typing i {
+  width: 6px;
+  height: 6px;
+  background: var(--aaf-text-muted);
+  border-radius: 50%;
+  animation: aaf-chat-blink 1.2s infinite ease-in-out;
+}
+
+.aaf-chat-typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.aaf-chat-typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@keyframes aaf-chat-blink {
+  0%, 80%, 100% { opacity: 0.25; }
+  40% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aaf-chat-typing i { animation: none; opacity: 0.5; }
+}
+
+.aaf-chat-error {
+  margin: 0;
+  padding: 9px 12px;
+  font-size: 0.82rem;
+  color: var(--aaf-danger);
+  background: var(--aaf-danger-bg);
+  border: 1px solid var(--aaf-danger);
+  border-radius: var(--aaf-radius-sm);
+}
+
+/* ---------- Composer ---------- */
+
+.aaf-chat-form {
+  display: flex;
+  gap: 8px;
+  padding: 10px 12px;
+  background: var(--aaf-surface);
+  border-top: 1px solid var(--aaf-border);
+}
+
+.aaf-chat-form textarea {
+  flex: 1;
+  min-height: 40px;
+  max-height: 110px;
+  padding: 10px;
+  font-family: inherit;
+  font-size: 0.875rem;
+  line-height: 1.4;
+  color: var(--aaf-text);
+  background: var(--aaf-white);
+  border: 1px solid var(--aaf-border);
+  border-radius: var(--aaf-radius-sm);
+  resize: none;
+}
+
+.aaf-chat-form textarea:disabled {
+  background: var(--aaf-mist);
+}
+
+.aaf-chat-form button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  color: var(--aaf-white);
+  background: var(--aaf-primary);
+  border: 1px solid var(--aaf-primary);
+  border-radius: var(--aaf-radius-sm);
+  cursor: pointer;
+}
+
+.aaf-chat-form button:disabled {
+  color: var(--aaf-text-muted);
+  background: var(--aaf-mist);
+  border-color: var(--aaf-border);
+  cursor: not-allowed;
+}
+
+.aaf-chat-footer {
+  display: flex;
+  flex-wrap: wrap; /* the button drops to its own line before anything squashes */
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 12px 10px;
+  background: var(--aaf-surface);
+}
+
+.aaf-chat-note {
+  flex: 1 1 190px;
+  margin: 0;
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--aaf-text-muted);
+}
+
+/* ---------- Small screens ---------- */
+
+@media (max-width: 520px) {
+  .aaf-chat-panel {
+    right: 12px;
+    left: 12px;
+    bottom: 72px;
+    width: auto;
+    height: calc(100vh - 110px);
+  }
+
+  .aaf-chat-launcher {
+    right: 12px;
+    bottom: 12px;
+  }
+
+  .aaf-chat-launcher-label {
+    display: none;
+  }
+
+  .aaf-chat-panel-home {
+    bottom: 130px;
+    height: calc(100vh - 165px);
+  }
+}

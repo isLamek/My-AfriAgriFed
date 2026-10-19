@@ -38,6 +38,7 @@ import { VerifyEmailGate } from "./VerifyEmail";
 import AppErrorBoundary, { lazyWithReload } from "./AppErrorBoundary";
 import Legal from "./Legal";
 import CookieBanner from "./CookieBanner";
+import AIChat from "./AIChat";
 
 // Lazy-loaded so the map library only downloads when someone opens the map.
 const MapPage = lazyWithReload(() => import("./MapPage"));
@@ -397,6 +398,8 @@ function App() {
       </Routes>
       </AppErrorBoundary>
       <CookieBanner />
+      {/* The AAF Assistant: one launcher, every page. */}
+      <AIChat />
     </>
   );
 }

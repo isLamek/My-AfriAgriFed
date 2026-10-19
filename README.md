@@ -12,10 +12,14 @@ connects farmers, consumers and agricultural institutions in Namibia.
 - **Orders:** an Order Tracker from payment to delivery, with notifications.
 - **Insight:** Data, Statistics and Promotions pages built from real activity.
 - **Learning:** research articles, training programs and internships.
+- **Help:** the AAF Assistant, a chatbot that explains the platform and answers
+  practical farming questions for Namibian conditions. It cannot see live data,
+  and says so.
 
 Built with React (Create React App), Firebase (auth, Firestore, Realtime
 Database, hosting), an Express backend (`server.js`), Cloudinary (images and
-PDFs) and Flutterwave (split payments).
+PDFs), Flutterwave (split payments) and OpenRouter (the assistant's Llama
+model).
 
 ## Start here
 
@@ -37,6 +41,14 @@ PDFs) and Flutterwave (split payments).
     payout accounts and orders; the browser only asks to pay.
   - `weather.js`, `fires.js`, `ttlCache.js`, `rateLimit.js`: one cached copy of
     weather and fire data shared by every visitor, with API keys kept private.
+  - `chat.js`: the AAF Assistant. Holds the system prompt describing this
+    business and the OpenRouter key, so neither is ever sent to a visitor's
+    browser, and streams the model's reply back. Off without
+    `OPENROUTER_API_KEY`. If replies ever feel slow, the cause is almost
+    certainly which host is running the model: set `OPENROUTER_PROVIDERS`
+    (see `.env.example`). Left to choose for itself, OpenRouter picked a host
+    that took 4.2s to the first word, against 0.7s for `groq,cerebras` - the
+    same model, the same answer.
   - `firebaseAdmin.js`, `store.js`: server access to the database.
 - `firestore.rules`, `database.rules.json`, `firebase.json` - security rules
   and Firebase CLI config. `src/rules.test.js` fails if a key protection is
@@ -58,7 +70,8 @@ node server.js          # backend on http://localhost:5000 (needs Cloudinary key
 ```
 
 Without keys the map still works (it falls back to Open-Meteo's free,
-non-commercial tier), the fire layer stays hidden, and payments stay off.
+non-commercial tier), the fire layer stays hidden, payments stay off, and the
+assistant's launcher does not appear.
 Every key, and what it switches on, is listed in `.env.example`.
 
 Needs Node 18 or newer.
