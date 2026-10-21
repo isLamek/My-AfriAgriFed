@@ -14,9 +14,15 @@ import promotionImg from "./images/promotion.jpg";
 import programsImg from "./images/programs.jpg";
 import aiBot from "./images/AI-bot.png";
 import { OPEN_CHAT_EVENT } from "./AIChat";
+import { backendConfigured } from "./apiBase";
+
 import farmersImg from "./images/farming.jpg";
 import consumersImg from "./images/consumers.jpg";
 import educatorsImg from "./images/educators.jpg";
+
+// The assistant runs on the backend; until that is online the bubble stays a
+// greeting rather than a button that does nothing.
+const CHAT_ON = backendConfigured();
 
 gsap.registerPlugin(TextPlugin);
 
@@ -250,7 +256,7 @@ export default function Home() {
          })
          .to(aiMessageRef.current, {
            duration: 3,
-           text: "Tap me to ask a question",
+           text: CHAT_ON ? "Tap me to ask a question" : "Coming soon to answer your questions",
            ease: "none"
          });
     }
@@ -298,19 +304,23 @@ export default function Home() {
         <div className="ai-bot-container">
           {/* The bubble is the real thing now: it opens the AAF Assistant
               (src/AIChat.js), which is mounted once in App.js. */}
-          <button
-            type="button"
-            className="ai-bot-button"
-            onClick={() => window.dispatchEvent(new Event(OPEN_CHAT_EVENT))}
-            aria-label="Open the AAF Assistant"
-          >
-            <img
-              ref={aiBotRef}
-              src={aiBot}
-              alt=""
-              className="ai-bot"
-            />
-          </button>
+          {CHAT_ON ? (
+            <button
+              type="button"
+              className="ai-bot-button"
+              onClick={() => window.dispatchEvent(new Event(OPEN_CHAT_EVENT))}
+              aria-label="Open the AAF Assistant"
+            >
+              <img
+                ref={aiBotRef}
+                src={aiBot}
+                alt=""
+                className="ai-bot"
+              />
+            </button>
+          ) : (
+            <img ref={aiBotRef} src={aiBot} alt="AAF Assistant (coming soon)" className="ai-bot" />
+          )}
           <div className="ai-message" ref={aiMessageRef}></div>
         </div>
       </div>
