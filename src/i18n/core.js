@@ -75,11 +75,11 @@ function interpolate(text, vars) {
 }
 
 /**
- * Translates a key. vars fills {placeholders}; a numeric vars.count also picks
- * the plural form (key_one / key_other).
+ * Translates a key into a chosen language (t() is this with the visitor's language).
+ * vars fills {placeholders}; a numeric vars.count also picks the plural form
+ * (key_one / key_other).
  */
-export function t(key, vars) {
-  const lang = current;
+export function tIn(lang, key, vars) {
   const keys = [];
   if (vars && typeof vars.count === "number") {
     const form = languageInfo(lang).plural(vars.count);
@@ -101,6 +101,33 @@ export function t(key, vars) {
     return key;
   }
   return interpolate(text, vars);
+}
+
+/** Translates a key into the visitor's language. */
+export const t = (key, vars) => tIn(current, key, vars);
+
+/**
+ * Display text for a stored value, e.g. an option someone picked on a form.
+ * Forms save the option as English text ("Crop farming"); that stored value must
+ * never change, only what is shown. The catalog holds these as "opt:Crop farming".
+ * A value with no translation is shown as it is.
+ */
+export function tv(value) {
+  if (value === null || value === undefined) return "";
+  const text = find(current, [`opt:${value}`]);
+  return text !== undefined ? text : String(value);
+}
+
+/** "a, b and c": the joining word and the punctuation come from the language file. */
+export function joinAnd(items) {
+  if (items.length <= 1) return items[0] || "";
+  return t("common.andLast", { list: items.slice(0, -1).join(", "), last: items[items.length - 1] });
+}
+
+/** "a, b or c" */
+export function joinOr(items) {
+  if (items.length <= 1) return items[0] || "";
+  return t("common.orLast", { list: items.slice(0, -1).join(", "), last: items[items.length - 1] });
 }
 
 /** True when the key has text in the language (used by tests and tools). */

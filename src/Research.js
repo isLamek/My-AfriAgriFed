@@ -14,6 +14,7 @@ import { auth, db } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import InsightsFrame from "./InsightsFrame";
 import "./Research.css";
+import { t } from "./i18n";
 
 export default function Research() {
   const [articles, setArticles] = useState([]);
@@ -74,7 +75,7 @@ export default function Research() {
     event.preventDefault();
 
     if (!problemForm.title.trim() || !problemForm.description.trim()) {
-      alert("Please describe the problem you're facing.");
+      alert(t("research.pleaseDescribeTheProblemYouRe"));
       return;
     }
 
@@ -97,7 +98,7 @@ export default function Research() {
       setProblemForm({ title: "", description: "" });
     } catch (error) {
       console.error(error);
-      alert("Could not submit problem: " + error.message);
+      alert(t("research.couldNotSubmit", { error: error.message }));
     } finally {
       setSubmitting(false);
     }
@@ -108,34 +109,34 @@ export default function Research() {
 
   return (
     <InsightsFrame
-      eyebrow="Institution research"
-      title="Farming Research Articles"
-      subtitle="Read agricultural reports, links and PDFs shared by institutions."
+      eyebrow={t("research.institutionResearch")}
+      title={t("research.farmingResearchArticles")}
+      subtitle={t("research.readAgriculturalReportsLinksAndPdfs")}
       activePath="/research"
     >
       {userType === "farmer" && (
         <section className="research-problems">
-          <h2>Submit a Problem for Research</h2>
-          <p>Institutions will see this and can publish a recommendation here.</p>
+          <h2>{t("research.submitProblemForResearch")}</h2>
+          <p>{t("research.institutionsWillSeeThisAndCan")}</p>
 
           <form onSubmit={submitProblem} className="problem-form">
             <input
-              placeholder="Short title, e.g. Aphids on tomato leaves"
+              placeholder={t("research.shortTitleEgAphidsOnTomato")}
               value={problemForm.title}
               onChange={(event) => setProblemForm((prev) => ({ ...prev, title: event.target.value }))}
             />
             <textarea
-              placeholder="Describe what you're experiencing..."
+              placeholder={t("research.describeWhatYouReExperiencing")}
               rows="3"
               value={problemForm.description}
               onChange={(event) => setProblemForm((prev) => ({ ...prev, description: event.target.value }))}
             />
-            <button disabled={submitting}>{submitting ? "Submitting..." : "Submit Problem"}</button>
+            <button disabled={submitting}>{submitting ? t("research.submitting") : t("research.submitProblem")}</button>
           </form>
 
           {myProblems.length > 0 && (
             <div className="my-problems-list">
-              <h3>Your submitted problems</h3>
+              <h3>{t("research.yourSubmittedProblems")}</h3>
               {myProblems.map((problem) => {
                 const answer = answeredArticleFor(problem);
                 return (
@@ -143,13 +144,13 @@ export default function Research() {
                     <div className="problem-status-row">
                       <strong>{problem.title}</strong>
                       <span className={`status-pill ${problem.status}`}>
-                        {problem.status === "answered" ? "Answered" : "Awaiting research"}
+                        {problem.status === "answered" ? t("research.answered") : t("research.awaitingResearch")}
                       </span>
                     </div>
                     <p>{problem.description}</p>
                     {answer && (
                       <div className="problem-answer">
-                        <p className="eyebrow">Recommendation</p>
+                        <p className="eyebrow">{t("research.recommendation")}</p>
                         <h4>{answer.title}</h4>
                         <p>{answer.summary}</p>
                       </div>
@@ -171,7 +172,7 @@ export default function Research() {
           {articles[0] ? (
             <div className="research-lead-content">
               <div className="article-meta">
-                <span>{articles[0].category || "Research"}</span>
+                <span>{articles[0].category || t("research.research")}</span>
                 <span>{articles[0].sourceName || articles[0].authorEmail}</span>
               </div>
               <h2>{articles[0].title}</h2>
@@ -179,20 +180,20 @@ export default function Research() {
               <div className="article-actions">
                 {articles[0].articleUrl && (
                   <a href={articles[0].articleUrl} target="_blank" rel="noreferrer">
-                    Open Link
+                    {t("research.openLink")}
                   </a>
                 )}
                 {articles[0].pdf?.url && (
                   <a href={articles[0].pdf.url} target="_blank" rel="noreferrer">
-                    View PDF
+                    {t("research.viewPdf")}
                   </a>
                 )}
               </div>
             </div>
           ) : (
             <div className="research-lead-content">
-              <h2>{loading ? "Loading research..." : "No research articles yet"}</h2>
-              <p>Institution posts will appear here once published.</p>
+              <h2>{loading ? t("research.loadingResearch") : t("research.noResearchArticlesYet")}</h2>
+              <p>{t("research.institutionPostsWillAppearHereOnce")}</p>
             </div>
           )}
         </section>
@@ -206,7 +207,7 @@ export default function Research() {
 
               <div>
                 <div className="article-meta">
-                  <span>{article.category || "Research"}</span>
+                  <span>{article.category || t("research.research")}</span>
                   <span>{article.sourceName || article.authorEmail}</span>
                 </div>
                 <h3>{article.title}</h3>
@@ -215,12 +216,12 @@ export default function Research() {
                 <div className="article-actions">
                   {article.articleUrl && (
                     <a href={article.articleUrl} target="_blank" rel="noreferrer">
-                      Open Link
+                      {t("research.openLink")}
                     </a>
                   )}
                   {article.pdf?.url && (
                     <a href={article.pdf.url} target="_blank" rel="noreferrer">
-                      View PDF
+                      {t("research.viewPdf")}
                     </a>
                   )}
                 </div>

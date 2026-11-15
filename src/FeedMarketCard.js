@@ -6,6 +6,7 @@ import { chatWith } from "./chat";
 import { maskContactInfo } from "./contactGuard";
 import { exampleProducePhoto, fallBackToExample } from "./produceImages";
 import { formatRelativeTime } from "./timeFormat";
+import { t } from "./i18n";
 
 const money = (n) => `N$${Number(n || 0).toLocaleString("en-NA", { maximumFractionDigits: 2 })}`;
 
@@ -20,7 +21,7 @@ export default function FeedMarketCard({ item, onOpenMarketplace }) {
   const d = item.data;
   const sale = item.feedKind === "sale";
   const ownerId = sale ? d.sellerId : d.buyerId;
-  const ownerName = (sale ? d.sellerName : d.buyerName) || "a member";
+  const ownerName = (sale ? d.sellerName : d.buyerName) || t("marketCard.aMember");
   const title = maskContactInfo(sale ? d.product : d.title || d.product);
   const mine = ownerId === uid;
 
@@ -29,10 +30,10 @@ export default function FeedMarketCard({ item, onOpenMarketplace }) {
     chatWith(navigate, { otherId: ownerId, otherName: ownerName, topic: { kind: sale ? "listing" : "demand", id: item.id, title } });
 
   return (
-    <article className={`feed-market-card ${sale ? "sale" : "wanted"}`} aria-label={sale ? `For sale: ${title}` : `Wanted: ${title}`}>
+    <article className={`feed-market-card ${sale ? "sale" : "wanted"}`} aria-label={sale ? t("marketCard.ariaForSale", { title }) : t("marketCard.ariaWanted", { title })}>
       <header className="feed-market-source">
         {sale ? <ShoppingBasket size={14} /> : <Tag size={14} />}
-        <span>{sale ? "Marketplace · For sale" : "Demand Board · Wanted"}</span>
+        <span>{sale ? t("marketCard.marketplaceForSale") : t("marketCard.demandBoardWanted")}</span>
         {item.at > 0 && <time>{formatRelativeTime(item.at)}</time>}
       </header>
 
@@ -40,7 +41,7 @@ export default function FeedMarketCard({ item, onOpenMarketplace }) {
         {sale && (
           <div className="feed-market-photo">
             <img src={d.imageUrl || exampleProducePhoto(d.product)} alt="" onError={fallBackToExample(d.product)} />
-            {!d.imageUrl && <span>Example photo</span>}
+            {!d.imageUrl && <span>{t("marketCard.examplePhoto")}</span>}
           </div>
         )}
         <div className="feed-market-text">
@@ -52,7 +53,7 @@ export default function FeedMarketCard({ item, onOpenMarketplace }) {
           </p>
           {!sale && d.notes && <p className="feed-market-notes">{maskContactInfo(d.notes).slice(0, 160)}</p>}
           <p className="feed-market-who">
-            {sale ? "Sold by" : "Requested by"} {mine ? "you" : ownerName}
+            {sale ? t("marketCard.soldBy") : t("marketCard.requestedBy")} {mine ? "you" : ownerName}
             {d.location?.label && (
               <span>
                 <MapPin size={12} /> {d.location.label}
@@ -61,11 +62,11 @@ export default function FeedMarketCard({ item, onOpenMarketplace }) {
           </p>
           <div className="feed-market-actions">
             <button type="button" className="aaf-btn aaf-btn-primary aaf-btn-sm" onClick={open}>
-              {sale ? "View in Marketplace" : mine ? "See pledges" : "Pledge on the Demand Board"}
+              {sale ? t("marketCard.viewInMarketplace") : mine ? t("marketCard.seePledges") : t("marketCard.pledgeOnTheDemandBoard")}
             </button>
             {!mine && ownerId && (
               <button type="button" className="aaf-btn aaf-btn-ghost aaf-btn-sm" onClick={message}>
-                <MessageCircle size={14} /> Message {sale ? "seller" : "buyer"}
+                <MessageCircle size={14} /> {sale ? t("marketCard.messageSeller") : t("marketCard.messageBuyer")}
               </button>
             )}
           </div>

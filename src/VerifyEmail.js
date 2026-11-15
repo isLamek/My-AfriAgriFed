@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { auth } from "./firebaseConfig";
 import { checkVerified, needsVerification, sendVerification } from "./emailVerification";
 import "./VerifyEmail.css";
+import { t, tRich } from "./i18n";
 
 /** Resend / "I have verified" behaviour shared by the banner and the full-page gate. */
 function useVerifyActions(user, onVerified) {
@@ -14,9 +15,9 @@ function useVerifyActions(user, onVerified) {
     setBusy(true);
     const result = await sendVerification(user);
     setBusy(false);
-    if (result.sent) toast.success(`Verification e-mail sent to ${user.email}. Check your spam folder too.`);
-    else if (result.waitMs) toast(`An e-mail was just sent. You can ask for another in ${Math.ceil(result.waitMs / 1000)} seconds.`);
-    else toast.error(result.error || "Could not send the e-mail.");
+    if (result.sent) toast.success(t("verifyEmail.sentTo", { email: user.email }));
+    else if (result.waitMs) toast(t("verifyEmail.justSent", { count: Math.ceil(result.waitMs / 1000) }));
+    else toast.error(result.error || t("verifyEmail.couldNotSendTheMail"));
   };
 
   const confirm = async () => {
@@ -24,10 +25,10 @@ function useVerifyActions(user, onVerified) {
     const ok = await checkVerified(user);
     setBusy(false);
     if (ok) {
-      toast.success("E-mail verified. Thank you!");
+      toast.success(t("verifyEmail.mailVerifiedThankYou"));
       onVerified();
     } else {
-      toast("Not verified yet. Open the link in the e-mail we sent, then try again.");
+      toast(t("verifyEmail.notVerifiedYetOpenTheLink"));
     }
   };
 
@@ -63,12 +64,10 @@ export function VerifyEmailBanner() {
   return (
     <div className="verify-banner" role="status">
       <MailCheck size={16} />
-      <span>
-        Please verify your e-mail address (<strong>{user.email}</strong>). It keeps your account safe and recoverable.
-      </span>
-      <button type="button" onClick={actions.resend} disabled={actions.busy}>Send me the link</button>
-      <button type="button" onClick={actions.confirm} disabled={actions.busy}>I have verified</button>
-      <button type="button" className="verify-dismiss" onClick={hide} aria-label="Hide this reminder">×</button>
+      <span>{tRich("verifyEmail.pleaseVerify", { email: <strong>{user.email}</strong> })}</span>
+      <button type="button" onClick={actions.resend} disabled={actions.busy}>{t("verifyEmail.sendMeTheLink")}</button>
+      <button type="button" onClick={actions.confirm} disabled={actions.busy}>{t("verifyEmail.haveVerified")}</button>
+      <button type="button" className="verify-dismiss" onClick={hide} aria-label={t("verifyEmail.hideThisReminder")}>×</button>
     </div>
   );
 }
@@ -77,7 +76,7 @@ export function VerifyEmailBanner() {
  * Full-page block used where an unverified e-mail must not get through (the
  * Admin area). Sends the e-mail the first time it is shown.
  */
-export function VerifyEmailGate({ user, onVerified, title = "Verify your e-mail to continue", reason }) {
+export function VerifyEmailGate({ user, onVerified, title = t("verifyEmail.verifyYourMailToContinue"), reason }) {
   const actions = useVerifyActions(user, onVerified);
 
   useEffect(() => {
@@ -90,14 +89,13 @@ export function VerifyEmailGate({ user, onVerified, title = "Verify your e-mail 
         <MailCheck size={34} />
         <h1>{title}</h1>
         <p>
-          {reason || "This area is only for verified accounts."} We sent a link to <strong>{user.email}</strong>. Open it
-          (check your spam folder too), then come back here.
+          {reason || t("verifyEmail.thisAreaIsOnlyForVerified")} {tRich("verifyEmail.weSentLink", { email: <strong>{user.email}</strong> })}
         </p>
         <button type="button" className="aaf-btn aaf-btn-primary" onClick={actions.confirm} disabled={actions.busy}>
-          <RefreshCw size={15} /> I have verified my e-mail
+          <RefreshCw size={15} /> {t("verifyEmail.haveVerifiedMyMail")}
         </button>
         <button type="button" className="verify-link" onClick={actions.resend} disabled={actions.busy}>
-          Send the e-mail again
+          {t("verifyEmail.sendTheMailAgain")}
         </button>
       </div>
     </div>

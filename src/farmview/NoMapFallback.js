@@ -2,7 +2,8 @@ import React, { useEffect, useState } from "react";
 import { CloudRain, MonitorX, Thermometer, Umbrella, Wind } from "lucide-react";
 import { TOWNS } from "./config";
 import { fetchSpotsNow } from "./dataClients";
-import { compassPoint } from "./cursorReadout";
+import { compassPoint, windText } from "./cursorReadout";
+import { t, tRich } from "../i18n";
 
 /** True when this browser can draw the map (it needs WebGL). */
 export function supportsWebGL() {
@@ -14,7 +15,7 @@ export function supportsWebGL() {
   }
 }
 
-const TOWN_LIST = TOWNS.filter((t) => t.major);
+const TOWN_LIST = TOWNS.filter((town) => town.major);
 
 /**
  * Shown instead of the map when the browser can't draw it (WebGL switched
@@ -29,7 +30,7 @@ export default function NoMapFallback() {
     let live = true;
     fetchSpotsNow(TOWN_LIST)
       .then((list) => live && setSpots(list))
-      .catch(() => live && setError("The weather service isn't answering right now. Please try again later."));
+      .catch(() => live && setError(t("noMapFallback.theWeatherServiceIsnAnsweringRight")));
     return () => {
       live = false;
     };
@@ -44,25 +45,26 @@ export default function NoMapFallback() {
       <section className="aaf-card fv-nomap-note">
         <MonitorX size={22} aria-hidden="true" />
         <div>
-          <h2>The map can't be drawn in this browser right now</h2>
+          <h2>{t("noMapFallback.theMapCanBeDrawnIn")}</h2>
           <p>
-            It needs your browser's graphics (WebGL), which is switched off or was blocked after a graphics problem. Usually
-            restarting the browser fixes it. In Chrome you can also open <strong>Settings, System</strong> and turn on{" "}
-            <strong>"Use graphics acceleration when available"</strong>, then restart Chrome.
+            {tRich("noMapFallback.explain", {
+              settings: <strong>{t("noMapFallback.settingsSystem")}</strong>,
+              option: <strong>{t("noMapFallback.accelOption")}</strong>,
+            })}
           </p>
           <button type="button" className="aaf-btn aaf-btn-primary aaf-btn-sm" onClick={() => window.location.reload()}>
-            Try again
+            {t("noMapFallback.tryAgain")}
           </button>
         </div>
       </section>
 
       <section className="aaf-card fv-nomap-weather">
-        <h2>Weather now, by region</h2>
+        <h2>{t("noMapFallback.weatherNowByRegion")}</h2>
         {error && <p className="fv-note">{error}</p>}
-        {!spots && !error && <p className="fv-note">Loading the forecast...</p>}
+        {!spots && !error && <p className="fv-note">{t("noMapFallback.loadingTheForecast")}</p>}
         {spots && (
           <>
-            <p className="fv-note">Each town's own forecast (corrected for its altitude){asOf ? `, as of ${asOf} Namibian time` : ""}.</p>
+            <p className="fv-note">{asOf ? t("noMapFallback.forecastNoteAsOf", { time: asOf }) : t("noMapFallback.forecastNote")}</p>
             <div className="fv-nomap-grid">
               {TOWN_LIST.map((town, i) => {
                 const s = spots[i] || {};
@@ -71,9 +73,9 @@ export default function NoMapFallback() {
                     <strong>{town.region}</strong>
                     <span className="fv-nomap-place">{town.name}</span>
                     <span><Thermometer size={14} /> {s.temp == null ? "-" : `${s.temp.toFixed(1)} °C`}</span>
-                    <span><CloudRain size={14} /> {s.rainLastHourMm == null ? "-" : `${s.rainLastHourMm.toFixed(1)} mm past hour`}</span>
-                    {s.rainChance3h != null && <span><Umbrella size={14} /> {s.rainChance3h}% rain chance, 3 h</span>}
-                    <span><Wind size={14} /> {s.windMs == null ? "-" : `${s.windMs.toFixed(1)} m/s ${compassPoint(s.windFrom)}`}</span>
+                    <span><CloudRain size={14} /> {s.rainLastHourMm == null ? "-" : t("noMapFallback.mmPastHour", { mm: s.rainLastHourMm.toFixed(1) })}</span>
+                    {s.rainChance3h != null && <span><Umbrella size={14} /> {t("noMapFallback.rainChance", { value: s.rainChance3h })}</span>}
+                    <span><Wind size={14} /> {s.windMs == null ? "-" : windText(s.windMs.toFixed(1), compassPoint(s.windFrom))}</span>
                   </div>
                 );
               })}

@@ -27,6 +27,7 @@ import "./MyListings.css";
 import "./MyOrders.css";
 import LocationPicker from "./LocationPicker";
 import { shrinkPhoto } from "./produceImages";
+import { t } from "./i18n";
 
 const API_URL = API_BASE_URL;
 const emptyListing = { product: "", price: "", unit: "kg", quantity: "", location: null };
@@ -109,7 +110,7 @@ export default function MyListings() {
     const user = auth.currentUser;
 
     if (!payoutForm.businessName || !payoutForm.accountBank || !payoutForm.accountNumber) {
-      toast.error("Fill in your business name, bank and account number.");
+      toast.error(t("listings.fillInYourBusinessNameBank"));
       return;
     }
 
@@ -136,11 +137,11 @@ export default function MyListings() {
 
       const data = await response.json().catch(() => ({}));
 
-      if (!response.ok) throw new Error(data.message || "Could not set up payouts");
+      if (!response.ok) throw new Error(data.message || t("listings.couldNotSetUpPayouts"));
 
       await setDoc(doc(db, "users", user.uid), { flutterwaveSubaccountId: data.subaccountId }, { merge: true });
       setSubaccountId(data.subaccountId);
-      toast.success("Payouts are set up. Your listings can now accept payment.");
+      toast.success(t("listings.payoutsAreSetUpYourListings"));
     } catch (error) {
       toast.error(error.message);
     } finally {
@@ -174,7 +175,7 @@ export default function MyListings() {
     const user = auth.currentUser;
 
     if (!formData.product.trim() || !formData.price) {
-      toast.error("Add a product name and price.");
+      toast.error(t("listings.addProductNameAndPrice"));
       return;
     }
 
@@ -190,7 +191,7 @@ export default function MyListings() {
         } catch (uploadError) {
           // Photo uploads aren't set up (or Cloudinary refused): keep a
           // compressed copy on the listing so buyers still see the photo.
-          if (/too large|isn't supported|too detailed/i.test(uploadError.message)) throw uploadError;
+          if (uploadError.userError) throw uploadError;
           imageUrl = await shrinkPhoto(imageFile);
         }
       }
@@ -210,10 +211,10 @@ export default function MyListings() {
 
       if (editingId) {
         await updateDoc(doc(db, "marketPrices", editingId), payload);
-        toast.success("Listing updated.");
+        toast.success(t("listings.listingUpdated"));
       } else {
         await addDoc(collection(db, "marketPrices"), { ...payload, createdAt: serverTimestamp() });
-        toast.success("Listing posted to the marketplace.");
+        toast.success(t("listings.listingPostedToTheMarketplace"));
       }
 
       cancelEdit();
@@ -225,9 +226,9 @@ export default function MyListings() {
   };
 
   const removeListing = async (listing) => {
-    if (!window.confirm(`Remove "${listing.product}" from the marketplace?`)) return;
+    if (!window.confirm(t("listings.removeConfirm", { product: listing.product }))) return;
     await deleteDoc(doc(db, "marketPrices", listing.id));
-    toast.success("Listing removed.");
+    toast.success(t("listings.listingRemoved"));
   };
 
   const logout = async () => {
@@ -239,9 +240,9 @@ export default function MyListings() {
 
   return (
     <AppShell
-      eyebrow="Producer workspace"
-      title="My Listings"
-      subtitle="Manage what you're selling on the AfriAgriFed marketplace."
+      eyebrow={t("listings.producerWorkspace")}
+      title={t("listings.myListings")}
+      subtitle={t("listings.manageWhatYouReSellingOn")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
@@ -252,31 +253,30 @@ export default function MyListings() {
           <div className="payout-card-heading">
             <Wallet size={22} />
             <div>
-              <h3>Set up payouts</h3>
+              <h3>{t("listings.setUpPayouts")}</h3>
               <p>
-                Add your bank details once so buyers can pay you directly through the app. AfriAgriFed
-                automatically deducts its commission and sends the rest to this account.
+                {t("listings.addYourBankDetailsOnceSo")}
               </p>
             </div>
           </div>
 
           <form onSubmit={setupPayouts} className="payout-form">
             <label>
-              Business / farm name
+              {t("listings.businessFarmName")}
               <input
                 value={payoutForm.businessName}
                 onChange={(e) => setPayoutForm((prev) => ({ ...prev, businessName: e.target.value }))}
-                placeholder="e.g., Green Valley Farm"
+                placeholder={t("listings.egGreenValleyFarm")}
               />
             </label>
 
             <label>
-              Bank
+              {t("listings.bank")}
               <select
                 value={payoutForm.accountBank}
                 onChange={(e) => setPayoutForm((prev) => ({ ...prev, accountBank: e.target.value }))}
               >
-                <option value="">Select your bank</option>
+                <option value="">{t("listings.selectYourBank")}</option>
                 {banks.map((bank) => (
                   <option key={bank.code} value={bank.code}>
                     {bank.name}
@@ -285,22 +285,22 @@ export default function MyListings() {
               </select>
               {banks.length === 0 && (
                 <span className="payout-hint">
-                  Bank list unavailable - payments aren't configured yet (needs a Flutterwave API key).
+                  {t("listings.bankListUnavailablePaymentsArenConfigured")}
                 </span>
               )}
             </label>
 
             <label>
-              Account number
+              {t("listings.accountNumber")}
               <input
                 value={payoutForm.accountNumber}
                 onChange={(e) => setPayoutForm((prev) => ({ ...prev, accountNumber: e.target.value }))}
-                placeholder="Bank account number"
+                placeholder={t("listings.bankAccountNumber")}
               />
             </label>
 
             <button className="aaf-btn aaf-btn-primary" disabled={settingUpPayouts}>
-              {settingUpPayouts ? "Setting up..." : "Set Up Payouts"}
+              {settingUpPayouts ? t("listings.settingUp") : t("listings.setUpPayouts2")}
             </button>
           </form>
         </section>
@@ -308,25 +308,25 @@ export default function MyListings() {
 
       {subaccountId && (
         <div className="payout-status">
-          <CheckCircle2 size={16} /> Payouts are set up - your listings can accept payment.
+          <CheckCircle2 size={16} /> {t("listings.payoutsAreSetUpYourListings2")}
         </div>
       )}
 
       <section className="aaf-card">
-        <h3>{editingId ? "Edit Listing" : "Add a Listing"}</h3>
+        <h3>{editingId ? t("listings.editListing") : t("listings.addListing")}</h3>
 
         <form onSubmit={saveListing} className="listing-form">
           <label>
-            Product
+            {t("listings.product")}
             <input
               value={formData.product}
               onChange={(e) => setFormData((prev) => ({ ...prev, product: e.target.value }))}
-              placeholder="e.g., Tomatoes"
+              placeholder={t("listings.egTomatoes")}
             />
           </label>
 
           <label>
-            Price (N$)
+            {t("listings.price")}
             <input
               type="number"
               min="0"
@@ -337,18 +337,18 @@ export default function MyListings() {
           </label>
 
           <label>
-            Unit
+            {t("listings.unit")}
             <select value={formData.unit} onChange={(e) => setFormData((prev) => ({ ...prev, unit: e.target.value }))}>
-              <option value="kg">per kg</option>
-              <option value="unit">per unit</option>
-              <option value="tray">per tray</option>
-              <option value="bunch">per bunch</option>
-              <option value="litre">per litre</option>
+              <option value="kg">{t("listings.perKg")}</option>
+              <option value="unit">{t("listings.perUnit")}</option>
+              <option value="tray">{t("listings.perTray")}</option>
+              <option value="bunch">{t("listings.perBunch")}</option>
+              <option value="litre">{t("listings.perLitre")}</option>
             </select>
           </label>
 
           <label>
-            Quantity available (optional)
+            {t("listings.quantityAvailableOptional")}
             <input
               type="number"
               min="0"
@@ -358,17 +358,17 @@ export default function MyListings() {
           </label>
 
           <label className="listing-photo-field">
-            Photo (optional)
+            {t("listings.photoOptional")}
             {(imagePreview || existingImageUrl) ? (
               <div className="listing-photo-preview">
-                <img src={imagePreview || existingImageUrl} alt="Listing" />
-                <button type="button" onClick={() => { handleImageSelect(null); setExistingImageUrl(null); }} aria-label="Remove photo">
+                <img src={imagePreview || existingImageUrl} alt={t("listings.listing")} />
+                <button type="button" onClick={() => { handleImageSelect(null); setExistingImageUrl(null); }} aria-label={t("listings.removePhoto")}>
                   <X size={14} />
                 </button>
               </div>
             ) : (
               <span className="listing-photo-placeholder">
-                <ImagePlus size={16} /> Add a photo buyers will see
+                <ImagePlus size={16} /> {t("listings.addPhotoBuyersWillSee")}
               </span>
             )}
             <input type="file" accept="image/*" onChange={(e) => handleImageSelect(e.target.files?.[0])} />
@@ -380,11 +380,11 @@ export default function MyListings() {
 
           <div className="listing-form-actions">
             <button className="aaf-btn aaf-btn-primary" disabled={saving}>
-              {saving ? "Saving..." : editingId ? "Save Changes" : "Post Listing"}
+              {saving ? t("listings.saving") : editingId ? t("listings.saveChanges") : t("listings.postListing")}
             </button>
             {editingId && (
               <button type="button" className="aaf-btn aaf-btn-ghost" onClick={cancelEdit}>
-                Cancel
+                {t("common.cancel")}
               </button>
             )}
           </div>
@@ -393,7 +393,7 @@ export default function MyListings() {
 
       <section className="listings-grid">
         {listings.length === 0 ? (
-          <p className="dashboard-empty-state">You haven't posted any listings yet.</p>
+          <p className="dashboard-empty-state">{t("listings.youHavenPostedAnyListingsYet")}</p>
         ) : (
           listings.map((listing) => (
             <div className="aaf-card listing-card" key={listing.id}>
@@ -407,15 +407,15 @@ export default function MyListings() {
                 </p>
                 {listing.quantity != null && (
                   <p className={`listing-qty ${listing.quantity <= 0 ? "sold-out" : ""}`}>
-                    {listing.quantity <= 0 ? "Sold out. Edit the quantity to restock." : `${listing.quantity} available`}
+                    {listing.quantity <= 0 ? t("listings.soldOutEditTheQuantityTo") : `${listing.quantity} available`}
                   </p>
                 )}
               </div>
               <div className="listing-actions">
-                <button onClick={() => startEdit(listing)} aria-label="Edit">
+                <button onClick={() => startEdit(listing)} aria-label={t("listings.edit")}>
                   <Pencil size={16} />
                 </button>
-                <button onClick={() => removeListing(listing)} aria-label="Remove" className="danger">
+                <button onClick={() => removeListing(listing)} aria-label={t("listings.remove")} className="danger">
                   <Trash2 size={16} />
                 </button>
               </div>
@@ -425,18 +425,18 @@ export default function MyListings() {
       </section>
 
       <section className="aaf-card recent-sales">
-        <h3>Recent Sales</h3>
+        <h3>{t("listings.recentSales")}</h3>
 
         {sales.length === 0 ? (
-          <p className="dashboard-empty-state">No sales recorded yet.</p>
+          <p className="dashboard-empty-state">{t("listings.noSalesRecordedYet")}</p>
         ) : (
           <table className="orders-table">
             <thead>
               <tr>
-                <th>Product</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
+                <th>{t("listings.product")}</th>
+                <th>{t("listings.amount")}</th>
+                <th>{t("listings.status")}</th>
+                <th>{t("listings.date")}</th>
               </tr>
             </thead>
             <tbody>

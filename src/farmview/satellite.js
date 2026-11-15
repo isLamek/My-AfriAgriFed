@@ -5,6 +5,7 @@
 // commercial launch needs EUMETSAT's authorisation (docs/LAUNCH_CHECKLIST.md).
 
 import { TTL } from "./config";
+import { t } from "../i18n";
 
 const BASE = "https://view.eumetsat.int/geoserver";
 const cache = new Map(); // layerKey -> { value, expires }
@@ -48,7 +49,7 @@ export async function fetchSatelliteTimes(layerDef) {
   const res = await fetch(url);
   if (!res.ok) throw new Error(`Satellite service returned ${res.status}`);
   const extent = parseTimeExtent(await res.text());
-  if (!extent) throw new Error("Satellite layer has no time information");
+  if (!extent) throw new Error(t("satellite.satelliteLayerHasNoTimeInformation"));
   cache.set(key, { value: extent, expires: Date.now() + TTL.satelliteTimes });
   return extent;
 }

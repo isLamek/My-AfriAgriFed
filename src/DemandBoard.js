@@ -34,6 +34,7 @@ import {
 } from "./demandRules";
 import "./DemandBoard.css";
 import LocationPicker from "./LocationPicker";
+import { t, tv, tRich } from "./i18n";
 
 const emptyDemand = { title: "", product: "", quantityNeeded: "", unit: "kg", deadline: "", notes: "", location: null };
 
@@ -106,7 +107,7 @@ export default function DemandBoard() {
         status: "open",
         createdAt: serverTimestamp(),
       });
-      toast.success("Request posted. Producers can now pledge.");
+      toast.success(t("demand.requestPostedProducersCanNowPledge"));
       setFormData(emptyDemand);
       setErrors({});
       setShowForm(false);
@@ -121,23 +122,23 @@ export default function DemandBoard() {
   const markFulfilled = async (demand) => {
     try {
       await updateDoc(doc(db, "demandRequests", demand.id), { status: "fulfilled" });
-      toast.success("Marked as fulfilled.");
+      toast.success(t("demand.markedAsFulfilled"));
     } catch (error) {
       toast.error(error.message);
     }
   };
 
   const emptyMessage = {
-    open: "No open requests right now. Buyers can post one with the button above.",
-    fulfilled: "Nothing has been fulfilled yet.",
-    mine: "You haven't posted a request yet.",
+    open: t("demand.emptyOpen"),
+    fulfilled: t("demand.emptyFulfilled"),
+    mine: t("demand.emptyMine"),
   }[filter];
 
   return (
     <AppShell
-      eyebrow="Community"
-      title="Demand Board"
-      subtitle="Buyers post what they need in bulk. Producers pledge to supply it."
+      eyebrow={t("demand.community")}
+      title={t("demand.demandBoard")}
+      subtitle={t("demand.buyersPostWhatTheyNeedIn")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
@@ -148,14 +149,11 @@ export default function DemandBoard() {
       <section className="aaf-card demand-intro">
         <div className="demand-intro-head">
           <div>
-            <h3>How the Demand Board works</h3>
-            <p>
-              This is for <strong>bulk requests that need several producers</strong>. For a chat or a question, use the
-              Community Feed. For something already listed for sale, use the Marketplace.
-            </p>
+            <h3>{t("demand.howTheDemandBoardWorks")}</h3>
+            <p>{tRich("demand.introText", { bulk: <strong>{t("demand.introBulk")}</strong> })}</p>
           </div>
           <button className="aaf-btn aaf-btn-primary" onClick={() => setShowForm((prev) => !prev)}>
-            {showForm ? <><X size={16} /> Cancel</> : <><Plus size={16} /> Post a request</>}
+            {showForm ? <><X size={16} /> {t("common.cancel")}</> : <><Plus size={16} /> {t("demand.postRequest")}</>}
           </button>
         </div>
         <ol className="demand-steps">
@@ -163,8 +161,8 @@ export default function DemandBoard() {
             <li key={step.n}>
               <span className="demand-step-n">{step.n}</span>
               <div>
-                <strong>{step.title}</strong>
-                <span>{step.body}</span>
+                <strong>{tv(step.title)}</strong>
+                <span>{tv(step.body)}</span>
               </div>
             </li>
           ))}
@@ -175,45 +173,45 @@ export default function DemandBoard() {
         <section className="aaf-card">
           <form onSubmit={postDemand} className="demand-form" noValidate>
             <label>
-              Title
+              {t("demand.title")}
               <input
                 value={formData.title}
                 maxLength={LIMITS.title}
                 onChange={set("title")}
-                placeholder="e.g. Weekly maize supply for school feeding"
+                placeholder={t("demand.egWeeklyMaizeSupplyForSchool")}
                 autoFocus
               />
               <FieldError>{errors.title}</FieldError>
             </label>
             <label>
-              Product
-              <input value={formData.product} maxLength={LIMITS.product} onChange={set("product")} placeholder="e.g. White maize" />
+              {t("demand.product")}
+              <input value={formData.product} maxLength={LIMITS.product} onChange={set("product")} placeholder={t("demand.egWhiteMaize")} />
               <FieldError>{errors.product}</FieldError>
             </label>
             <label>
-              Quantity needed
+              {t("demand.quantityNeeded")}
               <input type="number" min="0" inputMode="decimal" value={formData.quantityNeeded} onChange={set("quantityNeeded")} />
               <FieldError>{errors.quantityNeeded}</FieldError>
             </label>
             <label>
-              Unit
+              {t("demand.unit")}
               <select value={formData.unit} onChange={set("unit")}>
-                {DEMAND_UNITS.map((unit) => <option key={unit} value={unit}>{unit}</option>)}
+                {DEMAND_UNITS.map((unit) => <option key={unit} value={unit}>{tv(unit)}</option>)}
               </select>
             </label>
             <label>
-              Needed by (optional)
+              {t("demand.neededByOptional")}
               <input type="date" value={formData.deadline} onChange={set("deadline")} />
               <FieldError>{errors.deadline}</FieldError>
             </label>
             <label className="demand-form-notes">
-              Notes
+              {t("demand.notes")}
               <textarea
                 rows={3}
                 maxLength={LIMITS.notes}
                 value={formData.notes}
                 onChange={set("notes")}
-                placeholder="Delivery location, quality requirements, budget range..."
+                placeholder={t("demand.deliveryLocationQualityRequirementsBudgetRan")}
               />
               <FieldError>{errors.notes}</FieldError>
             </label>
@@ -225,13 +223,13 @@ export default function DemandBoard() {
               />
             </div>
             <button className="aaf-btn aaf-btn-primary" disabled={saving}>
-              {saving ? "Posting..." : "Post request"}
+              {saving ? t("demand.posting") : t("demand.postRequest2")}
             </button>
           </form>
         </section>
       )}
 
-      <div className="demand-filters" role="tablist" aria-label="Filter requests">
+      <div className="demand-filters" role="tablist" aria-label={t("demand.filterRequests")}>
         {FILTERS.map((f) => (
           <button
             key={f.id}
@@ -240,14 +238,14 @@ export default function DemandBoard() {
             className={filter === f.id ? "on" : ""}
             onClick={() => setFilter(f.id)}
           >
-            {f.label} <span>{counts[f.id]}</span>
+            {tv(f.label)} <span>{counts[f.id]}</span>
           </button>
         ))}
       </div>
 
       <section className="demand-list">
-        {loadError && <p className="dashboard-empty-state">Could not load requests: {loadError}</p>}
-        {!loaded && !loadError && <p className="dashboard-empty-state">Loading requests...</p>}
+        {loadError && <p className="dashboard-empty-state">{t("demand.couldNotLoad", { error: loadError })}</p>}
+        {!loaded && !loadError && <p className="dashboard-empty-state">{t("demand.loadingRequests")}</p>}
         {loaded && !loadError && visible.length === 0 && <p className="dashboard-empty-state">{emptyMessage}</p>}
         {visible.map((demand) => (
           <DemandCard
@@ -317,21 +315,21 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
         note: pledgeNote.trim(),
         createdAt: serverTimestamp(),
       });
-      toast.success("Pledge added.");
+      toast.success(t("demand.pledgeAdded"));
       setPledgeQty("");
       setPledgeNote("");
       notifyUser(demand.buyerId, {
-        title: "New pledge on your request",
-        body: `${currentName} can supply ${pledgeQty} ${demand.unit} of ${demand.product}.`,
+        key: "notif.pledge",
+        params: { name: currentName, qty: pledgeQty, unit: demand.unit, product: demand.product },
         link: "/demand-board",
       });
     } catch (error) {
-      toast.error(error.code === "permission-denied" ? "Only producer accounts can pledge." : error.message);
+      toast.error(error.code === "permission-denied" ? t("demand.onlyProducerAccountsCanPledge") : error.message);
     }
   };
 
   const withdrawPledge = async (pledge) => {
-    if (!window.confirm("Withdraw this pledge?")) return;
+    if (!window.confirm(t("demand.withdrawThisPledge"))) return;
     try {
       await deleteDoc(doc(db, "demandRequests", demand.id, "pledges", pledge.id));
     } catch (error) {
@@ -365,24 +363,24 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
       <div className="demand-card-header">
         <div>
           <div className="demand-badges">
-            <span className={`aaf-pill ${fulfilled ? "aaf-pill-success" : "aaf-pill-warning"}`}>{fulfilled ? "Fulfilled" : "Open"}</span>
-            {isOwnDemand && <span className="aaf-pill">Your request</span>}
-            {!fulfilled && summary.covered && <span className="aaf-pill aaf-pill-success">Fully pledged</span>}
-            {deadline === "overdue" && <span className="aaf-pill demand-pill-danger">Past its date</span>}
-            {deadline === "soon" && <span className="aaf-pill demand-pill-danger">Needed soon</span>}
+            <span className={`aaf-pill ${fulfilled ? "aaf-pill-success" : "aaf-pill-warning"}`}>{fulfilled ? t("demand.fulfilled") : t("demand.open")}</span>
+            {isOwnDemand && <span className="aaf-pill">{t("demand.yourRequest")}</span>}
+            {!fulfilled && summary.covered && <span className="aaf-pill aaf-pill-success">{t("demand.fullyPledged")}</span>}
+            {deadline === "overdue" && <span className="aaf-pill demand-pill-danger">{t("demand.pastItsDate")}</span>}
+            {deadline === "soon" && <span className="aaf-pill demand-pill-danger">{t("demand.neededSoon")}</span>}
           </div>
           <h3>{demand.title}</h3>
           <p className="demand-meta">
-            {demand.product} · {demand.quantityNeeded} {demand.unit} needed
+            {demand.product} · {t("demand.neededQty", { qty: demand.quantityNeeded, unit: tv(demand.unit) })}
             {demand.deadline && (
-              <span className="demand-deadline"><CalendarClock size={13} /> by {demand.deadline}</span>
+              <span className="demand-deadline"><CalendarClock size={13} /> {t("demand.byDate", { date: demand.deadline })}</span>
             )}
           </p>
-          <p className="demand-buyer">Posted by {demand.buyerName}</p>
+          <p className="demand-buyer">{t("demand.postedBy", { name: demand.buyerName })}</p>
         </div>
         {canMarkFulfilled && (
           <button className="aaf-btn aaf-btn-ghost" onClick={() => onMarkFulfilled(demand)}>
-            <CheckCircle2 size={16} /> Mark fulfilled
+            <CheckCircle2 size={16} /> {t("demand.markFulfilled")}
           </button>
         )}
       </div>
@@ -394,9 +392,8 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
           <div className="demand-progress-fill" style={{ width: `${summary.percent}%` }} />
         </div>
         <span className="demand-progress-label">
-          <Users size={14} /> {summary.pledged} / {demand.quantityNeeded} {demand.unit} pledged by {summary.count}{" "}
-          {summary.count === 1 ? "producer" : "producers"}
-          {!fulfilled && summary.remaining > 0 && summary.count > 0 && ` · ${summary.remaining} ${demand.unit} still needed`}
+          <Users size={14} /> {t("demand.pledgedBy", { pledged: summary.pledged, needed: demand.quantityNeeded, unit: tv(demand.unit), count: summary.count })}
+          {!fulfilled && summary.remaining > 0 && summary.count > 0 && ` · ${t("demand.stillNeeded", { remaining: summary.remaining, unit: tv(demand.unit) })}`}
         </span>
       </div>
 
@@ -405,15 +402,15 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
           {pledges.map((p) => (
             <li key={p.id}>
               <span>
-                <strong>{p.farmerName}</strong> · {p.quantity} {demand.unit}
+                <strong>{p.farmerName}</strong> · {p.quantity} {tv(demand.unit)}
                 {p.note ? <em> · {maskContactInfo(p.note)}</em> : null}
               </span>
               {p.farmerId === currentUid && !fulfilled && (
-                <button type="button" onClick={() => withdrawPledge(p)} aria-label="Withdraw pledge">Withdraw</button>
+                <button type="button" onClick={() => withdrawPledge(p)} aria-label={t("demand.withdrawPledge")}>{t("demand.withdraw")}</button>
               )}
               {isOwnDemand && p.farmerId !== currentUid && onMessage && (
                 <button type="button" className="pledge-message" onClick={() => onMessage(p.farmerId, p.farmerName)}>
-                  Message
+                  {t("demand.message")}
                 </button>
               )}
             </li>
@@ -428,45 +425,45 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
               type="number"
               min="0"
               inputMode="decimal"
-              placeholder={`How much can you supply (${demand.unit})`}
+              placeholder={t("demand.howMuchCanYouSupply", { unit: tv(demand.unit) })}
               value={pledgeQty}
               onChange={(e) => setPledgeQty(e.target.value)}
-              aria-label="Quantity you can supply"
+              aria-label={t("demand.quantityYouCanSupply")}
             />
             <FieldError>{pledgeErrors.quantity || pledgeErrors.demand}</FieldError>
           </div>
           <div className="pledge-field">
             <input
-              placeholder="Note, e.g. ready 15 Oct (optional)"
+              placeholder={t("demand.noteEgReady15OctOptional")}
               maxLength={LIMITS.pledgeNote}
               value={pledgeNote}
               onChange={(e) => setPledgeNote(e.target.value)}
-              aria-label="Note for the buyer"
+              aria-label={t("demand.noteForTheBuyer")}
             />
             <FieldError>{pledgeErrors.note}</FieldError>
           </div>
-          <button className="aaf-btn aaf-btn-accent" type="submit">Pledge</button>
+          <button className="aaf-btn aaf-btn-accent" type="submit">{t("demand.pledge")}</button>
         </form>
       )}
       {!canPledge && !isOwnDemand && !fulfilled && (
-        <p className="demand-hint">Only producer accounts can pledge. Use the discussion to ask the buyer a question.</p>
+        <p className="demand-hint">{t("demand.onlyProducerAccountsCanPledgeUse")}</p>
       )}
 
       {canPledge && !isOwnDemand && onMessage && (
         <button type="button" className="demand-message-btn" onClick={() => onMessage(demand.buyerId, demand.buyerName)}>
-          <MessageSquare size={14} aria-hidden="true" /> Message buyer privately
+          <MessageSquare size={14} aria-hidden="true" /> {t("demand.messageBuyerPrivately")}
         </button>
       )}
 
       <button className="demand-thread-toggle" onClick={onToggleThread}>
-        <MessageSquare size={15} /> {isOpenThread ? "Hide discussion" : "Open discussion"}
+        <MessageSquare size={15} /> {isOpenThread ? t("demand.hideDiscussion") : t("demand.openDiscussion")}
       </button>
 
       {isOpenThread && (
         <div className="demand-thread">
           <div className="demand-thread-messages">
             {messages.length === 0 ? (
-              <p className="dashboard-empty-state">No messages yet. Start coordinating.</p>
+              <p className="dashboard-empty-state">{t("demand.noMessagesYetStartCoordinating")}</p>
             ) : (
               messages.map((msg) => (
                 <div key={msg.id} className={`demand-message ${msg.authorId === currentUid ? "own" : ""}`}>
@@ -478,12 +475,12 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
           </div>
           <form onSubmit={sendMessage} className="demand-thread-input">
             <input
-              placeholder="Coordinate on quantities, delivery, timing..."
+              placeholder={t("demand.coordinateOnQuantitiesDeliveryTiming")}
               value={messageText}
               maxLength={500}
               onChange={(e) => setMessageText(e.target.value)}
             />
-            <button className="aaf-btn aaf-btn-primary" type="submit" aria-label="Send">
+            <button className="aaf-btn aaf-btn-primary" type="submit" aria-label={t("common.send")}>
               <Send size={16} />
             </button>
           </form>

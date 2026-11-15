@@ -428,3 +428,27 @@
     box-shadow: none;
   }
 }
+
+/* the language picker in the sidebar, just above the member chip */
+.aaf-sidebar-lang {
+  display: flex;
+  margin-top: 0.9rem;
+}
+
+.aaf-sidebar-lang .lang-switch {
+  width: 100%;
+}
+
+.aaf-sidebar .lang-switch-wrap {
+  width: 100%;
+}
+
+@media (min-width: 901px) {
+  .aaf-sidebar.collapsed .aaf-sidebar-lang {
+    justify-content: center;
+  }
+
+  .aaf-sidebar.collapsed .aaf-sidebar-lang .lang-switch {
+    width: 40px;
+  }
+}

@@ -16,18 +16,19 @@ import {
   validateFarm,
   validateInput,
 } from "./farmview/farmInputs";
+import { t, tv, formatNumber } from "./i18n";
 
-const nad = (n) => `N$ ${Number(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+const nad = (n) => `N$ ${formatNumber(Number(n), { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 
 /** Left-card section: the farmer's farms and the "add" button. */
 export function FarmsSection({ farms, selectedId, placing, onSelect, onAdd, onCancelPlacing, fireAlerts = [] }) {
   return (
     <div className="fv-farms">
-      <p className="fv-label"><Home size={14} /> My farms</p>
+      <p className="fv-label"><Home size={14} /> {t("farms.myFarms")}</p>
       {placing ? (
         <div className="fv-placing">
-          <span>Tap your farm's location on the map.</span>
-          <button className="fv-link" onClick={onCancelPlacing}>Cancel</button>
+          <span>{t("farms.tapYourFarmLocationOnThe")}</span>
+          <button className="fv-link" onClick={onCancelPlacing}>{t("common.cancel")}</button>
         </div>
       ) : (
         <>
@@ -37,12 +38,12 @@ export function FarmsSection({ farms, selectedId, placing, onSelect, onAdd, onCa
                 {f.name}
               </button>
             ))}
-            <button className="fv-add" onClick={onAdd}><Plus size={13} /> Add my farm</button>
+            <button className="fv-add" onClick={onAdd}><Plus size={13} /> {t("farms.addMyFarm")}</button>
           </div>
-          {farms.length === 0 && <p className="fv-muted">Add a farm to keep weather, rain and your inputs together in one place.</p>}
+          {farms.length === 0 && <p className="fv-muted">{t("farms.addFarmToKeepWeatherRain")}</p>}
           {fireAlerts.map((a) => (
             <p key={a.id} className={`fv-fire-alert ${a.level}`}>
-              <Flame size={14} /> {a.name}: fire hotspot {a.km} km away
+              <Flame size={14} /> {t("farms.fireAlert", { name: a.name, km: a.km })}
             </p>
           ))}
         </>
@@ -79,10 +80,10 @@ export function FarmForm({ draft, region, onSaved, onCancel }) {
     setSaving(true);
     try {
       const id = await addFarm(fields);
-      toast.success("Farm saved.");
+      toast.success(t("farms.farmSaved"));
       onSaved(id);
     } catch (error) {
-      toast.error(error.code === "permission-denied" ? "Only farmer accounts can add farms." : error.message);
+      toast.error(error.code === "permission-denied" ? t("farms.onlyFarmerAccountsCanAddFarms") : error.message);
     } finally {
       setSaving(false);
     }
@@ -91,35 +92,35 @@ export function FarmForm({ draft, region, onSaved, onCancel }) {
   return (
     <form className="fv-form" onSubmit={submit}>
       <div className="fv-form-head">
-        <h3>Add my farm</h3>
-        <button type="button" className="fv-icon" onClick={onCancel} aria-label="Cancel"><X size={16} /></button>
+        <h3>{t("farms.addMyFarm")}</h3>
+        <button type="button" className="fv-icon" onClick={onCancel} aria-label={t("common.cancel")}><X size={16} /></button>
       </div>
       <p className="fv-muted">
-        {draft.lat.toFixed(4)}°, {draft.lng.toFixed(4)}° · {region ? `${regionLabel(region.properties.name)} Region` : "outside Namibia"}
-        . Only you can see your farm.
+        {draft.lat.toFixed(4)}°, {draft.lng.toFixed(4)}° · {region ? t("mapDetails.regionName", { name: regionLabel(region.properties.name) }) : t("farms.outsideNamibia")}
+        {t("farms.onlyYouCanSeeYourFarm")}
       </p>
       {errors.location && <p className="fv-error">{errors.location}</p>}
 
-      <Field label="Farm name" error={errors.name}>
-        <input value={form.name} maxLength={LIMITS.name} onChange={set("name")} placeholder="e.g. Oshakati mahangu field" autoFocus />
+      <Field label={t("farms.farmName")} error={errors.name}>
+        <input value={form.name} maxLength={LIMITS.name} onChange={set("name")} placeholder={t("farms.egOshakatiMahanguField")} autoFocus />
       </Field>
-      <Field label="Size (hectares, optional)" error={errors.areaHa}>
-        <input value={form.areaHa} inputMode="decimal" onChange={set("areaHa")} placeholder="e.g. 2.5" />
+      <Field label={t("farms.sizeHa")} error={errors.areaHa}>
+        <input value={form.areaHa} inputMode="decimal" onChange={set("areaHa")} placeholder={t("farms.sizeExample")} />
       </Field>
       <fieldset className="fv-crops-pick">
-        <legend>What do you grow? (optional)</legend>
+        <legend>{t("farms.whatDoYouGrowOptional")}</legend>
         {CROPS.map((c) => (
           <label key={c.id}>
-            <input type="checkbox" checked={form.crops.includes(c.id)} onChange={() => toggleCrop(c.id)} /> {c.name}
+            <input type="checkbox" checked={form.crops.includes(c.id)} onChange={() => toggleCrop(c.id)} /> {tv(c.name)}
           </label>
         ))}
       </fieldset>
-      <Field label="Notes (optional)" error={errors.notes}>
+      <Field label={t("farms.notesOptional")} error={errors.notes}>
         <textarea rows={2} value={form.notes} maxLength={LIMITS.notes} onChange={set("notes")} />
       </Field>
       <div className="fv-form-actions">
-        <button type="submit" className="fv-btn primary" disabled={saving}>{saving ? "Saving…" : "Save farm"}</button>
-        <button type="button" className="fv-btn" onClick={onCancel}>Cancel</button>
+        <button type="submit" className="fv-btn primary" disabled={saving}>{saving ? t("farms.saving") : t("farms.saveFarm")}</button>
+        <button type="button" className="fv-btn" onClick={onCancel}>{t("common.cancel")}</button>
       </div>
     </form>
   );
@@ -144,7 +145,7 @@ export function FarmDetails({ farm, onDeleted, fires }) {
   const sorted = useMemo(() => sortInputs(inputs), [inputs]);
   const summary = useMemo(() => summarizeInputs(inputs), [inputs]);
   const set = (key) => (e) => setForm((f) => ({ ...f, [key]: e.target.value }));
-  const cropNames = (farm.crops || []).map((id) => CROPS.find((c) => c.id === id)?.name || id);
+  const cropNames = (farm.crops || []).map((id) => tv(CROPS.find((c) => c.id === id)?.name || id));
 
   const submit = async (e) => {
     e.preventDefault();
@@ -154,17 +155,17 @@ export function FarmDetails({ farm, onDeleted, fires }) {
     setSaving(true);
     try {
       await addInput(farm.id, form);
-      toast.success("Input recorded.");
+      toast.success(t("farms.inputRecorded"));
       setForm((f) => ({ ...f, item: "", quantity: "", costNad: "", note: "" })); // keep date, type, unit, crop for quick repeat entries
     } catch (error) {
-      toast.error(error.code === "permission-denied" ? "You can't add records to this farm." : error.message);
+      toast.error(error.code === "permission-denied" ? t("farms.youCanAddRecordsToThis") : error.message);
     } finally {
       setSaving(false);
     }
   };
 
   const removeInput = async (input) => {
-    if (!window.confirm(`Delete "${input.item}" from your records?`)) return;
+    if (!window.confirm(t("farms.confirmDeleteRecord", { item: input.item }))) return;
     try {
       await deleteInput(input.id);
     } catch (error) {
@@ -173,10 +174,10 @@ export function FarmDetails({ farm, onDeleted, fires }) {
   };
 
   const removeFarm = async () => {
-    if (!window.confirm(`Delete "${farm.name}" and all of its input records? This cannot be undone.`)) return;
+    if (!window.confirm(t("farms.confirmDeleteFarm", { name: farm.name }))) return;
     try {
       await deleteFarm(farm.id);
-      toast.success("Farm deleted.");
+      toast.success(t("farms.farmDeleted"));
       onDeleted();
     } catch (error) {
       toast.error(error.message);
@@ -187,62 +188,62 @@ export function FarmDetails({ farm, onDeleted, fires }) {
     <div className="fv-farm-details">
       <h3>{farm.name}</h3>
       <p className="fv-muted">
-        {farm.region ? `${regionLabel(farm.region)} Region` : "Namibia"}
+        {farm.region ? t("mapDetails.regionName", { name: regionLabel(farm.region) }) : "Namibia"}
         {farm.areaHa != null ? ` · ${farm.areaHa} ha` : ""}
         {cropNames.length ? ` · ${cropNames.join(", ")}` : ""}
       </p>
       {farm.notes && <p className="fv-muted">{farm.notes}</p>}
       <FireWatch point={farm} fires={fires} />
 
-      <h4>Inputs spend</h4>
+      <h4>{t("farms.inputsSpend")}</h4>
       {summary.count === 0 ? (
-        <p className="fv-muted">Nothing recorded yet. Add seed, fertiliser, water or labour below to see your costs add up.</p>
+        <p className="fv-muted">{t("farms.nothingRecordedYetAddSeedFertiliser")}</p>
       ) : (
         <div className="fv-summary">
           <strong>{nad(summary.totalCost)}</strong>
-          <span className="fv-muted"> across {summary.count} record{summary.count === 1 ? "" : "s"}
-            {summary.costedEntries < summary.count ? ` (${summary.count - summary.costedEntries} without a cost)` : ""}</span>
-          {summary.byType.filter((t) => t.cost > 0).slice(0, 5).map((t) => (
-            <div className="fv-spend" key={t.key}>
-              <span>{inputTypeLabel(t.key)}</span>
-              <div className="fv-bar"><i style={{ width: `${(t.cost / summary.totalCost) * 100}%` }} /></div>
-              <span>{nad(t.cost)}</span>
+          <span className="fv-muted"> {t("farms.acrossRecords", { count: summary.count })}
+            {summary.costedEntries < summary.count ? ` ${t("farms.withoutCost", { count: summary.count - summary.costedEntries })}` : ""}</span>
+          {summary.byType.filter((row) => row.cost > 0).slice(0, 5).map((row) => (
+            <div className="fv-spend" key={row.key}>
+              <span>{inputTypeLabel(row.key)}</span>
+              <div className="fv-bar"><i style={{ width: `${(row.cost / summary.totalCost) * 100}%` }} /></div>
+              <span>{nad(row.cost)}</span>
             </div>
           ))}
         </div>
       )}
 
-      <h4>Record an input</h4>
+      <h4>{t("farms.recordAnInput")}</h4>
       <form className="fv-form compact" onSubmit={submit}>
         <div className="fv-row">
-          <Field label="Date" error={errors.date}><input type="date" value={form.date} max={todayIso()} onChange={set("date")} /></Field>
-          <Field label="Type" error={errors.type}>
+          <Field label={t("farms.date")} error={errors.date}><input type="date" value={form.date} max={todayIso()} onChange={set("date")} /></Field>
+          <Field label={t("farms.type")} error={errors.type}>
             <select value={form.type} onChange={set("type")}>
-              {INPUT_TYPES.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
+              {INPUT_TYPES.map((type) => <option key={type.id} value={type.id}>{tv(type.label)}</option>)}
             </select>
           </Field>
         </div>
-        <Field label="What was it?" error={errors.item}>
-          <input value={form.item} maxLength={LIMITS.item} onChange={set("item")} placeholder="e.g. Mahangu seed, NPK 2:3:2, weeding" />
+        <Field label={t("farms.whatWasIt")} error={errors.item}>
+          <input value={form.item} maxLength={LIMITS.item} onChange={set("item")} placeholder={t("farms.egMahanguSeedNpk23")} />
         </Field>
         <div className="fv-row">
-          <Field label="Quantity" error={errors.quantity}><input value={form.quantity} inputMode="decimal" onChange={set("quantity")} placeholder="20" /></Field>
-          <Field label="Unit" error={errors.unit}><input value={form.unit} maxLength={LIMITS.unit} onChange={set("unit")} placeholder="kg, L, bags, days" /></Field>
-          <Field label="Cost (N$)" error={errors.costNad}><input value={form.costNad} inputMode="decimal" onChange={set("costNad")} placeholder="450" /></Field>
+          <Field label={t("farms.quantity")} error={errors.quantity}><input value={form.quantity} inputMode="decimal" onChange={set("quantity")} placeholder="20" /></Field>
+          <Field label={t("farms.unit")} error={errors.unit}><input value={form.unit} maxLength={LIMITS.unit} onChange={set("unit")} placeholder={t("farms.kgBagsDays")} /></Field>
+          <Field label={t("farms.costNad")} error={errors.costNad}><input value={form.costNad} inputMode="decimal" onChange={set("costNad")} placeholder="450" /></Field>
         </div>
-        <Field label="For which crop or animals? (optional)" error={errors.target}>
+        <Field label={t("farms.forWhich")} error={errors.target}>
           <input list="fv-targets" value={form.target} maxLength={LIMITS.target} onChange={set("target")} />
           <datalist id="fv-targets">
-            {[...cropNames, ...CROPS.map((c) => c.name)].filter((v, i, a) => a.indexOf(v) === i).map((n) => <option key={n} value={n} />)}
+            {[...cropNames, ...CROPS.map((c) => tv(c.name))].filter((v, i, a) => a.indexOf(v) === i).map((n) => <option key={n} value={n} />)}
           </datalist>
         </Field>
-        <Field label="Note (optional)" error={errors.note}><input value={form.note} maxLength={LIMITS.note} onChange={set("note")} /></Field>
-        <button type="submit" className="fv-btn primary" disabled={saving}>{saving ? "Saving…" : "Add record"}</button>
+        <Field label={t("farms.noteOptional")} error={errors.note}><input value={form.note} maxLength={LIMITS.note} onChange={set("note")} /></Field>
+        <button type="submit" className="fv-btn primary" disabled={saving}>{saving ? t("farms.saving") : t("farms.addRecord")}</button>
       </form>
 
-      <h4>Records</h4>
-      {loadError && <p className="fv-warn">Could not load records: {loadError}</p>}
-      {inputs === null && !loadError && <p className="fv-muted">Loading…</p>}
+      <h4>{t("farms.records")}</h4>
+      {loadError && <p className="fv-warn">{t("farms.couldNotLoadRecords", { error: loadError })}</p>}
+      {inputs === null && !loadError && <p className="fv-muted">{t("farms.loading")}</p>}
       {sorted.length > 0 && (
         <ul className="fv-records">
           {sorted.map((r) => (
@@ -258,14 +259,14 @@ export function FarmDetails({ farm, onDeleted, fires }) {
               </div>
               <div className="fv-record-side">
                 {r.costNad != null && <strong>{nad(r.costNad)}</strong>}
-                <button className="fv-icon" onClick={() => removeInput(r)} aria-label={`Delete ${r.item}`}><Trash2 size={14} /></button>
+                <button className="fv-icon" onClick={() => removeInput(r)} aria-label={t("farms.deleteRecord", { item: r.item })}><Trash2 size={14} /></button>
               </div>
             </li>
           ))}
         </ul>
       )}
 
-      <button className="fv-btn danger" onClick={removeFarm}>Delete this farm</button>
+      <button className="fv-btn danger" onClick={removeFarm}>{t("farms.deleteThisFarm")}</button>
     </div>
   );
 }

@@ -1,10 +1,11 @@
 import React, { useMemo } from "react";
 import { CloudRain, Droplets, Flame, Sprout, Thermometer, Umbrella, Waves, Wind } from "lucide-react";
-import { compassPoint } from "./farmview/cursorReadout";
+import { compassPoint, windText } from "./farmview/cursorReadout";
 import { TOWNS } from "./farmview/config";
 import { regionLabel } from "./farmview/regions";
 import { describeAge, fireLevel, firesNear } from "./farmview/fires";
 import { scoreCrops, seasonalRainMm, seasonalTempC, typicalRainOnset } from "./farmview/cropRules";
+import { t, tv, tRich, formatDate } from "./i18n";
 
 const MONTH_NAMES = { JAN: "January", FEB: "February", MAR: "March", APR: "April", MAY: "May", JUN: "June", JUL: "July", AUG: "August", SEP: "September", OCT: "October", NOV: "November", DEC: "December" };
 
@@ -31,7 +32,7 @@ export function nearestTown(lat, lng) {
 export function FireWatch({ point, fires, km = 25 }) {
   const near = useMemo(() => (fires?.list ? firesNear(point, fires.list, { km }) : null), [point, fires, km]);
   if (!fires) return null;
-  if (fires.error || !near) return <p className="fv-muted">Fire hotspot data is unavailable right now.</p>;
+  if (fires.error || !near) return <p className="fv-muted">{t("mapDetails.fireHotspotDataIsUnavailableRight")}</p>;
 
   const level = fireLevel(near);
   return (
@@ -39,17 +40,20 @@ export function FireWatch({ point, fires, km = 25 }) {
       <p>
         <Flame size={16} />{" "}
         {level === "none" ? (
-          <>No fire hotspots seen within {km} km in the last 48 hours.</>
+          <>{t("mapDetails.noFires", { km })}</>
         ) : (
           <>
-            <strong>{near.count} fire hotspot{near.count === 1 ? "" : "s"}</strong> within {km} km in the last 48 hours. Nearest is{" "}
-            {near.nearest.distanceKm} km away, seen {describeAge(near.nearest.ageHours)}.
+            {tRich("mapDetails.fireNear", {
+              hotspots: <strong>{t("mapDetails.hotspotCount", { count: near.count })}</strong>,
+              km,
+              distance: near.nearest.distanceKm,
+              age: describeAge(near.nearest.ageHours),
+            })}
           </>
         )}
       </p>
       <p className="fv-muted">
-        Hotspots are satellite heat detections, not confirmed fires. Satellites pass a few times a day, so no dot does not
-        guarantee safety. Source: NASA FIRMS.
+        {t("mapDetails.hotspotsAreSatelliteHeatDetectionsNot")}
       </p>
     </div>
   );
@@ -68,53 +72,49 @@ export default function PointDetails({ picked, region, details, fires }) {
 
   return (
     <div className="fv-details">
-      <h3>{region ? `${regionLabel(region.properties.name)} Region` : "Outside Namibia"}</h3>
+      <h3>{region ? t("mapDetails.regionName", { name: regionLabel(region.properties.name) }) : t("mapDetails.outsideNamibia")}</h3>
       <p className="fv-muted">
         {picked.lat.toFixed(3)}°, {picked.lng.toFixed(3)}°
-        {town ? ` · ${town.km <= 1 ? `in ${town.name}` : `about ${town.km} km from ${town.name}`}` : ""}
+        {town ? ` · ${town.km <= 1 ? t("mapDetails.inTown", { name: town.name }) : t("mapDetails.kmFromTown", { km: town.km, name: town.name })}` : ""}
       </p>
 
       <FireWatch point={picked} fires={fires} />
 
-      {details?.loading && <p className="fv-muted">Loading conditions…</p>}
+      {details?.loading && <p className="fv-muted">{t("mapDetails.loadingConditions")}</p>}
 
       {details && !details.loading && (
         <>
-          {details.weather ? <WeatherBlock weather={details.weather} /> : <p className="fv-warn">Weather is unavailable right now.</p>}
+          {details.weather ? <WeatherBlock weather={details.weather} /> : <p className="fv-warn">{t("mapDetails.weatherIsUnavailableRightNow")}</p>}
 
           {details.flood && details.flood.level !== "normal" && (
             <p className={`fv-flood ${details.flood.level}`}>
-              <Waves size={16} /> River flow {details.flood.level === "high" ? "much higher" : "higher"} than usual in the next
-              7 days ({details.flood.peakRatio}× the seasonal mean). Check low-lying fields and oshanas.
+              <Waves size={16} /> {t(details.flood.level === "high" ? "mapDetails.floodHigh" : "mapDetails.floodUp", { ratio: details.flood.peakRatio })}
             </p>
           )}
 
           {crops ? (
             <div className="fv-crops">
-              <h4><Sprout size={16} /> What suits this area</h4>
+              <h4><Sprout size={16} /> {t("mapDetails.whatSuitsThisArea")}</h4>
               <p className="fv-muted">
-                The rainy season (Nov–Apr) brings about {rainMm} mm here on average
-                {onset ? `, and rains usually start in ${MONTH_NAMES[onset]}` : ""}.
+                {onset ? t("mapDetails.rainySeasonOnset", { mm: rainMm, month: tv(MONTH_NAMES[onset]) }) : t("mapDetails.rainySeason", { mm: rainMm })}
               </p>
               {crops.slice(0, 5).map((c) => (
                 <div className="fv-crop" key={c.id}>
                   <div className="fv-crop-head">
                     <span className="dot" style={{ background: c.color }} />
-                    <strong>{c.name}</strong>
-                    <span className={`tag s${c.score == null ? 0 : c.score >= 80 ? 3 : c.score >= 55 ? 2 : c.score >= 30 ? 1 : 0}`}>{c.label}</span>
+                    <strong>{tv(c.name)}</strong>
+                    <span className={`tag s${c.score == null ? 0 : c.score >= 80 ? 3 : c.score >= 55 ? 2 : c.score >= 30 ? 1 : 0}`}>{tv(c.label)}</span>
                   </div>
                   <div className="fv-bar"><i style={{ width: `${c.score ?? 0}%`, background: c.color }} /></div>
-                  <p className="fv-muted">{c.note}</p>
+                  <p className="fv-muted">{tv(c.note)}</p>
                 </div>
               ))}
               <p className="fv-muted fv-disclaimer">
-                Indicative only. Based on 30-year regional climate averages (about 50 km resolution) and rain-fed crops
-                of northern Namibia; it does not know your soil. In the drier south most crops need irrigation. Check with
-                your local agricultural extension officer before planting decisions.
+                {t("mapDetails.indicativeOnlyBasedOn30Year")}
               </p>
             </div>
           ) : (
-            <p className="fv-warn">Climate averages are unavailable right now, so crop advice cannot be shown.</p>
+            <p className="fv-warn">{t("mapDetails.climateAveragesAreUnavailableRightNow")}</p>
           )}
         </>
       )}
@@ -128,34 +128,33 @@ function WeatherBlock({ weather }) {
   return (
     <div className="fv-weather">
       <p className="fv-muted">
-        Forecast for this exact spot (corrected for its altitude), as of {String(current.time).slice(11, 16)} Namibian time
+        {t("mapDetails.forecastFor", { time: String(current.time).slice(11, 16) })}
       </p>
       <div className="fv-now">
         <div><Thermometer size={16} /> <strong>{Number(current.temperature_2m).toFixed(1)}°C</strong></div>
-        <div><Droplets size={16} /> {current.relative_humidity_2m}% humidity</div>
+        <div><Droplets size={16} /> {t("mapDetails.humidity", { value: current.relative_humidity_2m })}</div>
         <div>
-          <CloudRain size={16} /> {weather.now?.rainLastHourMm != null ? `${weather.now.rainLastHourMm.toFixed(1)} mm in the past hour` : `${current.precipitation} mm`}
+          <CloudRain size={16} /> {weather.now?.rainLastHourMm != null ? t("mapDetails.rainPastHour", { mm: weather.now.rainLastHourMm.toFixed(1) }) : t("mapDetails.rainMm", { mm: current.precipitation })}
         </div>
-        {weather.now?.rainChance3h != null && <div><Umbrella size={16} /> {weather.now.rainChance3h}% chance of rain, next 3 h</div>}
+        {weather.now?.rainChance3h != null && <div><Umbrella size={16} /> {t("mapDetails.rainChance", { value: weather.now.rainChance3h })}</div>}
         {weather.now?.windMs != null && (
           <div>
-            <Wind size={16} /> {weather.now.windMs.toFixed(1)} m/s from {compassPoint(weather.now.windFrom)}
-            {weather.now.gustMs != null ? `, gusts ${weather.now.gustMs.toFixed(1)}` : ""}
+            <Wind size={16} /> {windText(weather.now.windMs.toFixed(1), compassPoint(weather.now.windFrom), weather.now.gustMs != null ? weather.now.gustMs.toFixed(1) : null)}
           </div>
         )}
-        {soilMoisturePct != null && <div><Sprout size={16} /> Topsoil {soilMoisturePct}% moisture</div>}
+        {soilMoisturePct != null && <div><Sprout size={16} /> {t("mapDetails.topsoil", { value: soilMoisturePct })}</div>}
       </div>
       <div className="fv-days">
         {days.map((d) => (
-          <div className="fv-day" key={d.date} title={`${d.date}: ${d.rainMm} mm rain, ${d.minC}–${d.maxC}°C`}>
+          <div className="fv-day" key={d.date} title={t("mapDetails.dayTitle", { date: d.date, rain: d.rainMm, min: d.minC, max: d.maxC })}>
             <span className="fv-day-rain">{d.rainMm > 0 ? Math.round(d.rainMm) : "–"}</span>
             <div className="fv-day-bar"><i style={{ height: `${Math.min(100, ((d.rainMm || 0) / maxRain) * 100)}%` }} /></div>
             <span className="fv-day-t">{Math.round(d.maxC)}°</span>
-            <span className="fv-day-d">{new Date(d.date + "T00:00").toLocaleDateString(undefined, { weekday: "short" })}</span>
+            <span className="fv-day-d">{formatDate(new Date(d.date + "T00:00"), { weekday: "short" })}</span>
           </div>
         ))}
       </div>
-      <p className="fv-muted">Daily rain (mm) and high (°C), next 7 days. Weather: Open-Meteo.com (CC BY 4.0).</p>
+      <p className="fv-muted">{t("mapDetails.dailyRainMmAndHighNext")}</p>
     </div>
   );
 }

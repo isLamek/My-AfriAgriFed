@@ -2,6 +2,7 @@
 // firestore.rules enforces the same limits on the server.
 
 import { checkForContactInfo } from "./contactGuard";
+import { t } from "./i18n";
 
 export const DEMAND_UNITS = ["kg", "ton", "unit", "crate", "litre"];
 export const LIMITS = { title: 120, product: 80, notes: 600, pledgeNote: 200, quantity: 1e7 };
@@ -11,19 +12,19 @@ const toNumber = (v) => (v === "" || v == null ? NaN : Number(v));
 
 export function validateDemand({ title, product, quantityNeeded, unit, deadline, notes }, today = isoToday()) {
   const errors = {};
-  if (!text(title)) errors.title = "Give your request a short title.";
-  else if (text(title).length > LIMITS.title) errors.title = `Keep the title under ${LIMITS.title} characters.`;
+  if (!text(title)) errors.title = t("demandRules.giveYourRequestShortTitle");
+  else if (text(title).length > LIMITS.title) errors.title = t("demandRules.titleTooLong", { max: LIMITS.title });
 
-  if (!text(product)) errors.product = "Say which product you need.";
-  else if (text(product).length > LIMITS.product) errors.product = `Keep this under ${LIMITS.product} characters.`;
+  if (!text(product)) errors.product = t("demandRules.sayWhichProductYouNeed");
+  else if (text(product).length > LIMITS.product) errors.product = t("demandRules.productTooLong", { max: LIMITS.product });
 
   const qty = toNumber(quantityNeeded);
-  if (!Number.isFinite(qty) || qty <= 0) errors.quantityNeeded = "Enter how much you need (more than zero).";
-  else if (qty > LIMITS.quantity) errors.quantityNeeded = "That quantity looks too large.";
+  if (!Number.isFinite(qty) || qty <= 0) errors.quantityNeeded = t("demandRules.enterHowMuchYouNeedMore");
+  else if (qty > LIMITS.quantity) errors.quantityNeeded = t("demandRules.thatQuantityLooksTooLarge");
 
-  if (!DEMAND_UNITS.includes(unit)) errors.unit = "Choose a unit.";
-  if (deadline && (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) || deadline < today)) errors.deadline = "Choose today or a later date.";
-  if (text(notes).length > LIMITS.notes) errors.notes = `Keep notes under ${LIMITS.notes} characters.`;
+  if (!DEMAND_UNITS.includes(unit)) errors.unit = t("demandRules.chooseUnit");
+  if (deadline && (!/^\d{4}-\d{2}-\d{2}$/.test(deadline) || deadline < today)) errors.deadline = t("demandRules.chooseTodayOrLaterDate");
+  if (text(notes).length > LIMITS.notes) errors.notes = t("demandRules.notesTooLong", { max: LIMITS.notes });
   // No phone numbers, e-mails or links: buyers and producers talk in Messages.
   const contact = checkForContactInfo(`${text(title)}\n${text(notes)}`);
   if (!errors.notes && !contact.ok) errors.notes = contact.message;
@@ -33,12 +34,12 @@ export function validateDemand({ title, product, quantityNeeded, unit, deadline,
 export function validatePledge({ quantity, note }, demand) {
   const errors = {};
   const qty = toNumber(quantity);
-  if (!Number.isFinite(qty) || qty <= 0) errors.quantity = "Enter how much you can supply.";
-  else if (qty > LIMITS.quantity) errors.quantity = "That quantity looks too large.";
-  if (text(note).length > LIMITS.pledgeNote) errors.note = `Keep the note under ${LIMITS.pledgeNote} characters.`;
+  if (!Number.isFinite(qty) || qty <= 0) errors.quantity = t("demandRules.enterHowMuchYouCanSupply");
+  else if (qty > LIMITS.quantity) errors.quantity = t("demandRules.thatQuantityLooksTooLarge");
+  if (text(note).length > LIMITS.pledgeNote) errors.note = t("demandRules.noteTooLong", { max: LIMITS.pledgeNote });
   const contact = checkForContactInfo(text(note));
   if (!errors.note && !contact.ok) errors.note = contact.message;
-  if (demand && demand.status === "fulfilled") errors.demand = "This request is already fulfilled.";
+  if (demand && demand.status === "fulfilled") errors.demand = t("demandRules.thisRequestIsAlreadyFulfilled");
   return errors;
 }
 

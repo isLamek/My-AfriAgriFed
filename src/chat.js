@@ -6,21 +6,22 @@
 import toast from "react-hot-toast";
 import { auth } from "./firebaseConfig";
 import { openConversation } from "./conversations";
+import { t } from "./i18n";
 
 export async function chatWith(navigate, { otherId, otherName, topic }) {
   const user = auth.currentUser;
   if (!user) {
-    toast.error("Please sign in first.");
+    toast.error(t("chat.pleaseSignInFirst"));
     return;
   }
   try {
     const id = await openConversation({
-      me: { uid: user.uid, name: user.displayName || user.email || "Member" },
-      other: { uid: otherId, name: otherName || "Member" },
+      me: { uid: user.uid, name: user.displayName || user.email || t("common.member") },
+      other: { uid: otherId, name: otherName || t("common.member") },
       topic,
     });
     navigate(`/messages/${id}`);
   } catch (error) {
-    toast.error(error.code === "permission-denied" ? "You can't start a conversation about this." : error.message);
+    toast.error(error.code === "permission-denied" ? t("chat.youCanStartConversationAboutThis") : error.message);
   }
 }

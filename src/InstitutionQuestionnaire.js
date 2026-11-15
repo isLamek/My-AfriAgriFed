@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./InstitutionQuestionnaire.css";
+import { t, tv } from "./i18n";
 
 export default function InstitutionQuestionnaire({ 
   onComplete, 
@@ -275,32 +276,32 @@ export default function InstitutionQuestionnaire({
     
     switch(currentSection) {
       case 1:
-        if (!formData.institutionName.trim()) newErrors.institutionName = "Institution name is required";
-        if (!formData.institutionType) newErrors.institutionType = "Institution type is required";
-        if (!formData.primaryContactPerson.trim()) newErrors.primaryContactPerson = "Primary contact person is required";
-        if (!formData.contactPersonTitle.trim()) newErrors.contactPersonTitle = "Contact person title is required";
+        if (!formData.institutionName.trim()) newErrors.institutionName = t("institutionForm.institutionNameIsRequired");
+        if (!formData.institutionType) newErrors.institutionType = t("institutionForm.institutionTypeIsRequired");
+        if (!formData.primaryContactPerson.trim()) newErrors.primaryContactPerson = t("institutionForm.primaryContactPersonIsRequired");
+        if (!formData.contactPersonTitle.trim()) newErrors.contactPersonTitle = t("institutionForm.contactPersonTitleIsRequired");
         if (!formData.emailAddress.trim()) {
-          newErrors.emailAddress = "Email address is required";
+          newErrors.emailAddress = t("institutionForm.emailAddressIsRequired");
         } else if (!/\S+@\S+\.\S+/.test(formData.emailAddress)) {
-          newErrors.emailAddress = "Email address is invalid";
+          newErrors.emailAddress = t("institutionForm.emailAddressIsInvalid");
         }
-        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
+        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = t("institutionForm.phoneNumberIsRequired");
         break;
         
       case 2:
-        if (!formData.country.trim()) newErrors.country = "Country is required";
-        if (!formData.cityTown.trim()) newErrors.cityTown = "City/Town is required";
+        if (!formData.country.trim()) newErrors.country = t("institutionForm.countryIsRequired");
+        if (!formData.cityTown.trim()) newErrors.cityTown = t("institutionForm.cityTownIsRequired");
         break;
         
       case 3:
         if (formData.agriculturalPrograms.length === 0) {
-          newErrors.agriculturalPrograms = "Please select at least one agricultural program";
+          newErrors.agriculturalPrograms = t("institutionForm.pleaseSelectAtLeastOneAgricultural");
         }
         break;
         
       case 4:
         if (formData.expertiseAreas.length === 0) {
-          newErrors.expertiseAreas = "Please select at least one area of expertise";
+          newErrors.expertiseAreas = t("institutionForm.pleaseSelectAtLeastOneArea");
         }
         break;
     }
@@ -354,23 +355,23 @@ export default function InstitutionQuestionnaire({
 
   const renderSectionA = () => (
     <div className="section-container">
-      <h2>Section A: Institutional Information</h2>
+      <h2>{t("institutionForm.sectionInstitutionalInformation")}</h2>
       
       <div className="form-group">
-        <label>1. Name of Institution *</label>
+        <label>{t("institutionForm.1NameOfInstitution")}</label>
         <input
           type="text"
           name="institutionName"
           value={formData.institutionName}
           onChange={handleInputChange}
-          placeholder="Enter full institution name"
+          placeholder={t("institutionForm.enterFullInstitutionName")}
           className={errors.institutionName ? 'error' : ''}
         />
         {errors.institutionName && <span className="error-text">{errors.institutionName}</span>}
       </div>
 
       <div className="form-group">
-        <label>2. Type of Institution *</label>
+        <label>{t("institutionForm.2TypeOfInstitution")}</label>
         <div className="radio-group">
           {institutionTypes.map(type => (
             <label key={type} className="radio-label">
@@ -381,7 +382,7 @@ export default function InstitutionQuestionnaire({
                 checked={formData.institutionType === type}
                 onChange={handleInputChange}
               />
-              <span>{type}</span>
+              <span>{tv(type)}</span>
             </label>
           ))}
         </div>
@@ -389,57 +390,57 @@ export default function InstitutionQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>3. Institution Registration/Accreditation Number</label>
+        <label>{t("institutionForm.3InstitutionRegistrationAccreditationNumber")}</label>
         <input
           type="text"
           name="registrationNumber"
           value={formData.registrationNumber}
           onChange={handleInputChange}
-          placeholder="Official registration/accreditation number"
+          placeholder={t("institutionForm.officialRegistrationAccreditationNumber")}
         />
       </div>
 
       <div className="form-group">
-        <label>4. Year Established</label>
+        <label>{t("institutionForm.4YearEstablished")}</label>
         <input
           type="number"
           name="yearEstablished"
           value={formData.yearEstablished}
           onChange={handleInputChange}
-          placeholder="YYYY"
+          placeholder={t("institutionForm.yyyy")}
           min="1800"
           max={new Date().getFullYear()}
         />
       </div>
 
       <div className="form-group">
-        <label>5. Primary Contact Person *</label>
+        <label>{t("institutionForm.5PrimaryContactPerson")}</label>
         <input
           type="text"
           name="primaryContactPerson"
           value={formData.primaryContactPerson}
           onChange={handleInputChange}
-          placeholder="Full name of primary contact"
+          placeholder={t("institutionForm.fullNameOfPrimaryContact")}
           className={errors.primaryContactPerson ? 'error' : ''}
         />
         {errors.primaryContactPerson && <span className="error-text">{errors.primaryContactPerson}</span>}
       </div>
 
       <div className="form-group">
-        <label>6. Position/Title of Contact Person *</label>
+        <label>{t("institutionForm.6PositionTitleOfContactPerson")}</label>
         <input
           type="text"
           name="contactPersonTitle"
           value={formData.contactPersonTitle}
           onChange={handleInputChange}
-          placeholder="e.g., Dean of Agriculture, Head of Department"
+          placeholder={t("institutionForm.egDeanOfAgricultureHeadOf")}
           className={errors.contactPersonTitle ? 'error' : ''}
         />
         {errors.contactPersonTitle && <span className="error-text">{errors.contactPersonTitle}</span>}
       </div>
 
       <div className="form-group">
-        <label>7. Email Address *</label>
+        <label>{t("institutionForm.7EmailAddress")}</label>
         <input
           type="email"
           name="emailAddress"
@@ -452,20 +453,20 @@ export default function InstitutionQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>8. Phone Number *</label>
+        <label>{t("institutionForm.8PhoneNumber")}</label>
         <input
           type="tel"
           name="phoneNumber"
           value={formData.phoneNumber}
           onChange={handleInputChange}
-          placeholder="+264 XX XXX XXXX"
+          placeholder={t("institutionForm.264XxXxxXxxx")}
           className={errors.phoneNumber ? 'error' : ''}
         />
         {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
       </div>
 
       <div className="form-group">
-        <label>9. Institution Website (optional)</label>
+        <label>{t("institutionForm.9InstitutionWebsiteOptional")}</label>
         <input
           type="url"
           name="website"
@@ -479,69 +480,69 @@ export default function InstitutionQuestionnaire({
 
   const renderSectionB = () => (
     <div className="section-container">
-      <h2>Section B: Location Information</h2>
+      <h2>{t("institutionForm.sectionLocationInformation")}</h2>
       
       <div className="form-group">
-        <label>10. Country *</label>
+        <label>{t("institutionForm.10Country")}</label>
         <input
           type="text"
           name="country"
           value={formData.country}
           onChange={handleInputChange}
-          placeholder="e.g., Namibia"
+          placeholder={t("institutionForm.egNamibia")}
           className={errors.country ? 'error' : ''}
         />
         {errors.country && <span className="error-text">{errors.country}</span>}
       </div>
 
       <div className="form-group">
-        <label>11. Province/Region</label>
+        <label>{t("institutionForm.11ProvinceRegion")}</label>
         <input
           type="text"
           name="provinceRegion"
           value={formData.provinceRegion}
           onChange={handleInputChange}
-          placeholder="e.g., Khomas Region"
+          placeholder={t("institutionForm.egKhomasRegion")}
         />
       </div>
 
       <div className="form-group">
-        <label>12. District/County</label>
+        <label>{t("institutionForm.12DistrictCounty")}</label>
         <input
           type="text"
           name="districtCounty"
           value={formData.districtCounty}
           onChange={handleInputChange}
-          placeholder="e.g., Windhoek West"
+          placeholder={t("institutionForm.egWindhoekWest")}
         />
       </div>
 
       <div className="form-group">
-        <label>13. City/Town *</label>
+        <label>{t("institutionForm.13CityTown")}</label>
         <input
           type="text"
           name="cityTown"
           value={formData.cityTown}
           onChange={handleInputChange}
-          placeholder="e.g., Windhoek"
+          placeholder={t("institutionForm.egWindhoek")}
           className={errors.cityTown ? 'error' : ''}
         />
         {errors.cityTown && <span className="error-text">{errors.cityTown}</span>}
       </div>
 
       <div className="form-group">
-        <label>14. Campus/Branch Name (if multiple)</label>
+        <label>{t("institutionForm.14CampusBranchNameIfMultiple")}</label>
         <input
           type="text"
           name="campusBranchName"
           value={formData.campusBranchName}
           onChange={handleInputChange}
-          placeholder="Main campus or specific branch name"
+          placeholder={t("institutionForm.mainCampusOrSpecificBranchName")}
         />
       </div>
 
       <div className="form-group">
-        <label>15. GPS Coordinates (optional)</label>
+        <label>{t("institutionForm.15GpsCoordinatesOptional")}</label>
         <input
           type="text"
           name="gpsCoordinates"
@@ -549,17 +550,17 @@ export default function InstitutionQuestionnaire({
           onChange={handleInputChange}
           placeholder="e.g., -22.5700, 17.0836"
         />
-        <p className="field-hint">Enter as latitude, longitude (decimal degrees)</p>
+        <p className="field-hint">{t("institutionForm.enterAsLatitudeLongitudeDecimalDegrees")}</p>
       </div>
     </div>
   );
 
   const renderSectionC = () => (
     <div className="section-container">
-      <h2>Section C: Agricultural Qualifications & Programs</h2>
+      <h2>{t("institutionForm.sectionAgriculturalQualificationsPrograms")}</h2>
       
       <div className="form-group">
-        <label>16. Agricultural programs offered * (Check all that apply)</label>
+        <label>{t("institutionForm.16AgriculturalProgramsOfferedCheckAll")}</label>
         <div className="checkbox-grid">
           {agriculturalPrograms.map(program => (
             <label key={program} className="checkbox-label">
@@ -570,7 +571,7 @@ export default function InstitutionQuestionnaire({
                 checked={formData.agriculturalPrograms.includes(program)}
                 onChange={handleInputChange}
               />
-              <span>{program}</span>
+              <span>{tv(program)}</span>
             </label>
           ))}
         </div>
@@ -578,50 +579,50 @@ export default function InstitutionQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>17. Short Courses / Certifications Offered</label>
+        <label>{t("institutionForm.17ShortCoursesCertificationsOffered")}</label>
         <textarea
           name="shortCourses"
           value={formData.shortCourses}
           onChange={handleInputChange}
-          placeholder="e.g., beekeeping, poultry management, irrigation, greenhouse operation"
+          placeholder={t("institutionForm.egBeekeepingPoultryManagementIrrigationGreen")}
           rows="3"
         />
-        <p className="field-hint">List short courses separated by commas</p>
+        <p className="field-hint">{t("institutionForm.listShortCoursesSeparatedByCommas")}</p>
       </div>
 
       <div className="form-group">
-        <label>18. Number of agricultural students registered per year</label>
+        <label>{t("institutionForm.18NumberOfAgriculturalStudentsRegistered")}</label>
         <div className="nested-fields">
           <div className="nested-field">
-            <label>First-year students:</label>
+            <label>{t("institutionForm.firstYearStudents")}</label>
             <input
               type="number"
               name="registeredStudents.firstYear"
               value={formData.registeredStudents.firstYear}
               onChange={handleInputChange}
-              placeholder="Number"
+              placeholder={t("institutionForm.number")}
               min="0"
             />
           </div>
           <div className="nested-field">
-            <label>Continuing students:</label>
+            <label>{t("institutionForm.continuingStudents")}</label>
             <input
               type="number"
               name="registeredStudents.continuing"
               value={formData.registeredStudents.continuing}
               onChange={handleInputChange}
-              placeholder="Number"
+              placeholder={t("institutionForm.number")}
               min="0"
             />
           </div>
           <div className="nested-field">
-            <label>Graduate students (Masters/PhD):</label>
+            <label>{t("institutionForm.graduateStudentsMastersPhd")}</label>
             <input
               type="number"
               name="registeredStudents.graduate"
               value={formData.registeredStudents.graduate}
               onChange={handleInputChange}
-              placeholder="Number"
+              placeholder={t("institutionForm.number")}
               min="0"
             />
           </div>
@@ -629,13 +630,13 @@ export default function InstitutionQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>19. Number of students graduating per year (approx.)</label>
+        <label>{t("institutionForm.19NumberOfStudentsGraduatingPer")}</label>
         <input
           type="number"
           name="graduatingStudents"
           value={formData.graduatingStudents}
           onChange={handleInputChange}
-          placeholder="Approximate number"
+          placeholder={t("institutionForm.approximateNumber")}
           min="0"
         />
       </div>
@@ -644,52 +645,52 @@ export default function InstitutionQuestionnaire({
 
   const renderSectionD = () => (
     <div className="section-container">
-      <h2>Section D: Expertise & Human Resources</h2>
+      <h2>{t("institutionForm.sectionExpertiseHumanResources")}</h2>
       
       <div className="form-group">
-        <label>20. Agricultural experts available at the institution</label>
+        <label>{t("institutionForm.20AgriculturalExpertsAvailableAtThe")}</label>
         <div className="nested-fields">
           <div className="nested-field">
-            <label>Number of lecturers in agriculture:</label>
+            <label>{t("institutionForm.numberOfLecturersInAgriculture")}</label>
             <input
               type="number"
               name="experts.lecturers"
               value={formData.experts.lecturers}
               onChange={handleInputChange}
-              placeholder="Number"
+              placeholder={t("institutionForm.number")}
               min="0"
             />
           </div>
           <div className="nested-field">
-            <label>Number of researchers:</label>
+            <label>{t("institutionForm.numberOfResearchers")}</label>
             <input
               type="number"
               name="experts.researchers"
               value={formData.experts.researchers}
               onChange={handleInputChange}
-              placeholder="Number"
+              placeholder={t("institutionForm.number")}
               min="0"
             />
           </div>
           <div className="nested-field">
-            <label>Number of extension officers:</label>
+            <label>{t("institutionForm.numberOfExtensionOfficers")}</label>
             <input
               type="number"
               name="experts.extensionOfficers"
               value={formData.experts.extensionOfficers}
               onChange={handleInputChange}
-              placeholder="Number"
+              placeholder={t("institutionForm.number")}
               min="0"
             />
           </div>
           <div className="nested-field">
-            <label>Number of technical instructors:</label>
+            <label>{t("institutionForm.numberOfTechnicalInstructors")}</label>
             <input
               type="number"
               name="experts.technicalInstructors"
               value={formData.experts.technicalInstructors}
               onChange={handleInputChange}
-              placeholder="Number"
+              placeholder={t("institutionForm.number")}
               min="0"
             />
           </div>
@@ -697,7 +698,7 @@ export default function InstitutionQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>21. Areas of expertise available * (Check all that apply)</label>
+        <label>{t("institutionForm.21AreasOfExpertiseAvailableCheck")}</label>
         <div className="checkbox-grid">
           {expertiseAreas.map(area => (
             <label key={area} className="checkbox-label">
@@ -708,7 +709,7 @@ export default function InstitutionQuestionnaire({
                 checked={formData.expertiseAreas.includes(area)}
                 onChange={handleInputChange}
               />
-              <span>{area}</span>
+              <span>{tv(area)}</span>
             </label>
           ))}
         </div>
@@ -716,7 +717,7 @@ export default function InstitutionQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>22. Would your experts be available for: (Check all that apply)</label>
+        <label>{t("institutionForm.22WouldYourExpertsBeAvailable")}</label>
         <div className="checkbox-grid">
           {expertAvailabilityOptions.map(option => (
             <label key={option} className="checkbox-label">
@@ -727,7 +728,7 @@ export default function InstitutionQuestionnaire({
                 checked={formData.expertAvailability.includes(option)}
                 onChange={handleInputChange}
               />
-              <span>{option}</span>
+              <span>{tv(option)}</span>
             </label>
           ))}
         </div>
@@ -737,10 +738,10 @@ export default function InstitutionQuestionnaire({
 
   const renderSectionE = () => (
     <div className="section-container">
-      <h2>Section E: Research Capacity & Needs</h2>
+      <h2>{t("institutionForm.sectionResearchCapacityNeeds")}</h2>
       
       <div className="form-group">
-        <label>23. Does the institution conduct agricultural research?</label>
+        <label>{t("institutionForm.23DoesTheInstitutionConductAgricultural")}</label>
         <div className="radio-group">
           <label className="radio-label">
             <input
@@ -750,7 +751,7 @@ export default function InstitutionQuestionnaire({
               checked={formData.conductsResearch === "Yes"}
               onChange={handleInputChange}
             />
-            <span>Yes</span>
+            <span>{t("common.yes")}</span>
           </label>
           <label className="radio-label">
             <input
@@ -760,7 +761,7 @@ export default function InstitutionQuestionnaire({
               checked={formData.conductsResearch === "No"}
               onChange={handleInputChange}
             />
-            <span>No</span>
+            <span>{t("common.no")}</span>
           </label>
         </div>
       </div>
@@ -768,24 +769,24 @@ export default function InstitutionQuestionnaire({
       {formData.conductsResearch === "Yes" && (
         <>
           <div className="form-group">
-            <label>24. Main research areas</label>
+            <label>{t("institutionForm.24MainResearchAreas")}</label>
             <textarea
               name="researchAreas"
               value={formData.researchAreas}
               onChange={handleInputChange}
-              placeholder="e.g., crop improvement, drought-resistant varieties, livestock breeds, soil health, climate change"
+              placeholder={t("institutionForm.egCropImprovementDroughtResistantVarieties")}
               rows="3"
             />
           </div>
 
           <div className="form-group">
-            <label>25. Average number of agricultural research projects per year</label>
+            <label>{t("institutionForm.25AverageNumberOfAgriculturalResearch")}</label>
             <input
               type="number"
               name="researchProjectsPerYear"
               value={formData.researchProjectsPerYear}
               onChange={handleInputChange}
-              placeholder="Number of projects"
+              placeholder={t("institutionForm.numberOfProjects")}
               min="0"
             />
           </div>
@@ -793,7 +794,7 @@ export default function InstitutionQuestionnaire({
       )}
 
       <div className="form-group">
-        <label>26. What type of research data would the institution like to obtain through the platform? (Check all that apply)</label>
+        <label>{t("institutionForm.26WhatTypeOfResearchData")}</label>
         <div className="checkbox-grid">
           {desiredResearchDataTypes.map(dataType => (
             <label key={dataType} className="checkbox-label">
@@ -804,14 +805,14 @@ export default function InstitutionQuestionnaire({
                 checked={formData.desiredResearchData.includes(dataType)}
                 onChange={handleInputChange}
               />
-              <span>{dataType}</span>
+              <span>{tv(dataType)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>27. Does the institution require access to field research farms or farmer cooperatives?</label>
+        <label>{t("institutionForm.27DoesTheInstitutionRequireAccess")}</label>
         <div className="radio-group">
           <label className="radio-label">
             <input
@@ -821,7 +822,7 @@ export default function InstitutionQuestionnaire({
               checked={formData.fieldResearchAccess === "Yes"}
               onChange={handleInputChange}
             />
-            <span>Yes</span>
+            <span>{t("common.yes")}</span>
           </label>
           <label className="radio-label">
             <input
@@ -831,14 +832,14 @@ export default function InstitutionQuestionnaire({
               checked={formData.fieldResearchAccess === "No"}
               onChange={handleInputChange}
             />
-            <span>No</span>
+            <span>{t("common.no")}</span>
           </label>
         </div>
       </div>
 
       {formData.fieldResearchAccess === "Yes" && (
         <div className="form-group">
-          <label>Preferred research support: (Check all that apply)</label>
+          <label>{t("institutionForm.preferredResearchSupportCheckAllThat")}</label>
           <div className="checkbox-grid">
             {researchSupportOptions.map(support => (
               <label key={support} className="checkbox-label">
@@ -849,7 +850,7 @@ export default function InstitutionQuestionnaire({
                   checked={formData.researchSupportNeeds.includes(support)}
                   onChange={handleInputChange}
                 />
-                <span>{support}</span>
+                <span>{tv(support)}</span>
               </label>
             ))}
           </div>
@@ -860,10 +861,10 @@ export default function InstitutionQuestionnaire({
 
   const renderSectionF = () => (
     <div className="section-container">
-      <h2>Section F: Training Programs & Outreach</h2>
+      <h2>{t("institutionForm.sectionTrainingProgramsOutreach")}</h2>
       
       <div className="form-group">
-        <label>28. Types of training programs the institution can offer: (Check all that apply)</label>
+        <label>{t("institutionForm.28TypesOfTrainingProgramsThe")}</label>
         <div className="checkbox-grid">
           {trainingProgramTypes.map(program => (
             <label key={program} className="checkbox-label">
@@ -874,26 +875,26 @@ export default function InstitutionQuestionnaire({
                 checked={formData.trainingPrograms.includes(program)}
                 onChange={handleInputChange}
               />
-              <span>{program}</span>
+              <span>{tv(program)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>29. Number of training programs conducted yearly (approx.)</label>
+        <label>{t("institutionForm.29NumberOfTrainingProgramsConducted")}</label>
         <input
           type="number"
           name="programsPerYear"
           value={formData.programsPerYear}
           onChange={handleInputChange}
-          placeholder="Approximate number"
+          placeholder={t("institutionForm.approximateNumber")}
           min="0"
         />
       </div>
 
       <div className="form-group">
-        <label>30. Target groups served: (Check all that apply)</label>
+        <label>{t("institutionForm.30TargetGroupsServedCheckAll")}</label>
         <div className="checkbox-grid">
           {targetGroups.map(group => (
             <label key={group} className="checkbox-label">
@@ -904,7 +905,7 @@ export default function InstitutionQuestionnaire({
                 checked={formData.targetGroups.includes(group)}
                 onChange={handleInputChange}
               />
-              <span>{group}</span>
+              <span>{tv(group)}</span>
             </label>
           ))}
         </div>
@@ -914,22 +915,22 @@ export default function InstitutionQuestionnaire({
 
   const renderSectionG = () => (
     <div className="section-container">
-      <h2>Section G: Internships & Practical Training</h2>
+      <h2>{t("institutionForm.sectionInternshipsPracticalTraining")}</h2>
       
       <div className="form-group">
-        <label>31. Number of agricultural students needing internships per year</label>
+        <label>{t("institutionForm.31NumberOfAgriculturalStudentsNeeding")}</label>
         <input
           type="number"
           name="internshipsNeeded"
           value={formData.internshipsNeeded}
           onChange={handleInputChange}
-          placeholder="Number of students"
+          placeholder={t("institutionForm.numberOfStudents")}
           min="0"
         />
       </div>
 
       <div className="form-group">
-        <label>32. Preferred internship duration</label>
+        <label>{t("institutionForm.32PreferredInternshipDuration")}</label>
         <div className="radio-group">
           {['1-3 months', '3-6 months', '6-12 months'].map(duration => (
             <label key={duration} className="radio-label">
@@ -940,14 +941,14 @@ export default function InstitutionQuestionnaire({
                 checked={formData.internshipDuration === duration}
                 onChange={handleInputChange}
               />
-              <span>{duration}</span>
+              <span>{tv(duration)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>33. Preferred internship placement areas: (Check all that apply)</label>
+        <label>{t("institutionForm.33PreferredInternshipPlacementAreasCheck")}</label>
         <div className="checkbox-grid">
           {internshipAreasList.map(area => (
             <label key={area} className="checkbox-label">
@@ -958,14 +959,14 @@ export default function InstitutionQuestionnaire({
                 checked={formData.internshipAreas.includes(area)}
                 onChange={handleInputChange}
               />
-              <span>{area}</span>
+              <span>{tv(area)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>34. Support expected from host farms or companies: (Check all that apply)</label>
+        <label>{t("institutionForm.34SupportExpectedFromHostFarms")}</label>
         <div className="checkbox-grid">
           {internshipSupportOptions.map(support => (
             <label key={support} className="checkbox-label">
@@ -976,7 +977,7 @@ export default function InstitutionQuestionnaire({
                 checked={formData.internshipSupport.includes(support)}
                 onChange={handleInputChange}
               />
-              <span>{support}</span>
+              <span>{tv(support)}</span>
             </label>
           ))}
         </div>
@@ -986,10 +987,10 @@ export default function InstitutionQuestionnaire({
 
   const renderSectionH = () => (
     <div className="section-container">
-      <h2>Section H: Solutions & Contribution to Agriculture</h2>
+      <h2>{t("institutionForm.sectionSolutionsContributionToAgriculture")}</h2>
       
       <div className="form-group">
-        <label>35. Agricultural challenges the institution can help solve: (Check all that apply)</label>
+        <label>{t("institutionForm.35AgriculturalChallengesTheInstitutionCan")}</label>
         <div className="checkbox-grid">
           {agriculturalChallenges.map(challenge => (
             <label key={challenge} className="checkbox-label">
@@ -1000,14 +1001,14 @@ export default function InstitutionQuestionnaire({
                 checked={formData.challengesCanSolve.includes(challenge)}
                 onChange={handleInputChange}
               />
-              <span>{challenge}</span>
+              <span>{tv(challenge)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>36. Types of solutions the institution can provide: (Check all that apply)</label>
+        <label>{t("institutionForm.36TypesOfSolutionsTheInstitution")}</label>
         <div className="checkbox-grid">
           {solutionTypesList.map(solution => (
             <label key={solution} className="checkbox-label">
@@ -1018,7 +1019,7 @@ export default function InstitutionQuestionnaire({
                 checked={formData.solutionTypes.includes(solution)}
                 onChange={handleInputChange}
               />
-              <span>{solution}</span>
+              <span>{tv(solution)}</span>
             </label>
           ))}
         </div>
@@ -1028,10 +1029,10 @@ export default function InstitutionQuestionnaire({
 
   const renderSectionI = () => (
     <div className="section-container">
-      <h2>Section I: Additional Information</h2>
+      <h2>{t("institutionForm.sectionAdditionalInformation")}</h2>
       
       <div className="form-group">
-        <label>37. Does the institution have demonstration farms?</label>
+        <label>{t("institutionForm.37DoesTheInstitutionHaveDemonstration")}</label>
         <div className="radio-group">
           <label className="radio-label">
             <input
@@ -1041,7 +1042,7 @@ export default function InstitutionQuestionnaire({
               checked={formData.hasDemonstrationFarms === "Yes"}
               onChange={handleInputChange}
             />
-            <span>Yes</span>
+            <span>{t("common.yes")}</span>
           </label>
           <label className="radio-label">
             <input
@@ -1051,26 +1052,26 @@ export default function InstitutionQuestionnaire({
               checked={formData.hasDemonstrationFarms === "No"}
               onChange={handleInputChange}
             />
-            <span>No</span>
+            <span>{t("common.no")}</span>
           </label>
         </div>
       </div>
 
       {formData.hasDemonstrationFarms === "Yes" && (
         <div className="form-group">
-          <label>Specify size and type of demonstration farms:</label>
+          <label>{t("institutionForm.specifySizeAndTypeOfDemonstration")}</label>
           <textarea
             name="demonstrationFarmDetails"
             value={formData.demonstrationFarmDetails}
             onChange={handleInputChange}
-            placeholder="e.g., 50 hectares crop farm, 20 hectares livestock farm"
+            placeholder={t("institutionForm.eg50HectaresCropFarm20")}
             rows="3"
           />
         </div>
       )}
 
       <div className="form-group">
-        <label>38. Does the institution collaborate with other agricultural stakeholders? (Check all that apply)</label>
+        <label>{t("institutionForm.38DoesTheInstitutionCollaborateWith")}</label>
         <div className="checkbox-grid">
           {collaborationPartners.map(partner => (
             <label key={partner} className="checkbox-label">
@@ -1081,19 +1082,19 @@ export default function InstitutionQuestionnaire({
                 checked={formData.collaborations.includes(partner)}
                 onChange={handleInputChange}
               />
-              <span>{partner}</span>
+              <span>{tv(partner)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>39. Any additional services or capabilities to highlight?</label>
+        <label>{t("institutionForm.39AnyAdditionalServicesOrCapabilities")}</label>
         <textarea
           name="additionalServices"
           value={formData.additionalServices}
           onChange={handleInputChange}
-          placeholder="Describe any additional services, capabilities, or partnerships"
+          placeholder={t("institutionForm.describeAnyAdditionalServicesCapabilitiesOr")}
           rows="4"
         />
       </div>
@@ -1103,8 +1104,8 @@ export default function InstitutionQuestionnaire({
   return (
     <div className="institution-questionnaire">
       <div className="questionnaire-header">
-        <h1>Tertiary Institution Registration Questionnaire</h1>
-        <p>Complete all sections to register your institution on AfriAgriFed</p>
+        <h1>{t("institutionForm.tertiaryInstitutionRegistrationQuestionnaire")}</h1>
+        <p>{t("institutionForm.completeAllSectionsToRegisterYour")}</p>
       </div>
 
       <div className="progress-container">
@@ -1115,7 +1116,7 @@ export default function InstitutionQuestionnaire({
               className={`step ${currentSection > index + 1 ? 'completed' : ''} ${currentSection === index + 1 ? 'active' : ''}`}
             >
               <div className="step-number">{index + 1}</div>
-              <div className="step-label">{section}</div>
+              <div className="step-label">{tv(section)}</div>
             </div>
           ))}
         </div>
@@ -1130,18 +1131,18 @@ export default function InstitutionQuestionnaire({
           className="btn-secondary" 
           onClick={handleBack}
         >
-          {currentSection === 1 ? 'Cancel' : 'Back'}
+          {currentSection === 1 ? t("common.cancel") : t("common.back")}
         </button>
         <button 
           className="btn-primary" 
           onClick={handleNext}
         >
-          {currentSection === sections.length ? 'Complete Registration' : 'Next Section'}
+          {currentSection === sections.length ? t("institutionForm.completeRegistration") : t("institutionForm.nextSection")}
         </button>
       </div>
 
       <div className="progress-indicator">
-        <span>Section {currentSection} of {sections.length}</span>
+        <span>{t("questionnaire.sectionOf", { n: currentSection, total: sections.length })}</span>
         <div className="progress-bar">
           <div 
             className="progress-fill" 

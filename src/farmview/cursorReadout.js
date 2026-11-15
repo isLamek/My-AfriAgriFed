@@ -12,6 +12,7 @@
 
 import { sampleField } from "./weatherGrid";
 import { findRegion, regionLabel } from "./regions";
+import { t } from "../i18n";
 
 const COMPASS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 const HOLD_MS = 350;
@@ -20,7 +21,14 @@ const REST_MS = 300; // pointer still this long: fetch the exact spot
 /** Compass point for a direction in degrees (where the wind blows FROM). */
 export function compassPoint(deg) {
   if (deg == null || Number.isNaN(deg)) return "";
-  return COMPASS[Math.round((((deg % 360) + 360) % 360) / 45) % 8];
+  return t(`compass.${COMPASS[Math.round((((deg % 360) + 360) % 360) / 45) % 8]}`);
+}
+
+/** "3.2 m/s from SW, gusts 6.1" in the reader's language; from and gust may be missing. */
+export function windText(speed, from, gust) {
+  const vars = { speed, dir: from, gust };
+  if (from) return gust != null ? t("wind.fromGust", vars) : t("wind.from", vars);
+  return gust != null ? t("wind.plainGust", vars) : t("wind.plain", vars);
 }
 
 /** Where the wind blows FROM, as a compass point, from its u/v parts. */
@@ -34,7 +42,7 @@ const coordsText = (lat, lng) =>
   `${Math.abs(lat).toFixed(2)}°${lat < 0 ? "S" : "N"} ${Math.abs(lng).toFixed(2)}°${lng < 0 ? "W" : "E"}`;
 const placeAt = (lng, lat, regions) => {
   const region = regions ? findRegion(lng, lat, regions) : null;
-  return region ? regionLabel(region.properties?.name || "") : "Outside Namibia";
+  return region ? regionLabel(region.properties?.name || "") : t("mapDetails.outsideNamibia");
 };
 
 /** Step 1: the area estimate from the grid, or null outside the forecast area. */
@@ -87,17 +95,19 @@ function render(el, r) {
   };
   add("fv-hover-place", r.place);
   if (r.exact) {
-    if (r.temp != null) add("fv-hover-row", `🌡 ${r.temp} °C${r.humidity != null ? ` · humidity ${r.humidity}%` : ""}`);
-    if (r.rain != null) add("fv-hover-row", `🌧 ${r.rain} mm in the past hour`);
-    if (r.rainChance != null) add("fv-hover-row", `☔ ${r.rainChance}% chance of rain, next 3 h`);
-    if (r.wind != null) add("fv-hover-row", `💨 ${r.wind} m/s${r.from ? ` from ${r.from}` : ""}${r.gust != null ? `, gusts ${r.gust}` : ""}`);
+    if (r.temp != null) add("fv-hover-row", r.humidity != null ? t("readout.humidity", { temp: r.temp, humidity: r.humidity }) : t("readout.temp", { temp: r.temp }));
+    if (r.rain != null) add("fv-hover-row", t("readout.rainHour", { mm: r.rain }));
+    if (r.rainChance != null) add("fv-hover-row", t("readout.rainChance", { value: r.rainChance }));
+    if (r.wind != null) add("fv-hover-row", t("readout.wind", { text: windText(r.wind, r.from, r.gust) }));
     const time = r.at ? new Date(r.at).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZone: "Africa/Windhoek" }) : "";
-    add("fv-hover-note", `This spot${r.elevation != null ? `, ${Math.round(r.elevation)} m up` : ""}${time ? ` · as of ${time}` : ""}`);
+    const up = r.elevation != null;
+    const m = up ? Math.round(r.elevation) : 0;
+    add("fv-hover-note", time ? (up ? t("readout.thisSpotUpAsOf", { m, time }) : t("readout.thisSpotAsOf", { time })) : up ? t("readout.thisSpotUp", { m }) : t("readout.thisSpot"));
   } else {
-    if (r.temp != null) add("fv-hover-row", `🌡 ≈ ${r.temp} °C`);
-    if (r.rain != null) add("fv-hover-row", `🌧 ≈ ${r.rain} mm/h`);
-    if (r.wind != null) add("fv-hover-row", `💨 ≈ ${r.wind} m/s${r.from ? ` from ${r.from}` : ""}`);
-    add("fv-hover-note", "Area estimate · rest here for this exact spot");
+    if (r.temp != null) add("fv-hover-row", t("readout.areaTemp", { temp: r.temp }));
+    if (r.rain != null) add("fv-hover-row", t("readout.areaRain", { mm: r.rain }));
+    if (r.wind != null) add("fv-hover-row", t("readout.areaWind", { text: windText(r.wind, r.from) }));
+    add("fv-hover-note", t("readout.areaNote"));
   }
   add("fv-hover-coords", r.coords);
 }
@@ -141,7 +151,7 @@ export function attachReadout(map, getData, fetchSpot) {
         // keep the area estimate; say why the exact value is missing
         if (myToken !== token || el.hidden) return;
         const note = el.querySelector(".fv-hover-note");
-        if (note) note.textContent = "Area estimate · the exact forecast couldn't load";
+        if (note) note.textContent = t("readout.areaNoExact");
       })
       .finally(() => el.classList.remove("loading"));
   };

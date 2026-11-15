@@ -5,6 +5,7 @@
 // so a pin shows the area, never someone's exact farm gate or house.
 
 import { NAMIBIA_BOUNDS, TOWNS } from "./farmview/config";
+import { t } from "./i18n";
 
 export const LABEL_MAX = 60;
 
@@ -39,7 +40,13 @@ export function locationFromTown(name) {
 export function locationFromGps(lat, lng) {
   if (!inNamibia(lat, lng)) return null;
   const town = nearestTown(lat, lng);
-  return { lat: round2(lat), lng: round2(lng), label: town ? `Near ${town.name}` : "Namibia", region: town?.region || "" };
+  return { lat: round2(lat), lng: round2(lng), label: town ? `Near ${town.name}` : "Namibia", region: town?.region || "" }; // the English "Near " is what is stored; displayPlace() shows it in the reader's language
+}
+
+/** A saved place name in the reader's language ("Near Oshakati" is stored in English). */
+export function displayPlace(label) {
+  const m = /^Near (.+)$/.exec(String(label || ""));
+  return m ? t("location.near", { name: m[1] }) : String(label || "");
 }
 
 /** Safe to save? (the database rules check the same things) */
@@ -61,21 +68,21 @@ export function validLocation(loc) {
 export function currentLocation() {
   return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      reject(new Error("This browser can't share your location. Pick a town instead."));
+      reject(new Error(t("marketLocation.thisBrowserCanShareYourLocation")));
       return;
     }
     navigator.geolocation.getCurrentPosition(
       ({ coords }) => {
         const loc = locationFromGps(coords.latitude, coords.longitude);
         if (loc) resolve(loc);
-        else reject(new Error("You seem to be outside Namibia. Pick a town instead."));
+        else reject(new Error(t("marketLocation.youSeemToBeOutsideNamibia")));
       },
       (error) =>
         reject(
           new Error(
             error.code === 1
-              ? "Location is blocked for this site. Allow it in your browser, or pick a town."
-              : "Your location couldn't be found. Pick a town instead."
+              ? t("location.blocked")
+              : t("location.notFound")
           )
         ),
       { enableHighAccuracy: false, timeout: 15000, maximumAge: 300000 }

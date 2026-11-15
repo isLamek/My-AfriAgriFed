@@ -9,6 +9,8 @@
 // (firestore.rules, database.rules.json), so a modified app cannot get round it.
 // Keep the two in step: see SERVER_PHONE_PATTERN below and the rule files.
 
+import { t, joinOr } from "./i18n";
+
 // A phone number is a long run of digits, possibly written with spaces, dashes,
 // dots, brackets or a leading +. Namibian numbers have 9 to 12 digits
 // (061 123456, 081 123 4567, +264 81 123 4567). Dates (2026-10-15 = 8 digits),
@@ -22,10 +24,13 @@ export const SERVER_PHONE_PATTERN = "[0-9]([ ().+/-]{0,2}[0-9]){8,}([^0-9:]|$)";
 const EMAIL = /[A-Za-z0-9._%+-]+\s*(?:@|\(at\)|\[at\]|\sat\s)\s*[A-Za-z0-9-]+(?:\s*(?:\.|\(dot\)|\[dot\]|\sdot\s)\s*[A-Za-z0-9-]+)+/gi;
 const URL = /\b(?:https?:\/\/|www\.)\S+|\b[a-z0-9-]+\.(?:com|na|net|org|io|co|me|info|biz|app|link|ly|store|shop)\b(?:\/\S*)?/gi;
 const MESSENGER = /\b(?:wa\.me|whatsapp|whats\s?app|watsapp|telegram|t\.me|signal\s+me|imo|facebook\.com|fb\.me|instagram|insta)\b/gi;
-// "zero eight one one two three ..." : seven or more number words in a row.
-const NUMBER_WORDS = /\b(?:(?:zero|oh|one|two|three|four|five|six|seven|eight|nine)[\s,.-]*){7,}/gi;
+// "zero eight one one two three ..." : seven or more number words in a row. Spelling a number
+// out is the obvious way round the digit check, so each language the site is shown in needs its
+// own number words here (English; Afrikaans: nul een twee drie vier vyf ses sewe agt nege).
+const NUMBER_WORDS = /\b(?:(?:zero|oh|one|two|three|four|five|six|seven|eight|nine|nul|een|twee|drie|vier|vyf|ses|sewe|agt|nege)[\s,.-]*){7,}/gi;
 // Bank details are the other half of paying outside: "account no 6201...", IBAN-like runs.
-const BANK = /\b(?:acc(?:ount)?\.?\s*(?:no|number|#)|bank\s+details|ewallet|e-wallet|blue\s*wallet|easy\s*wallet|pay\s*to\s*cell|fnb\s+ewallet)\b/gi;
+// Afrikaans: rekeningnommer (account number), bankbesonderhede (bank details), e-beursie (e-wallet).
+const BANK = /\b(?:acc(?:ount)?\.?\s*(?:no|number|#)|bank\s+details|ewallet|e-wallet|blue\s*wallet|easy\s*wallet|pay\s*to\s*cell|fnb\s+ewallet|rekening\s*(?:nommer|no)|bankbesonderhede|e-?beursie)\b/gi;
 
 const RULES = [
   { type: "phone", pattern: PHONE },
@@ -36,12 +41,12 @@ const RULES = [
   { type: "payment", pattern: BANK },
 ];
 
-const LABELS = {
-  phone: "phone numbers",
-  email: "e-mail addresses",
-  link: "links",
-  messenger: "WhatsApp, Telegram or social media contacts",
-  payment: "bank or e-wallet details",
+const LABEL_KEYS = {
+  phone: "contactGuard.labelPhone",
+  email: "contactGuard.labelEmail",
+  link: "contactGuard.labelLink",
+  messenger: "contactGuard.labelMessenger",
+  payment: "contactGuard.labelPayment",
 };
 
 /** Every piece of contact or off-platform payment detail in a text. */
@@ -66,7 +71,7 @@ export function maskContactInfo(text) {
   let out = String(text || "");
   for (const { type, pattern } of RULES) {
     pattern.lastIndex = 0;
-    out = out.replace(pattern, type === "phone" ? "[number hidden]" : "[contact hidden]");
+    out = out.replace(pattern, type === "phone" ? t("contactGuard.numberHidden") : t("contactGuard.contactHidden"));
   }
   return out;
 }
@@ -78,14 +83,14 @@ export function maskContactInfo(text) {
 export function checkForContactInfo(text) {
   const found = findContactInfo(text);
   if (found.length === 0) return { ok: true };
-  const kinds = [...new Set(found.map((f) => f.type))].map((t) => LABELS[t]);
-  const list = kinds.length === 1 ? kinds[0] : `${kinds.slice(0, -1).join(", ")} or ${kinds[kinds.length - 1]}`;
+  const kinds = [...new Set(found.map((f) => f.type))].map((type) => t(LABEL_KEYS[type]));
+  const list = joinOr(kinds);
   return {
     ok: false,
     found,
-    message: `For your safety, ${list} can't be shared here. Keep the conversation and the payment on AfriAgriFed so your order stays protected.`,
+    message: t("contactGuard.notAllowed", { list }),
   };
 }
 
-export const CHAT_NOTICE =
-  "For your security, phone numbers, e-mails and links are hidden. Chat and pay here so your order is protected.";
+/** The notice at the top of a conversation, in the reader's language. */
+export const chatNotice = () => t("contactGuard.chatNotice");

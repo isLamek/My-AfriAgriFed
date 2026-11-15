@@ -22,6 +22,7 @@ import {
 import { db } from "./firebaseConfig";
 import { notifyUser } from "./notifications";
 import { checkForContactInfo } from "./contactGuard";
+import { t } from "./i18n";
 
 export const MAX_MESSAGE = 1000;
 export const TOPIC_KINDS = ["listing", "order", "demand"];
@@ -34,7 +35,7 @@ export const TOPIC_KINDS = ["listing", "order", "demand"];
  * thread therefore lands in the same conversation.
  */
 export function conversationId({ kind, topicId, counterpartId }) {
-  if (!TOPIC_KINDS.includes(kind) || !topicId) throw new Error("Unknown conversation topic.");
+  if (!TOPIC_KINDS.includes(kind) || !topicId) throw new Error(t("conversations.unknownConversationTopic"));
   return kind === "order" ? `order_${topicId}` : `${kind}_${topicId}_${counterpartId}`;
 }
 
@@ -49,8 +50,8 @@ export function isUnread(conversation, uid) {
 
 export function validateMessage(text) {
   const clean = String(text || "").trim();
-  if (!clean) return { ok: false, error: "Write a message first." };
-  if (clean.length > MAX_MESSAGE) return { ok: false, error: `Messages can be up to ${MAX_MESSAGE} characters.` };
+  if (!clean) return { ok: false, error: t("conversations.writeFirst") };
+  if (clean.length > MAX_MESSAGE) return { ok: false, error: t("conversations.tooLong", { max: MAX_MESSAGE }) };
   // Phone numbers, e-mails, links and e-wallet details stay off the platform's chats
   // (the database rules refuse them too).
   const contact = checkForContactInfo(clean);
@@ -64,8 +65,8 @@ export function validateMessage(text) {
  * is the listing's seller or the request's buyer (defaults to `other`).
  */
 export async function openConversation({ me, other, topic }) {
-  if (!me?.uid || !other?.uid) throw new Error("Please sign in first.");
-  if (me.uid === other.uid) throw new Error("This is your own listing.");
+  if (!me?.uid || !other?.uid) throw new Error(t("conversations.pleaseSignInFirst"));
+  if (me.uid === other.uid) throw new Error(t("conversations.thisIsYourOwnListing"));
 
   const ownerId = topic.ownerId || other.uid;
   const counterpartId = me.uid === ownerId ? other.uid : me.uid;
@@ -75,7 +76,7 @@ export async function openConversation({ me, other, topic }) {
   if (!existing.exists()) {
     await setDoc(refDoc, {
       participants: [me.uid, other.uid].sort(),
-      names: { [me.uid]: me.name || "Member", [other.uid]: other.name || "Member" },
+      names: { [me.uid]: me.name || t("common.member"), [other.uid]: other.name || t("common.member") },
       topic: { kind: topic.kind, id: topic.id, title: String(topic.title || "").slice(0, 120) },
       createdAt: serverTimestamp(),
     });
@@ -127,8 +128,8 @@ export async function sendMessage(conversation, me, text) {
   const other = otherParticipant(conversation, me.uid);
   if (other) {
     await notifyUser(other, {
-      title: `New message from ${me.name || "a member"}`,
-      body: `${conversation.topic?.title ? `${conversation.topic.title}: ` : ""}${check.text}`.slice(0, 200),
+      key: "notif.message",
+      params: { name: me.name || t("marketCard.aMember"), what: `${conversation.topic?.title ? `${conversation.topic.title}: ` : ""}${check.text}`.slice(0, 110) },
       link: `/messages/${conversation.id}`,
     }).catch(() => {});
   }

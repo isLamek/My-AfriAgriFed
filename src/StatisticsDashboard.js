@@ -3,6 +3,7 @@ import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 import InsightsFrame from "./InsightsFrame";
 import { dailyCounts, lastDays } from "./insights";
+import { t, tv } from "./i18n";
 
 const TRENDS = [
   { key: "marketPrices", label: "Marketplace listings added" },
@@ -34,27 +35,26 @@ export default function StatisticsDashboard() {
   }, []);
 
   const loaded = TRENDS.every((t) => docsByCollection[t.key] !== undefined);
-  const anyActivity = TRENDS.some((t) => (docsByCollection[t.key] || []).length > 0);
+  const anyActivity = TRENDS.some((trend) => (docsByCollection[trend.key] || []).length > 0);
 
   return (
     <InsightsFrame
-      eyebrow="Trends, not just totals"
-      title="Statistics Dashboard"
-      subtitle={`Activity over the last ${PERIOD} days, compared with the ${PERIOD} days before.`}
+      eyebrow={t("statistics.trendsNotJustTotals")}
+      title={t("statistics.statisticsDashboard")}
+      subtitle={t("statistics.subtitle", { days: PERIOD })}
       activePath="/statistics"
     >
       {loaded && !anyActivity && (
         <section className="aaf-card insight-panel">
           <p className="insight-empty">
-            Nothing has been recorded yet. Charts fill in as producers list products, buyers post requests and
-            institutions publish research and training.
+            {t("statistics.nothingHasBeenRecordedYetCharts")}
           </p>
         </section>
       )}
 
       <div className="trend-grid">
         {TRENDS.map((item) => (
-          <Trend key={item.key} label={item.label} docs={docsByCollection[item.key]} days={days} previousDays={previousDays} />
+          <Trend key={item.key} label={tv(item.label)} docs={docsByCollection[item.key]} days={days} previousDays={previousDays} />
         ))}
       </div>
     </InsightsFrame>
@@ -66,10 +66,10 @@ function Trend({ label, docs, days, previousDays }) {
   const change = total - previous;
   const deltaText =
     previous === 0 && total === 0
-      ? "No activity in either period"
+      ? t("statistics.noActivity")
       : previous === 0
-      ? `${total} new, none in the 14 days before`
-      : `${change > 0 ? "+" : ""}${change} vs the 14 days before`;
+      ? t("statistics.newNone", { total, days: PERIOD })
+      : t("statistics.vsBefore", { change: `${change > 0 ? "+" : ""}${change}`, days: PERIOD });
 
   return (
     <section className="aaf-card insight-panel">
@@ -77,13 +77,13 @@ function Trend({ label, docs, days, previousDays }) {
         <div>
           <h2>{label}</h2>
           <span className={`trend-delta ${change > 0 ? "up" : change < 0 ? "down" : ""}`}>
-            {docs === undefined ? "Loading..." : docs === null ? "Could not load" : deltaText}
+            {docs === undefined ? t("statistics.loading") : docs === null ? t("statistics.couldNotLoad") : deltaText}
           </span>
         </div>
         <span className="trend-total">{docs ? total : "-"}</span>
       </div>
 
-      <div className="trend-chart" role="img" aria-label={`${label}: ${total} in the last ${days.length} days`}>
+      <div className="trend-chart" role="img" aria-label={t("statistics.chartLabel", { label, total, days: days.length })}>
         <span className="trend-axis">{max}</span>
         {series.map((point) => (
           <div className={`trend-bar ${point.count === 0 ? "zero" : ""}`} key={point.day} title={`${point.day}: ${point.count}`}>

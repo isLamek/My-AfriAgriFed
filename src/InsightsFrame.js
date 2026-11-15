@@ -8,6 +8,7 @@ import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import seedMark from "./images/app-icon.png";
 import "./Insights.css";
+import { t } from "./i18n";
 
 /**
  * Page chrome for the Data, Statistics and Promotions pages. Members get the
@@ -20,7 +21,7 @@ export default function InsightsFrame({ eyebrow, title, subtitle, activePath, ch
   const [user, setUser] = useState(undefined);
   useEffect(() => onAuthStateChanged(auth, setUser), []);
 
-  if (user === undefined) return <div className="insights-loading">Loading...</div>;
+  if (user === undefined) return <div className="insights-loading">{t("common.loading")}</div>;
 
   if (user && !user.isAnonymous) {
     return (
@@ -64,10 +65,10 @@ function PublicFrame({ eyebrow, title, subtitle, children }) {
         </button>
         <div className="insights-public-actions">
           <button type="button" className="insights-btn" onClick={() => navigate(-1)}>
-            <ArrowLeft size={15} /> Back
+            <ArrowLeft size={15} /> {t("common.back")}
           </button>
           <button type="button" className="insights-btn primary" onClick={() => navigate("/signin")}>
-            <LogIn size={15} /> Sign in
+            <LogIn size={15} /> {t("insights.signIn")}
           </button>
         </div>
       </header>

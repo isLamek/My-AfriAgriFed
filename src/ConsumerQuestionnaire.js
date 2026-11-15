@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./ConsumerQuestionnaire.css";
+import { t, tv } from "./i18n";
 
 export default function ConsumerQuestionnaire({ 
   onComplete, 
@@ -182,32 +183,32 @@ export default function ConsumerQuestionnaire({
     
     switch(currentSection) {
       case 1:
-        if (!formData.fullName.trim()) newErrors.fullName = "Full name is required";
-        if (!formData.consumerType) newErrors.consumerType = "Consumer type is required";
-        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
+        if (!formData.fullName.trim()) newErrors.fullName = t("buyerForm.fullNameIsRequired");
+        if (!formData.consumerType) newErrors.consumerType = t("buyerForm.consumerTypeIsRequired");
+        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = t("buyerForm.phoneNumberIsRequired");
         if (formData.emailAddress && !/\S+@\S+\.\S+/.test(formData.emailAddress)) {
-          newErrors.emailAddress = "Email address is invalid";
+          newErrors.emailAddress = t("buyerForm.emailAddressIsInvalid");
         }
         break;
         
       case 2:
-        if (!formData.country.trim()) newErrors.country = "Country is required";
-        if (!formData.cityTown.trim()) newErrors.cityTown = "City/Town is required";
-        if (!formData.deliveryAddress.trim()) newErrors.deliveryAddress = "Delivery address is required";
+        if (!formData.country.trim()) newErrors.country = t("buyerForm.countryIsRequired");
+        if (!formData.cityTown.trim()) newErrors.cityTown = t("buyerForm.cityTownIsRequired");
+        if (!formData.deliveryAddress.trim()) newErrors.deliveryAddress = t("buyerForm.deliveryAddressIsRequired");
         break;
         
       case 3:
         if (formData.consumerType !== "Individual Buyer" && !formData.businessOperationType) {
-          newErrors.businessOperationType = "Business operation type is required";
+          newErrors.businessOperationType = t("buyerForm.businessOperationTypeIsRequired");
         }
         if (formData.businessOperationType === "Other" && !formData.businessOperationOther.trim()) {
-          newErrors.businessOperationOther = "Please specify your business type";
+          newErrors.businessOperationOther = t("buyerForm.pleaseSpecifyYourBusinessType");
         }
         break;
         
       case 4:
         if (formData.productsInterested.length === 0) {
-          newErrors.productsInterested = "Please select at least one product";
+          newErrors.productsInterested = t("buyerForm.pleaseSelectAtLeastOneProduct");
         }
         break;
     }
@@ -259,34 +260,34 @@ export default function ConsumerQuestionnaire({
 
   const renderSectionA = () => (
     <div className="section-container">
-      <h2>Section A: Personal & Business Information</h2>
+      <h2>{t("buyerForm.sectionPersonalBusinessInformation")}</h2>
       
       <div className="form-group">
-        <label>1. Full Name *</label>
+        <label>{t("buyerForm.1FullName")}</label>
         <input
           type="text"
           name="fullName"
           value={formData.fullName}
           onChange={handleInputChange}
-          placeholder="Enter your full name"
+          placeholder={t("buyerForm.enterYourFullName")}
           className={errors.fullName ? 'error' : ''}
         />
         {errors.fullName && <span className="error-text">{errors.fullName}</span>}
       </div>
 
       <div className="form-group">
-        <label>2. Name of Business / Organization (if applicable)</label>
+        <label>{t("buyerForm.2NameOfBusinessOrganizationIf")}</label>
         <input
           type="text"
           name="businessName"
           value={formData.businessName}
           onChange={handleInputChange}
-          placeholder="Your business or organization name"
+          placeholder={t("buyerForm.yourBusinessOrOrganizationName")}
         />
       </div>
 
       <div className="form-group">
-        <label>3. Type of Consumer *</label>
+        <label>{t("buyerForm.3TypeOfConsumer")}</label>
         <div className="radio-group">
           {consumerTypes.map(type => (
             <label key={type} className="radio-label">
@@ -297,7 +298,7 @@ export default function ConsumerQuestionnaire({
                 checked={formData.consumerType === type}
                 onChange={handleInputChange}
               />
-              <span>{type}</span>
+              <span>{tv(type)}</span>
             </label>
           ))}
         </div>
@@ -305,31 +306,31 @@ export default function ConsumerQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>4. Business Registration Number (optional)</label>
+        <label>{t("buyerForm.4BusinessRegistrationNumberOptional")}</label>
         <input
           type="text"
           name="registrationNumber"
           value={formData.registrationNumber}
           onChange={handleInputChange}
-          placeholder="Business registration number"
+          placeholder={t("buyerForm.businessRegistrationNumber")}
         />
       </div>
 
       <div className="form-group">
-        <label>5. Phone Number *</label>
+        <label>{t("buyerForm.5PhoneNumber")}</label>
         <input
           type="tel"
           name="phoneNumber"
           value={formData.phoneNumber}
           onChange={handleInputChange}
-          placeholder="+264 XX XXX XXXX"
+          placeholder={t("buyerForm.264XxXxxXxxx")}
           className={errors.phoneNumber ? 'error' : ''}
         />
         {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
       </div>
 
       <div className="form-group">
-        <label>6. Email Address</label>
+        <label>{t("buyerForm.6EmailAddress")}</label>
         <input
           type="email"
           name="emailAddress"
@@ -342,12 +343,12 @@ export default function ConsumerQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>7. Postal Address</label>
+        <label>{t("buyerForm.7PostalAddress")}</label>
         <textarea
           name="postalAddress"
           value={formData.postalAddress}
           onChange={handleInputChange}
-          placeholder="Your complete postal address"
+          placeholder={t("buyerForm.yourCompletePostalAddress")}
           rows="3"
         />
       </div>
@@ -356,63 +357,63 @@ export default function ConsumerQuestionnaire({
 
   const renderSectionB = () => (
     <div className="section-container">
-      <h2>Section B: Location Information</h2>
+      <h2>{t("buyerForm.sectionLocationInformation")}</h2>
       
       <div className="form-group">
-        <label>8. Country *</label>
+        <label>{t("buyerForm.8Country")}</label>
         <input
           type="text"
           name="country"
           value={formData.country}
           onChange={handleInputChange}
-          placeholder="e.g., Namibia"
+          placeholder={t("buyerForm.egNamibia")}
           className={errors.country ? 'error' : ''}
         />
         {errors.country && <span className="error-text">{errors.country}</span>}
       </div>
 
       <div className="form-group">
-        <label>9. Province/Region/State</label>
+        <label>{t("buyerForm.9ProvinceRegionState")}</label>
         <input
           type="text"
           name="provinceRegionState"
           value={formData.provinceRegionState}
           onChange={handleInputChange}
-          placeholder="e.g., Khomas Region"
+          placeholder={t("buyerForm.egKhomasRegion")}
         />
       </div>
 
       <div className="form-group">
-        <label>10. District/County</label>
+        <label>{t("buyerForm.10DistrictCounty")}</label>
         <input
           type="text"
           name="districtCounty"
           value={formData.districtCounty}
           onChange={handleInputChange}
-          placeholder="e.g., Windhoek West"
+          placeholder={t("buyerForm.egWindhoekWest")}
         />
       </div>
 
       <div className="form-group">
-        <label>11. City/Town *</label>
+        <label>{t("buyerForm.11CityTown")}</label>
         <input
           type="text"
           name="cityTown"
           value={formData.cityTown}
           onChange={handleInputChange}
-          placeholder="e.g., Windhoek"
+          placeholder={t("buyerForm.egWindhoek")}
           className={errors.cityTown ? 'error' : ''}
         />
         {errors.cityTown && <span className="error-text">{errors.cityTown}</span>}
       </div>
 
       <div className="form-group">
-        <label>12. Delivery Address / Collection Point *</label>
+        <label>{t("buyerForm.12DeliveryAddressCollectionPoint")}</label>
         <textarea
           name="deliveryAddress"
           value={formData.deliveryAddress}
           onChange={handleInputChange}
-          placeholder="Full address for delivery or collection"
+          placeholder={t("buyerForm.fullAddressForDeliveryOrCollection")}
           rows="3"
           className={errors.deliveryAddress ? 'error' : ''}
         />
@@ -420,13 +421,13 @@ export default function ConsumerQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>13. Name of receiver</label>
+        <label>{t("buyerForm.13NameOfReceiver")}</label>
         <input
           type="text"
           name="receiverName"
           value={formData.receiverName}
           onChange={handleInputChange}
-          placeholder="Person who receives deliveries"
+          placeholder={t("buyerForm.personWhoReceivesDeliveries")}
         />
       </div>
     </div>
@@ -437,10 +438,10 @@ export default function ConsumerQuestionnaire({
     if (formData.consumerType === "Individual Buyer") {
       return (
         <div className="section-container">
-          <h2>Section C: Business Details</h2>
-          <p className="section-info">This section is not required for individual buyers.</p>
+          <h2>{t("buyerForm.sectionBusinessDetails")}</h2>
+          <p className="section-info">{t("buyerForm.thisSectionIsNotRequiredFor")}</p>
           <button className="btn-skip" onClick={() => setCurrentSection(prev => prev + 1)}>
-            Skip to Next Section
+            {t("buyerForm.skipToNextSection")}
           </button>
         </div>
       );
@@ -448,10 +449,10 @@ export default function ConsumerQuestionnaire({
 
     return (
       <div className="section-container">
-        <h2>Section C: Business Details</h2>
+        <h2>{t("buyerForm.sectionBusinessDetails")}</h2>
         
         <div className="form-group">
-          <label>14. Type of Business Operation *</label>
+          <label>{t("buyerForm.14TypeOfBusinessOperation")}</label>
           <div className="checkbox-group">
             {businessOperations.map(operation => (
               <label key={operation} className="checkbox-label">
@@ -462,7 +463,7 @@ export default function ConsumerQuestionnaire({
                   checked={formData.businessOperationType === operation}
                   onChange={handleInputChange}
                 />
-                <span>{operation}</span>
+                <span>{tv(operation)}</span>
               </label>
             ))}
           </div>
@@ -471,13 +472,13 @@ export default function ConsumerQuestionnaire({
 
         {formData.businessOperationType === "Other" && (
           <div className="form-group">
-            <label>Please specify:</label>
+            <label>{t("buyerForm.pleaseSpecify")}</label>
             <input
               type="text"
               name="businessOperationOther"
               value={formData.businessOperationOther}
               onChange={handleInputChange}
-              placeholder="Specify your business type"
+              placeholder={t("buyerForm.specifyYourBusinessType")}
               className={errors.businessOperationOther ? 'error' : ''}
             />
             {errors.businessOperationOther && <span className="error-text">{errors.businessOperationOther}</span>}
@@ -486,19 +487,19 @@ export default function ConsumerQuestionnaire({
 
         {formData.businessOperationType === "Food processing" && (
           <div className="form-group">
-            <label>Specify product:</label>
+            <label>{t("buyerForm.specifyProduct")}</label>
             <input
               type="text"
               name="foodProcessingProduct"
               value={formData.foodProcessingProduct || ""}
               onChange={handleInputChange}
-              placeholder="e.g., flour milling, dairy products, etc."
+              placeholder={t("buyerForm.egFlourMillingDairyProductsEtc")}
             />
           </div>
         )}
 
         <div className="form-group">
-          <label>15. Years in Operation</label>
+          <label>{t("buyerForm.15YearsInOperation")}</label>
           <div className="radio-group">
             {['<1 year', '1-3 years', '3-5 years', '5+ years'].map(year => (
               <label key={year} className="radio-label">
@@ -509,14 +510,14 @@ export default function ConsumerQuestionnaire({
                   checked={formData.yearsInOperation === year}
                   onChange={handleInputChange}
                 />
-                <span>{year}</span>
+                <span>{tv(year)}</span>
               </label>
             ))}
           </div>
         </div>
 
         <div className="form-group">
-          <label>16. Average Number of Customers Served Weekly (optional)</label>
+          <label>{t("buyerForm.16AverageNumberOfCustomersServed")}</label>
           <input
             type="number"
             name="averageCustomersWeekly"
@@ -532,11 +533,11 @@ export default function ConsumerQuestionnaire({
 
   const renderSectionD = () => (
     <div className="section-container">
-      <h2>Section D: Product Interests</h2>
+      <h2>{t("buyerForm.sectionProductInterests")}</h2>
       
       <div className="form-group">
-        <label>17. Products you are interested in purchasing *</label>
-        <p className="field-description">Select all products you are interested in buying:</p>
+        <label>{t("buyerForm.17ProductsYouAreInterestedIn")}</label>
+        <p className="field-description">{t("buyerForm.selectAllProductsYouAreInterested")}</p>
         <div className="checkbox-grid">
           {productOptions.map(product => (
             <label key={product} className="checkbox-label">
@@ -545,7 +546,7 @@ export default function ConsumerQuestionnaire({
                 checked={formData.productsInterested.includes(product)}
                 onChange={(e) => handleProductInterestChange(product, e.target.checked)}
               />
-              <span>{product}</span>
+              <span>{tv(product)}</span>
             </label>
           ))}
         </div>
@@ -554,15 +555,15 @@ export default function ConsumerQuestionnaire({
 
       {formData.productsInterested.length > 0 && (
         <div className="form-group">
-          <label>18. Product Preferences</label>
-          <p className="field-description">Specify preferences for each selected product:</p>
+          <label>{t("buyerForm.18ProductPreferences")}</label>
+          <p className="field-description">{t("buyerForm.specifyPreferencesForEachSelectedProduct")}</p>
           <div className="product-preferences">
             {formData.productsInterested.map(product => (
               <div key={product} className="product-preference-item">
                 <h4>{product}</h4>
                 <div className="preference-fields">
                   <div className="preference-field">
-                    <label>Preferred variety/type:</label>
+                    <label>{t("buyerForm.preferredVarietyType")}</label>
                     <input
                       type="text"
                       value={formData.productPreferences[product]?.variety || ""}
@@ -571,16 +572,16 @@ export default function ConsumerQuestionnaire({
                     />
                   </div>
                   <div className="preference-field">
-                    <label>Grade/Quality preference:</label>
+                    <label>{t("buyerForm.gradeQualityPreference")}</label>
                     <select
                       value={formData.productPreferences[product]?.quality || ""}
                       onChange={(e) => handleProductPreferenceChange(product, "quality", e.target.value)}
                     >
-                      <option value="">Select quality</option>
-                      <option value="Standard">Standard</option>
-                      <option value="Premium">Premium</option>
-                      <option value="Organic">Organic</option>
-                      <option value="Other">Other</option>
+                      <option value="">{t("buyerForm.selectQuality")}</option>
+                      <option value="Standard">{t("buyerForm.standard")}</option>
+                      <option value="Premium">{t("buyerForm.premium")}</option>
+                      <option value="Organic">{t("buyerForm.organic")}</option>
+                      <option value="Other">{t("buyerForm.other")}</option>
                     </select>
                   </div>
                 </div>
@@ -594,42 +595,42 @@ export default function ConsumerQuestionnaire({
 
   const renderSectionE = () => (
     <div className="section-container">
-      <h2>Section E: Estimated Quantities Required</h2>
+      <h2>{t("buyerForm.sectionEstimatedQuantitiesRequired")}</h2>
       
       {formData.productsInterested.length > 0 ? (
         <div className="form-group">
-          <label>19. Quantity Requirements</label>
-          <p className="field-description">Specify estimated quantities for each product (optional):</p>
+          <label>{t("buyerForm.19QuantityRequirements")}</label>
+          <p className="field-description">{t("buyerForm.specifyEstimatedQuantitiesForEachProduct")}</p>
           <div className="quantity-requirements">
             {formData.productsInterested.map(product => (
               <div key={product} className="quantity-item">
                 <h4>{product}</h4>
                 <div className="quantity-fields">
                   <div className="quantity-field">
-                    <label>Daily requirement (if applicable):</label>
+                    <label>{t("buyerForm.dailyRequirementIfApplicable")}</label>
                     <input
                       type="text"
                       value={formData.quantityRequirements[product]?.daily || ""}
                       onChange={(e) => handleQuantityChange(product, "daily", e.target.value)}
-                      placeholder="e.g., 50kg"
+                      placeholder={t("buyerForm.eg50kg")}
                     />
                   </div>
                   <div className="quantity-field">
-                    <label>Weekly requirement:</label>
+                    <label>{t("buyerForm.weeklyRequirement")}</label>
                     <input
                       type="text"
                       value={formData.quantityRequirements[product]?.weekly || ""}
                       onChange={(e) => handleQuantityChange(product, "weekly", e.target.value)}
-                      placeholder="e.g., 200kg"
+                      placeholder={t("buyerForm.eg200kg")}
                     />
                   </div>
                   <div className="quantity-field">
-                    <label>Monthly requirement:</label>
+                    <label>{t("buyerForm.monthlyRequirement")}</label>
                     <input
                       type="text"
                       value={formData.quantityRequirements[product]?.monthly || ""}
                       onChange={(e) => handleQuantityChange(product, "monthly", e.target.value)}
-                      placeholder="e.g., 1000kg"
+                      placeholder={t("buyerForm.eg1000kg")}
                     />
                   </div>
                 </div>
@@ -638,17 +639,17 @@ export default function ConsumerQuestionnaire({
           </div>
         </div>
       ) : (
-        <p className="section-info">No products selected. Please go back to Section D to select products.</p>
+        <p className="section-info">{t("buyerForm.noProductsSelectedPleaseGoBack")}</p>
       )}
     </div>
   );
 
   const renderSectionF = () => (
     <div className="section-container">
-      <h2>Section F: Supply Recurrence & Timing</h2>
+      <h2>{t("buyerForm.sectionSupplyRecurrenceTiming")}</h2>
       
       <div className="form-group">
-        <label>20. Expected order size per delivery</label>
+        <label>{t("buyerForm.20ExpectedOrderSizePerDelivery")}</label>
         <div className="radio-group">
           {['Small (1-50kg/units)', 'Medium (51-500kg/units)', 'Large (501kg-5tons)', 'Very large (5+ tons)'].map(size => (
             <label key={size} className="radio-label">
@@ -659,14 +660,14 @@ export default function ConsumerQuestionnaire({
                 checked={formData.orderSize === size}
                 onChange={handleInputChange}
               />
-              <span>{size}</span>
+              <span>{tv(size)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>21. How often do you require supply?</label>
+        <label>{t("buyerForm.21HowOftenDoYouRequire")}</label>
         <div className="radio-group">
           {['Daily', 'Weekly', 'Bi-weekly', 'Monthly', 'Seasonal', 'On-demand / irregular'].map(freq => (
             <label key={freq} className="radio-label">
@@ -677,14 +678,14 @@ export default function ConsumerQuestionnaire({
                 checked={formData.supplyFrequency === freq}
                 onChange={handleInputChange}
               />
-              <span>{freq}</span>
+              <span>{tv(freq)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>22. Preferred delivery/collection days (Check all that apply)</label>
+        <label>{t("buyerForm.22PreferredDeliveryCollectionDaysCheck")}</label>
         <div className="checkbox-group">
           {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(day => (
             <label key={day} className="checkbox-label">
@@ -695,14 +696,14 @@ export default function ConsumerQuestionnaire({
                 checked={formData.preferredDeliveryDays.includes(day)}
                 onChange={handleInputChange}
               />
-              <span>{day}</span>
+              <span>{tv(day)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>23. Preferred time for delivery/collection</label>
+        <label>{t("buyerForm.23PreferredTimeForDeliveryCollection")}</label>
         <div className="radio-group">
           {['Morning', 'Afternoon', 'Evening'].map(time => (
             <label key={time} className="radio-label">
@@ -713,19 +714,19 @@ export default function ConsumerQuestionnaire({
                 checked={formData.preferredDeliveryTime === time}
                 onChange={handleInputChange}
               />
-              <span>{time}</span>
+              <span>{tv(time)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>24. Peak demand periods (e.g., holidays, seasons)</label>
+        <label>{t("buyerForm.24PeakDemandPeriodsEgHolidays")}</label>
         <textarea
           name="peakDemandPeriods"
           value={formData.peakDemandPeriods}
           onChange={handleInputChange}
-          placeholder="e.g., December holidays, Easter, summer months"
+          placeholder={t("buyerForm.egDecemberHolidaysEasterSummerMonths")}
           rows="3"
         />
       </div>
@@ -734,10 +735,10 @@ export default function ConsumerQuestionnaire({
 
   const renderSectionG = () => (
     <div className="section-container">
-      <h2>Section G: Packaging & Handling</h2>
+      <h2>{t("buyerForm.sectionPackagingHandling")}</h2>
       
       <div className="form-group">
-        <label>25. Packaging preferences</label>
+        <label>{t("buyerForm.25PackagingPreferences")}</label>
         <div className="radio-group">
           {['Bulk sacks', 'Boxes', 'Crates', 'Packaged units', 'No preference'].map(pref => (
             <label key={pref} className="radio-label">
@@ -748,14 +749,14 @@ export default function ConsumerQuestionnaire({
                 checked={formData.packagingPreferences === pref}
                 onChange={handleInputChange}
               />
-              <span>{pref}</span>
+              <span>{tv(pref)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>26. Storage or handling requirements (Check all that apply)</label>
+        <label>{t("buyerForm.26StorageOrHandlingRequirementsCheck")}</label>
         <div className="checkbox-group">
           {['Cold chain required', 'Dry storage', 'Fragile produce handling', 'None'].map(req => (
             <label key={req} className="checkbox-label">
@@ -766,7 +767,7 @@ export default function ConsumerQuestionnaire({
                 checked={formData.storageRequirements.includes(req)}
                 onChange={handleInputChange}
               />
-              <span>{req}</span>
+              <span>{tv(req)}</span>
             </label>
           ))}
         </div>
@@ -776,10 +777,10 @@ export default function ConsumerQuestionnaire({
 
   const renderSectionH = () => (
     <div className="section-container">
-      <h2>Section H: Challenges & Support Needed</h2>
+      <h2>{t("buyerForm.sectionChallengesSupportNeeded")}</h2>
       
       <div className="form-group">
-        <label>27. What are your biggest challenges when sourcing products? (Check all that apply)</label>
+        <label>{t("buyerForm.27WhatAreYourBiggestChallenges")}</label>
         <div className="checkbox-grid">
           {[
             'Inconsistent supply', 'Poor quality products', 'High prices', 
@@ -794,14 +795,14 @@ export default function ConsumerQuestionnaire({
                 checked={formData.sourcingChallenges.includes(challenge)}
                 onChange={handleInputChange}
               />
-              <span>{challenge}</span>
+              <span>{tv(challenge)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>28. What support or services would you like from the application? (Check all that apply)</label>
+        <label>{t("buyerForm.28WhatSupportOrServicesWould")}</label>
         <div className="checkbox-grid">
           {[
             'Guaranteed supply', 'Better pricing', 'Logistics support', 
@@ -816,7 +817,7 @@ export default function ConsumerQuestionnaire({
                 checked={formData.desiredSupport.includes(support)}
                 onChange={handleInputChange}
               />
-              <span>{support}</span>
+              <span>{tv(support)}</span>
             </label>
           ))}
         </div>
@@ -824,12 +825,12 @@ export default function ConsumerQuestionnaire({
 
       {formData.desiredSupport.includes("Other") && (
         <div className="form-group">
-          <label>Please specify other support needed:</label>
+          <label>{t("buyerForm.pleaseSpecifyOtherSupportNeeded")}</label>
           <textarea
             name="otherSupport"
             value={formData.otherSupport || ""}
             onChange={handleInputChange}
-            placeholder="Describe other support services you need"
+            placeholder={t("buyerForm.describeOtherSupportServicesYouNeed")}
             rows="3"
           />
         </div>
@@ -840,8 +841,8 @@ export default function ConsumerQuestionnaire({
   return (
     <div className="consumer-questionnaire">
       <div className="questionnaire-header">
-        <h1>Consumer Registration Questionnaire</h1>
-        <p>Complete all sections to register as a verified consumer/buyer</p>
+        <h1>{t("buyerForm.consumerRegistrationQuestionnaire")}</h1>
+        <p>{t("buyerForm.completeAllSectionsToRegisterAs")}</p>
       </div>
 
       <div className="progress-container">
@@ -852,7 +853,7 @@ export default function ConsumerQuestionnaire({
               className={`step ${currentSection > index + 1 ? 'completed' : ''} ${currentSection === index + 1 ? 'active' : ''}`}
             >
               <div className="step-number">{index + 1}</div>
-              <div className="step-label">{section}</div>
+              <div className="step-label">{tv(section)}</div>
             </div>
           ))}
         </div>
@@ -867,18 +868,18 @@ export default function ConsumerQuestionnaire({
           className="btn-secondary" 
           onClick={handleBack}
         >
-          {currentSection === 1 ? 'Cancel' : 'Back'}
+          {currentSection === 1 ? t("common.cancel") : t("common.back")}
         </button>
         <button 
           className="btn-primary" 
           onClick={handleNext}
         >
-          {currentSection === sections.length ? 'Complete Registration' : 'Next Section'}
+          {currentSection === sections.length ? t("buyerForm.completeRegistration") : t("buyerForm.nextSection")}
         </button>
       </div>
 
       <div className="progress-indicator">
-        <span>Section {currentSection} of {sections.length}</span>
+        <span>{t("questionnaire.sectionOf", { n: currentSection, total: sections.length })}</span>
         <div className="progress-bar">
           <div 
             className="progress-fill" 

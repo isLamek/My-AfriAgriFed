@@ -3,6 +3,7 @@
 // with no dots does not prove there is no fire. The wording in the UI says so.
 
 import { serverJson } from "./serverApi";
+import { t } from "../i18n";
 
 const EARTH_KM = 6371;
 const rad = (d) => (d * Math.PI) / 180;
@@ -16,8 +17,8 @@ export function distanceKm(a, b) {
 
 /** Hours since the satellite saw it. `date` is YYYY-MM-DD and `time` HH:MM, both UTC. */
 export function ageHours(fire, now = Date.now()) {
-  const t = Date.parse(`${fire.date}T${fire.time}:00Z`);
-  return Number.isFinite(t) ? Math.max(0, (now - t) / 3600000) : null;
+  const seen = Date.parse(`${fire.date}T${fire.time}:00Z`);
+  return Number.isFinite(seen) ? Math.max(0, (now - seen) / 3600000) : null;
 }
 
 /** Fires within `km` of a point and no older than `hours`, nearest first. */
@@ -40,10 +41,10 @@ export function fireLevel(near) {
 }
 
 export function describeAge(hours) {
-  if (hours == null) return "unknown time";
-  if (hours < 1) return "under an hour ago";
-  if (hours < 24) return `${Math.round(hours)} h ago`;
-  return `${Math.round(hours / 24)} day${Math.round(hours / 24) === 1 ? "" : "s"} ago`;
+  if (hours == null) return t("fires.unknownTime");
+  if (hours < 1) return t("fires.underHour");
+  if (hours < 24) return t("fires.hoursAgo", { count: Math.round(hours) });
+  return t("fires.daysAgo", { count: Math.round(hours / 24) });
 }
 
 /** GeoJSON for the map layer; each point carries its age band so the style can colour it. */

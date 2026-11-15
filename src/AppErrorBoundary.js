@@ -1,4 +1,5 @@
 import React from "react";
+import { t } from "./i18n";
 
 const RELOAD_KEY = "aaf_chunk_reload_at";
 
@@ -55,15 +56,15 @@ export default class AppErrorBoundary extends React.Component {
     return (
       <div className="aaf-crash" role="alert">
         <div className="aaf-crash-card">
-          <h1>{update ? "AfriAgriFed has been updated" : "Something went wrong on this page"}</h1>
+          <h1>{update ? t("crash.afriagrifedHasBeenUpdated") : t("crash.somethingWentWrongOnThisPage")}</h1>
           <p>
             {update
-              ? "Reload to get the latest version."
-              : "Please reload. If it keeps happening, go back to your dashboard and tell us what you were doing."}
+              ? t("crash.reloadToGetTheLatestVersion")
+              : t("crash.pleaseReloadIfItKeepsHappening")}
           </p>
           {!update && (
             <details className="aaf-crash-details">
-              <summary>Technical details (for the AfriAgriFed team)</summary>
+              <summary>{t("crash.technicalDetailsForTheAfriagrifedTeam")}</summary>
               <code>
                 {window.location.pathname}: {String(this.state.error?.name || "Error")}: {String(this.state.error?.message || "").slice(0, 300)}
               </code>
@@ -71,10 +72,10 @@ export default class AppErrorBoundary extends React.Component {
           )}
           <div className="aaf-crash-actions">
             <button type="button" className="aaf-btn aaf-btn-primary" onClick={() => window.location.reload()}>
-              Reload
+              {t("crash.reload")}
             </button>
             <button type="button" className="aaf-btn aaf-btn-ghost" onClick={() => (window.location.href = "/dashboard")}>
-              Go to my dashboard
+              {t("crash.goToMyDashboard")}
             </button>
           </div>
         </div>

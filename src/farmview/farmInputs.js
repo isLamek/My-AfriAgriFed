@@ -4,6 +4,7 @@
 // limits are enforced again in firestore.rules.
 
 import { NAMIBIA_BOUNDS } from "./config";
+import { t, tv } from "../i18n";
 
 export const INPUT_TYPES = [
   { id: "seed", label: "Seed" },
@@ -17,8 +18,9 @@ export const INPUT_TYPES = [
   { id: "equipment", label: "Equipment / fuel" },
   { id: "other", label: "Other" },
 ];
-export const INPUT_TYPE_IDS = INPUT_TYPES.map((t) => t.id);
-export const inputTypeLabel = (id) => INPUT_TYPES.find((t) => t.id === id)?.label || "Other";
+export const INPUT_TYPE_IDS = INPUT_TYPES.map((type) => type.id);
+// English labels are data; the reader sees them through tv()
+export const inputTypeLabel = (id) => tv(INPUT_TYPES.find((type) => type.id === id)?.label || "Other");
 
 export const LIMITS = { name: 80, item: 80, notes: 500, note: 300, crops: 12, unit: 20, target: 60 };
 
@@ -35,29 +37,29 @@ export function parseAmount(value) {
 
 export function validateFarm({ name, lat, lng, areaHa, notes, crops }) {
   const errors = {};
-  if (!trimmed(name)) errors.name = "Give your farm a name.";
-  else if (trimmed(name).length > LIMITS.name) errors.name = `Keep the name under ${LIMITS.name} characters.`;
+  if (!trimmed(name)) errors.name = t("farmInputs.giveYourFarmName");
+  else if (trimmed(name).length > LIMITS.name) errors.name = t("farmInputs.nameTooLong", { max: LIMITS.name });
 
   const [west, south, east, north] = NAMIBIA_BOUNDS;
   if (!isNumber(lat) || !isNumber(lng) || lng < west || lng > east || lat < south || lat > north) {
-    errors.location = "Tap a spot inside Namibia on the map.";
+    errors.location = t("farmInputs.tapSpotInsideNamibiaOnThe");
   }
-  if (areaHa != null && areaHa !== "" && Number.isNaN(parseAmount(areaHa))) errors.areaHa = "Area must be a number of hectares.";
-  if (trimmed(notes).length > LIMITS.notes) errors.notes = `Keep notes under ${LIMITS.notes} characters.`;
-  if ((crops || []).length > LIMITS.crops) errors.crops = `Choose at most ${LIMITS.crops} crops.`;
+  if (areaHa != null && areaHa !== "" && Number.isNaN(parseAmount(areaHa))) errors.areaHa = t("farmInputs.areaMustBeNumberOfHectares");
+  if (trimmed(notes).length > LIMITS.notes) errors.notes = t("farmInputs.notesTooLong", { max: LIMITS.notes });
+  if ((crops || []).length > LIMITS.crops) errors.crops = t("farmInputs.tooManyCrops", { max: LIMITS.crops });
   return errors;
 }
 
 export function validateInput({ date, type, item, quantity, costNad, unit, note }) {
   const errors = {};
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "") || Number.isNaN(Date.parse(date))) errors.date = "Choose the date.";
-  if (!INPUT_TYPE_IDS.includes(type)) errors.type = "Choose what kind of input it was.";
-  if (!trimmed(item)) errors.item = "Say what it was, for example 'Mahangu seed' or 'NPK 2:3:2'.";
-  else if (trimmed(item).length > LIMITS.item) errors.item = `Keep this under ${LIMITS.item} characters.`;
-  if (Number.isNaN(parseAmount(quantity))) errors.quantity = "Quantity must be a number.";
-  if (Number.isNaN(parseAmount(costNad))) errors.costNad = "Cost must be a number in N$.";
-  if (trimmed(unit).length > LIMITS.unit) errors.unit = "Unit is too long.";
-  if (trimmed(note).length > LIMITS.note) errors.note = `Keep the note under ${LIMITS.note} characters.`;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date || "") || Number.isNaN(Date.parse(date))) errors.date = t("farmInputs.chooseTheDate");
+  if (!INPUT_TYPE_IDS.includes(type)) errors.type = t("farmInputs.chooseWhatKindOfInputIt");
+  if (!trimmed(item)) errors.item = t("farmInputs.sayWhatItWasForExample");
+  else if (trimmed(item).length > LIMITS.item) errors.item = t("farmInputs.itemTooLong", { max: LIMITS.item });
+  if (Number.isNaN(parseAmount(quantity))) errors.quantity = t("farmInputs.quantityMustBeNumber");
+  if (Number.isNaN(parseAmount(costNad))) errors.costNad = t("farmInputs.costMustBeNumberIn");
+  if (trimmed(unit).length > LIMITS.unit) errors.unit = t("farmInputs.unitIsTooLong");
+  if (trimmed(note).length > LIMITS.note) errors.note = t("farmInputs.noteTooLong", { max: LIMITS.note });
   return errors;
 }
 

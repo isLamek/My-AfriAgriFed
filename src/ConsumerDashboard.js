@@ -61,6 +61,8 @@ import { marketFeedItems, mixFeed } from "./feedMix";
 
 import "./ConsumerDashboard.css";
 import { MemberAvatar } from "./Avatar";
+import { t, tv, tRich } from "./i18n";
+import { formatRelativeTime } from "./timeFormat";
 
 // One place to stop contact details before anything is posted publicly.
 const blockedContact = (text) => {
@@ -72,19 +74,6 @@ const blockedContact = (text) => {
 
 const MAX_POST_LENGTH = 500;
 const FEED_WINDOW = 60; // most recent N posts pulled from Realtime DB
-
-function formatRelativeTime(timestamp) {
-  if (!timestamp) return "";
-  const diffMs = Date.now() - timestamp;
-  const minutes = Math.round(diffMs / 60000);
-  if (minutes < 1) return "just now";
-  if (minutes < 60) return `${minutes}m ago`;
-  const hours = Math.round(minutes / 60);
-  if (hours < 24) return `${hours}h ago`;
-  const days = Math.round(hours / 24);
-  if (days < 7) return `${days}d ago`;
-  return new Date(timestamp).toLocaleDateString();
-}
 
 // Lightweight engagement ranking (freshness decay + likes/comments weight) -
 // a "For You" feed without needing a follow graph or ML infra. "Recent"
@@ -300,10 +289,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
 
       console.error(error);
 
-      toast.error(
-        "Failed to upload post: " +
-        error.message
-      );
+      toast.error(t("feed.uploadFailed", { message: error.message }));
     } finally {
       setPosting(false);
     }
@@ -331,10 +317,10 @@ export default function ConsumerDashboard({ role = "consumer" }) {
   };
 
   const deletePost = async (post) => {
-    if (!window.confirm("Delete this post?")) return;
+    if (!window.confirm(t("feed.deleteThisPost"))) return;
     try {
       await remove(ref(database, `posts/${post.id}`));
-      toast.success("Post deleted.");
+      toast.success(t("feed.postDeleted"));
     } catch (error) {
       toast.error(error.message);
     }
@@ -374,7 +360,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
   };
 
   const deleteComment = async (postId, commentId) => {
-    if (!window.confirm("Delete this comment?")) return;
+    if (!window.confirm(t("feed.deleteThisComment"))) return;
     try {
       await remove(ref(database, `posts/${postId}/comments/${commentId}`));
     } catch (error) {
@@ -403,7 +389,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
   };
 
   const deleteReply = async (postId, commentId, replyId) => {
-    if (!window.confirm("Delete this reply?")) return;
+    if (!window.confirm(t("feed.deleteThisReply"))) return;
     try {
       await remove(ref(database, `posts/${postId}/comments/${commentId}/replies/${replyId}`));
     } catch (error) {
@@ -445,16 +431,16 @@ export default function ConsumerDashboard({ role = "consumer" }) {
     <AppShell
       eyebrow={
         role === "farmer"
-          ? "Producer workspace"
+          ? t("feed.producerWorkspace")
           : orgProfile
           ? `${orgProfile.businessName} · ${orgProfile.consumerType}`
-          : "Consumer workspace"
+          : t("feed.consumerWorkspace")
       }
-      title={selectedPage === "prices" ? "Marketplace" : "Community Feed"}
+      title={selectedPage === "prices" ? t("feed.marketplace") : t("feed.communityFeed")}
       subtitle={
         selectedPage === "prices"
-          ? "Ready-to-sell listings from producers across Namibia."
-          : "Share news, photos, tips and questions with the community."
+          ? t("feed.readyToSellListingsFromProducers")
+          : t("feed.shareNewsPhotosTipsAndQuestions")
       }
       navSections={navSections}
       headerRight={<NotificationBell />}
@@ -477,17 +463,19 @@ export default function ConsumerDashboard({ role = "consumer" }) {
       {selectedPage === "feed" && (
       <div className="create-post aaf-card">
 
-        <h2>Share with the community</h2>
+        <h2>{t("feed.shareWithTheCommunity")}</h2>
         <p className="create-post-hint">
-          For news, photos, tips and questions. Need a bulk quantity of something?{" "}
-          <button type="button" className="create-post-link" onClick={() => navigate("/demand-board")}>
-            Post it on the Demand Board
-          </button>{" "}
-          so producers can pledge to supply it.
+          {tRich("feed.postHint", {
+            link: (
+              <button type="button" className="create-post-link" onClick={() => navigate("/demand-board")}>
+                {t("feed.postItOnTheDemandBoard")}
+              </button>
+            ),
+          })}
         </p>
 
         <textarea
-          placeholder="What's happening on your farm or in your market?"
+          placeholder={t("feed.whatHappeningOnYourFarmOr")}
           value={postText}
           maxLength={MAX_POST_LENGTH}
           onChange={(e) =>
@@ -500,15 +488,15 @@ export default function ConsumerDashboard({ role = "consumer" }) {
 
         {imagePreview && (
           <div className="create-post-preview">
-            <img src={imagePreview} alt="Selected" />
-            <button type="button" onClick={() => handleImageSelect(null)} aria-label="Remove image">
+            <img src={imagePreview} alt={t("feed.selected")} />
+            <button type="button" onClick={() => handleImageSelect(null)} aria-label={t("feed.removeImage")}>
               <X size={16} />
             </button>
           </div>
         )}
 
         <label className="create-post-file-btn">
-          <ImagePlus size={16} /> {selectedImage ? "Change photo" : "Add a photo"}
+          <ImagePlus size={16} /> {selectedImage ? t("feed.changePhoto") : t("feed.addPhoto")}
           <input
             type="file"
             accept="image/*"
@@ -518,7 +506,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
         </label>
 
         <button className="aaf-btn aaf-btn-primary" onClick={createPost} disabled={posting}>
-          {posting ? "Posting..." : "Post"}
+          {posting ? t("feed.posting") : t("feed.post")}
         </button>
 
       </div>
@@ -531,11 +519,11 @@ export default function ConsumerDashboard({ role = "consumer" }) {
         <div className="market-prices aaf-card">
 
           <div className="feed-header">
-            <h2>Listings</h2>
+            <h2>{t("feed.listings")}</h2>
             <input
               className="market-search"
               type="search"
-              placeholder="Search products..."
+              placeholder={t("feed.searchProducts")}
               value={marketSearch}
               onChange={(e) => setMarketSearch(e.target.value)}
             />
@@ -547,10 +535,10 @@ export default function ConsumerDashboard({ role = "consumer" }) {
             );
 
             if (prices.length === 0) {
-              return <p className="dashboard-empty-state">No marketplace listings yet.</p>;
+              return <p className="dashboard-empty-state">{t("feed.noMarketplaceListingsYet")}</p>;
             }
             if (filtered.length === 0) {
-              return <p className="dashboard-empty-state">No listings match "{marketSearch}".</p>;
+              return <p className="dashboard-empty-state">{t("feed.noListingsMatch", { query: marketSearch })}</p>;
             }
 
             return (
@@ -586,33 +574,33 @@ export default function ConsumerDashboard({ role = "consumer" }) {
         <div className="posts-section aaf-card">
 
           <div className="feed-header">
-            <h2>Latest posts</h2>
+            <h2>{t("feed.latestPosts")}</h2>
             <div className="feed-mode-toggle">
               <button
                 className={feedMode === "forYou" ? "active" : ""}
                 onClick={() => setFeedMode("forYou")}
               >
-                <Sparkles size={14} /> For You
+                <Sparkles size={14} /> {t("feed.forYou")}
               </button>
               <button
                 className={feedMode === "recent" ? "active" : ""}
                 onClick={() => setFeedMode("recent")}
               >
-                <Clock size={14} /> Recent
+                <Clock size={14} /> {t("feed.recent")}
               </button>
               <button
                 className={`feed-market-toggle ${showMarket ? "active" : ""}`}
                 onClick={toggleMarket}
                 aria-pressed={showMarket}
-                title="Show new marketplace listings and Demand Board requests between posts"
+                title={t("feed.showNewMarketplaceListingsAndDemand")}
               >
-                <Store size={14} /> Market updates
+                <Store size={14} /> {t("feed.marketUpdates")}
               </button>
             </div>
           </div>
 
           {feedItems.length === 0 ? (
-            <p className="dashboard-empty-state">No posts yet. Be the first to share something.</p>
+            <p className="dashboard-empty-state">{t("feed.noPostsYetBeTheFirst")}</p>
           ) : (
           feedItems.map(item => {
             if (item.feedKind !== "post") {
@@ -651,12 +639,12 @@ export default function ConsumerDashboard({ role = "consumer" }) {
     <div className="post-header-text">
       <h4>
         {post.userName}
-        {post.authorRole && <span className="post-role-badge">{post.authorRole}</span>}
+        {post.authorRole && <span className="post-role-badge">{tv(post.authorRole)}</span>}
       </h4>
-      <span className="post-time">{formatRelativeTime(post.createdAt)}</span>
+      <span className="post-time">{formatRelativeTime(post.createdAt, { short: true })}</span>
     </div>
     {canDelete && (
-      <button className="post-delete-btn" onClick={() => deletePost(post)} aria-label="Delete post">
+      <button className="post-delete-btn" onClick={() => deletePost(post)} aria-label={t("feed.deletePost")}>
         <Trash2 size={15} />
       </button>
     )}
@@ -669,7 +657,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
   {post.imageUrl && (
     <img
       src={post.imageUrl}
-      alt="Post"
+      alt={t("feed.post")}
       className="post-image"
       loading="lazy"
     />
@@ -678,10 +666,10 @@ export default function ConsumerDashboard({ role = "consumer" }) {
   {/* LIKE / COMMENT BAR */}
   <div className="post-actions">
     <button className={`post-action-btn ${liked ? "liked" : ""}`} onClick={() => toggleLike(post)}>
-      <Heart size={16} fill={liked ? "currentColor" : "none"} /> {likeCount > 0 ? likeCount : "Like"}
+      <Heart size={16} fill={liked ? "currentColor" : "none"} /> {likeCount > 0 ? likeCount : t("feed.like")}
     </button>
     <span className="post-action-btn static">
-      <MessageCircle size={16} /> {commentList.length > 0 ? commentList.length : "Comment"}
+      <MessageCircle size={16} /> {commentList.length > 0 ? commentList.length : t("feed.comment")}
     </span>
   </div>
 
@@ -700,15 +688,15 @@ export default function ConsumerDashboard({ role = "consumer" }) {
        <div className="comment">
          <MemberAvatar uid={comment.userId} name={comment.userName || comment.userId} size={28} className="comment-avatar" />
          <div className="comment-body">
-           <strong>{comment.userName || "Member"}</strong>
+           <strong>{comment.userName || t("feed.member")}</strong>
            <p>{maskContactInfo(comment.text)}</p>
            <div className="comment-actions">
              <button onClick={() => setOpenReplyKey(openReplyKey === replyKey ? null : replyKey)}>
-               Reply
+               {t("feed.reply")}
              </button>
              {comment.userId === auth.currentUser?.uid && (
                <button onClick={() => deleteComment(post.id, comment.id)} className="comment-delete">
-                 Delete
+                 {t("feed.delete")}
                </button>
              )}
            </div>
@@ -719,12 +707,12 @@ export default function ConsumerDashboard({ role = "consumer" }) {
                  <div key={reply.id} className="comment reply">
                    <MemberAvatar uid={reply.userId} name={reply.userName || reply.userId} size={28} className="comment-avatar" />
                    <div className="comment-body">
-                     <strong>{reply.userName || "Member"}</strong>
+                     <strong>{reply.userName || t("feed.member")}</strong>
                      <p>{maskContactInfo(reply.text)}</p>
                      {reply.userId === auth.currentUser?.uid && (
                        <div className="comment-actions">
                          <button onClick={() => deleteReply(post.id, comment.id, reply.id)} className="comment-delete">
-                           Delete
+                           {t("feed.delete")}
                          </button>
                        </div>
                      )}
@@ -738,7 +726,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
              <div className="comment-input-row reply-input-row">
                <input
                  type="text"
-                 placeholder={`Reply to ${comment.userName || "this comment"}...`}
+                 placeholder={t("feed.replyTo", { name: comment.userName || t("feed.thisComment") })}
                  value={replyText[replyKey] || ""}
                  onChange={(e) => setReplyText((prev) => ({ ...prev, [replyKey]: e.target.value }))}
                  onKeyDown={(e) => {
@@ -746,7 +734,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
                  }}
                  autoFocus
                />
-               <button onClick={() => addReply(post.id, comment.id)} aria-label="Send reply">
+               <button onClick={() => addReply(post.id, comment.id)} aria-label={t("feed.sendReply")}>
                  <Send size={14} />
                </button>
              </div>
@@ -759,7 +747,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
     <div className="comment-input-row">
       <input
         type="text"
-        placeholder="Write a comment..."
+        placeholder={t("feed.writeComment")}
         value={commentText[post.id] || ""}
         onChange={(e) =>
           setCommentText(prev => ({
@@ -776,7 +764,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
         onClick={() =>
           addComment(post.id)
         }
-        aria-label="Send comment"
+        aria-label={t("feed.sendComment")}
       >
         <Send size={15} />
       </button>

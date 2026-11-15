@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { auth } from "./firebaseConfig";
 import appIcon from "./images/seed-mark.png";
 import "./SignIn.css";
+import { t, LanguageSwitcher } from "./i18n";
 
 export default function ForgotPassword() {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ export default function ForgotPassword() {
     event.preventDefault();
 
     if (!email.trim()) {
-      setStatus({ type: "error", message: "Enter your email address." });
+      setStatus({ type: "error", message: t("forgotPassword.enterEmail") });
       return;
     }
 
@@ -26,17 +27,17 @@ export default function ForgotPassword() {
       await sendPasswordResetEmail(auth, email.trim());
       setStatus({
         type: "success",
-        message: `If an account exists for ${email.trim()}, a password reset link is on its way.`,
+        message: t("forgotPassword.sent", { email: email.trim() }),
       });
     } catch (error) {
       // Firebase can be picky about invalid-email vs user-not-found; keep the
       // message generic so this can't be used to probe which emails exist.
       if (error.code === "auth/invalid-email") {
-        setStatus({ type: "error", message: "That doesn't look like a valid email address." });
+        setStatus({ type: "error", message: t("forgotPassword.invalidEmail") });
       } else {
         setStatus({
           type: "success",
-          message: `If an account exists for ${email.trim()}, a password reset link is on its way.`,
+          message: t("forgotPassword.sent", { email: email.trim() }),
         });
       }
     } finally {
@@ -48,10 +49,11 @@ export default function ForgotPassword() {
     <div className="signin-page">
       <nav className="navbar">
         <div className="nav-links desktop-nav">
+          <LanguageSwitcher tone="dark" />
           <button className="nav-btn" onClick={() => navigate("/")}>
-            Home
+            {t("forgotPassword.home")}
           </button>
-          <button className="nav-btn primary">Contact Us</button>
+          <button className="nav-btn primary">{t("forgotPassword.contactUs")}</button>
         </div>
       </nav>
 
@@ -62,14 +64,14 @@ export default function ForgotPassword() {
             <span className="signin-brand">AfriAgriFed</span>
           </div>
 
-          <h1 className="signin-title">Reset your password</h1>
+          <h1 className="signin-title">{t("forgotPassword.resetYourPassword")}</h1>
           <p className="signin-subtitle">
-            Enter the email you signed up with and we'll send you a link to set a new password.
+            {t("forgotPassword.enterTheEmailYouSignedUp")}
           </p>
 
           <form onSubmit={handleSubmit} className="signin-form">
             <div className="form-group">
-              <label>Email *</label>
+              <label>{t("forgotPassword.email")}</label>
               <input
                 type="email"
                 value={email}
@@ -85,12 +87,12 @@ export default function ForgotPassword() {
             )}
 
             <button className="btn-primary" disabled={submitting}>
-              {submitting ? "Sending..." : "Send Reset Link"}
+              {submitting ? t("forgotPassword.sending") : t("forgotPassword.sendResetLink")}
             </button>
           </form>
 
           <p className="signin-footnote">
-            <Link to="/signin">Back to Sign In</Link>
+            <Link to="/signin">{t("forgotPassword.backToSignIn")}</Link>
           </p>
         </div>
       </div>

@@ -21,6 +21,7 @@ import {
   waitingOn,
 } from "./orderStatus";
 import "./OrderTracker.css";
+import { t, tv } from "./i18n";
 
 const formatWhen = (ms) =>
   ms
@@ -37,7 +38,7 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
   const status = normaliseStatus(order.status);
   const timeline = buildTimeline(order);
   const actions = allowedNext(order, uid);
-  const other = side === "selling" ? order.buyerName || "Buyer" : order.sellerName || "Seller";
+  const other = side === "selling" ? order.buyerName || t("tracker.buyer") : order.sellerName || t("tracker.seller");
   const log = [...(order.statusHistory || [])].reverse();
 
   const act = async (nextStatus) => {
@@ -49,9 +50,9 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
     <article className={`ot-card ${status}`}>
       <header className="ot-head">
         <div>
-          <h3>{order.product || "Order"}</h3>
+          <h3>{order.product || t("tracker.order")}</h3>
           <p className="ot-sub">
-            {side === "selling" ? "Buyer" : "Seller"}: <strong>{other}</strong>
+            {side === "selling" ? t("tracker.buyer") : t("tracker.seller")}: <strong>{other}</strong>
             {" · "}
             {quantityText(order) ? `${quantityText(order)} · ` : ""}
             {order.currency || "NAD"} {order.amount}
@@ -59,10 +60,10 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
           </p>
         </div>
         <div className="ot-head-side">
-          <span className={`ot-badge ${status}`}>{STATUS_LABELS[status]}</span>
+          <span className={`ot-badge ${status}`}>{tv(STATUS_LABELS[status])}</span>
           {onMessage && (
             <button type="button" className="ot-message" onClick={() => onMessage(order)}>
-              <MessageCircle size={14} aria-hidden="true" /> Message {side === "selling" ? "buyer" : "seller"}
+              <MessageCircle size={14} aria-hidden="true" /> {side === "selling" ? t("tracker.messageBuyer") : t("tracker.messageSeller")}
             </button>
           )}
         </div>
@@ -71,19 +72,19 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
       {order.oversold && (
         <p className="ot-oversold" role="alert">
           {side === "selling"
-            ? "You did not have enough stock to fill this order in full. Contact the buyer to agree what to do, or ask for a refund."
-            : "The seller did not have enough stock to fill this order in full. They will contact you, or you can ask for a refund."}
+            ? t("tracker.youDidNotHaveEnoughStock")
+            : t("tracker.theSellerDidNotHaveEnough")}
         </p>
       )}
 
       {status === "cancelled" ? (
-        <p className="ot-wait">This order was cancelled. Contact support if you have questions about a refund.</p>
+        <p className="ot-wait">{t("tracker.thisOrderWasCancelledContactSupport")}</p>
       ) : (
-        <ol className="ot-steps" aria-label="Order progress">
+        <ol className="ot-steps" aria-label={t("tracker.orderProgress")}>
           {timeline.map((step) => (
             <li key={step.id} className={step.state}>
               <span className="ot-dot">{step.state === "done" ? <Check size={14} strokeWidth={3} /> : null}</span>
-              <span className="ot-step-label">{step.label}</span>
+              <span className="ot-step-label">{tv(step.label)}</span>
               <span className="ot-step-time">{formatWhen(step.at)}</span>
             </li>
           ))}
@@ -98,13 +99,13 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
             type="text"
             value={note}
             maxLength={280}
-            placeholder="Add a note (optional), e.g. pickup time or driver"
+            placeholder={t("tracker.addNoteOptionalEgPickupTime")}
             onChange={(e) => setNote(e.target.value)}
-            aria-label="Note for the other party"
+            aria-label={t("tracker.noteForTheOtherParty")}
           />
           {actions.map((next) => (
             <button key={next} className="ot-btn primary" disabled={busy} onClick={() => act(next)}>
-              {busy ? "Saving…" : ACTION_LABELS[next]}
+              {busy ? t("tracker.saving") : tv(ACTION_LABELS[next])}
             </button>
           ))}
         </div>
@@ -113,13 +114,13 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
       {log.length > 0 && (
         <div className="ot-log">
           <button className="ot-link" onClick={() => setShowLog((v) => !v)}>
-            {showLog ? <ChevronUp size={14} /> : <ChevronDown size={14} />} History ({log.length})
+            {showLog ? <ChevronUp size={14} /> : <ChevronDown size={14} />} {t("tracker.history", { count: log.length })}
           </button>
           {showLog && (
             <ul>
               {log.map((h, i) => (
                 <li key={`${h.status}-${h.at}-${i}`}>
-                  <strong>{STATUS_LABELS[normaliseStatus(h.status)]}</strong>
+                  <strong>{tv(STATUS_LABELS[normaliseStatus(h.status)])}</strong>
                   <span>{formatWhen(h.at)}</span>
                   {h.note && <em>“{h.note}”</em>}
                 </li>
@@ -129,7 +130,7 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
         </div>
       )}
 
-      {order.transactionId && <p className="ot-ref">Ref {order.transactionId}</p>}
+      {order.transactionId && <p className="ot-ref">{t("tracker.ref", { id: order.transactionId })}</p>}
     </article>
   );
 }
@@ -181,10 +182,10 @@ export default function OrderTracker() {
     setBusyId(order.id);
     try {
       await advanceOrder(order, nextStatus, note);
-      toast.success(`Order marked ${STATUS_LABELS[nextStatus].toLowerCase()}.`);
+      toast.success(t("tracker.orderMarked", { status: tv(STATUS_LABELS[nextStatus]).toLowerCase() }));
       return true;
     } catch (error) {
-      toast.error(error.code === "permission-denied" ? "You can't make that change right now." : error.message);
+      toast.error(error.code === "permission-denied" ? t("tracker.youCanMakeThatChangeRight") : error.message);
       return false;
     } finally {
       setBusyId(null);
@@ -196,9 +197,9 @@ export default function OrderTracker() {
 
   return (
     <AppShell
-      eyebrow="Fulfilment"
-      title="Order Tracker"
-      subtitle="Follow every order from payment to delivery."
+      eyebrow={t("tracker.fulfilment")}
+      title={t("tracker.orderTracker")}
+      subtitle={t("tracker.followEveryOrderFromPaymentTo")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
@@ -207,25 +208,25 @@ export default function OrderTracker() {
       <div className="ot-toolbar">
         <div className="ot-tabs" role="tablist">
           <button role="tab" aria-selected={side === "buying"} className={side === "buying" ? "on" : ""} onClick={() => setSide("buying")}>
-            <ShoppingBag size={16} /> Buying
+            <ShoppingBag size={16} /> {t("tracker.buying")}
             {needsAction(buying) > 0 && <span className="ot-count">{needsAction(buying)}</span>}
           </button>
           {showSellingTab && (
             <button role="tab" aria-selected={side === "selling"} className={side === "selling" ? "on" : ""} onClick={() => setSide("selling")}>
-              <Store size={16} /> Selling
+              <Store size={16} /> {t("tracker.selling")}
               {needsAction(selling) > 0 && <span className="ot-count">{needsAction(selling)}</span>}
             </button>
           )}
         </div>
 
-        <div className="ot-filter" role="group" aria-label="Filter orders">
-          <button className={filter === "active" ? "on" : ""} onClick={() => setFilter("active")}>In progress</button>
-          <button className={filter === "done" ? "on" : ""} onClick={() => setFilter("done")}>Completed</button>
+        <div className="ot-filter" role="group" aria-label={t("tracker.filterOrders")}>
+          <button className={filter === "active" ? "on" : ""} onClick={() => setFilter("active")}>{t("tracker.inProgress")}</button>
+          <button className={filter === "done" ? "on" : ""} onClick={() => setFilter("done")}>{t("tracker.completed")}</button>
         </div>
       </div>
 
-      {loadError && <p className="ot-error">Could not load your orders: {loadError}</p>}
-      {loading && !loadError && <p className="ot-empty">Loading your orders…</p>}
+      {loadError && <p className="ot-error">{t("tracker.couldNotLoad", { error: loadError })}</p>}
+      {loading && !loadError && <p className="ot-empty">{t("tracker.loadingYourOrders")}</p>}
 
       {!loading && visible.length === 0 && (
         <div className="aaf-card ot-empty-card">
@@ -233,9 +234,9 @@ export default function OrderTracker() {
           <p>
             {filter === "active"
               ? side === "buying"
-                ? "No orders in progress. Purchases from the Marketplace will appear here."
-                : "No orders waiting on you. New paid orders will appear here and you'll get a notification."
-              : "No completed orders yet."}
+                ? t("tracker.noOrdersInProgressPurchasesFrom")
+                : t("tracker.noOrdersWaitingOnYouNew")
+              : t("tracker.noCompletedOrdersYet")}
           </p>
         </div>
       )}

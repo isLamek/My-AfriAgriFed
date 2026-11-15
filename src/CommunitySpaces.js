@@ -5,6 +5,7 @@ import farmingImg from "./images/farming.jpg";
 import grainsImg from "./images/dash-grains.jpg";
 import marketImg from "./images/dash-market.jpg";
 import "./CommunitySpaces.css";
+import { t, tv } from "./i18n";
 
 // The three places people meet on AfriAgriFed. Each has one job; this strip is
 // shown on all of them so nobody has to guess which one to use.
@@ -58,7 +59,7 @@ export default function CommunitySpaces({ active, userType, onSelect }) {
   };
 
   return (
-    <nav className="aaf-spaces" aria-label="Community spaces">
+    <nav className="aaf-spaces" aria-label={t("spaces.communitySpaces")}>
       {spaces.map((space) => {
         const Icon = space.icon;
         const on = space.id === active;
@@ -74,16 +75,16 @@ export default function CommunitySpaces({ active, userType, onSelect }) {
             <span className="aaf-space-icon"><Icon size={18} /></span>
             <span className="aaf-space-text">
               <span className="aaf-space-title">
-                {space.label}
-                <em>{space.job}</em>
+                {tv(space.label)}
+                <em>{tv(space.job)}</em>
               </span>
-              <span className="aaf-space-blurb">{space.blurb}</span>
+              <span className="aaf-space-blurb">{tv(space.blurb)}</span>
             </span>
           </button>
         );
       })}
       {/* On phones the strip shrinks to three tabs; this line says what the open one is for. */}
-      <p className="aaf-spaces-active">{spaces.find((s) => s.id === active)?.blurb}</p>
+      <p className="aaf-spaces-active">{tv(spaces.find((s) => s.id === active)?.blurb)}</p>
     </nav>
   );
 }

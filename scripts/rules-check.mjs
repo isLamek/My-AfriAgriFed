@@ -190,6 +190,20 @@ await expectOk("a Demand Board request with a delivery pin", () =>
   })
 );
 
+console.log("\nNotifications that carry a text key (shown in the reader's language)");
+const note = (extra = {}) => ({ userId: farmer2.uid, title: "New message from Bea", body: "hello", link: "/messages", read: false, createdAt: serverTimestamp(), ...extra });
+await expectOk("an old-style notification (title and body only)", () => addDoc(collection(db, "notifications"), note()));
+await expectOk("a notification with a key and parameters", () =>
+  addDoc(collection(db, "notifications"), note({ key: "notif.message", params: { name: "Bea", what: "Onions: hello" } }))
+);
+await expectOk("a rejection reason up to 400 characters", () =>
+  addDoc(collection(db, "notifications"), note({ key: "notif.account.rejected", params: { reason: "x".repeat(300) } }))
+);
+await expectDenied("a notification key with odd characters", () => addDoc(collection(db, "notifications"), note({ key: "notif message<script>" })));
+await expectDenied("a notification parameter that is not on the list", () => addDoc(collection(db, "notifications"), note({ key: "notif.message", params: { name: "Bea", link: "https://evil.example" } })));
+await expectDenied("a notification parameter that is far too long", () => addDoc(collection(db, "notifications"), note({ key: "notif.message", params: { name: "x".repeat(500) } })));
+await expectDenied("notification parameters that are not a map", () => addDoc(collection(db, "notifications"), note({ key: "notif.message", params: "Bea" })));
+
 await signOut(auth);
 console.log(failures === 0 ? "\nAll rule checks passed.\n" : `\n${failures} rule check(s) FAILED.\n`);
 process.exit(failures === 0 ? 0 : 1);

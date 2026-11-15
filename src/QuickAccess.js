@@ -9,6 +9,7 @@ import { autoClaimPresetAdmin, isAdmin } from "./admin";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import appIcon from "./images/seed-mark.png";
 import "./SignIn.css";
+import { t } from "./i18n";
 
 // DEVELOPMENT ONLY (the route and the sign-in link are not available in
 // production builds). A minimal email+password account creator that skips the
@@ -27,7 +28,7 @@ export default function QuickAccess() {
     event.preventDefault();
 
     if (!email || password.length < 6) {
-      setStatus("Enter an email and a password of at least 6 characters.");
+      setStatus(t("quickAccess.enterAnEmailAndPasswordOf"));
       return;
     }
 
@@ -59,12 +60,12 @@ export default function QuickAccess() {
       } else if (claimResult.error) {
         setStatus(claimResult.error);
       } else {
-        setStatus("Signed in. This email isn't on the admin list, so redirecting to your dashboard.");
+        setStatus(t("quickAccess.signedInThisEmailIsnOn"));
         setTimeout(() => navigate("/dashboard"), 1200);
       }
     } catch (error) {
       console.error(error);
-      setStatus(error.message || "Something went wrong.");
+      setStatus(error.message || t("quickAccess.somethingWentWrong"));
     } finally {
       setSubmitting(false);
     }
@@ -79,15 +80,14 @@ export default function QuickAccess() {
             <span className="signin-brand">AfriAgriFed</span>
           </div>
 
-          <h1 className="signin-title">Quick Access</h1>
+          <h1 className="signin-title">{t("quickAccess.quickAccess")}</h1>
           <p className="signin-subtitle">
-            Skips the full registration questionnaire. Creates (or signs into) a plain
-            account - no farmer/consumer/institution profile, no document review.
+            {t("quickAccess.skipsTheFullRegistrationQuestionnaireCreates")}
           </p>
 
           <form onSubmit={handleSubmit} className="signin-form">
             <div className="form-group">
-              <label>Email *</label>
+              <label>{t("quickAccess.email")}</label>
               <input
                 type="email"
                 value={email}
@@ -97,7 +97,7 @@ export default function QuickAccess() {
             </div>
 
             <div className="form-group">
-              <label>Password *</label>
+              <label>{t("quickAccess.password")}</label>
               <input
                 type="password"
                 value={password}
@@ -110,7 +110,7 @@ export default function QuickAccess() {
             {status && <p className="signin-status is-error">{status}</p>}
 
             <button className="btn-primary" disabled={submitting}>
-              {submitting ? "Working..." : "Continue"}
+              {submitting ? t("quickAccess.working") : t("quickAccess.continue")}
             </button>
           </form>
         </div>

@@ -21,10 +21,11 @@ import {
 } from "firebase/firestore";
 import { auth, db } from "./firebaseConfig";
 import { buildFarmDoc, buildInputDoc } from "./farmview/farmInputs";
+import { t } from "./i18n";
 
 const requireUid = () => {
   const uid = auth.currentUser?.uid;
-  if (!uid) throw new Error("Please sign in first.");
+  if (!uid) throw new Error(t("farms.pleaseSignInFirst"));
   return uid;
 };
 

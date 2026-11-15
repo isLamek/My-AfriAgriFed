@@ -17,7 +17,7 @@ export default function LanguageSwitcher({ tone = "light", compact = false, clas
   const current = languages.find((l) => l.code === lang) || languages[0];
 
   return (
-    <div className={`lang-switch-wrap ${className}`}>
+    <div className={`lang-switch-wrap ${className}`} data-i18n-ignore>
       <label className={`lang-switch ${tone} ${compact ? "compact" : ""}`} title={t("language.label")}>
         <Globe size={16} aria-hidden="true" />
         <span className="aaf-visually-hidden">{t("language.label")}</span>

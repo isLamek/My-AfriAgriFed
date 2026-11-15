@@ -7,6 +7,7 @@ import { uploadToCloudinary } from "./cloudinairyUpload";
 import { startAnonymousPageCheckout } from "./payments";
 import { ensureViewer, isRegistered, hasPaidOrVerifiedAccess } from "./pageAccess";
 import "./PageAccessGate.css";
+import { t, tv } from "./i18n";
 
 const PAGE_LABELS = { data: "Data Dashboard", statistics: "Statistics Dashboard" };
 
@@ -40,7 +41,7 @@ export default function PageAccessGate({ pageKey, children }) {
   }, [pageKey]);
 
   if (status === "checking") {
-    return <div className="page-gate-loading">Loading...</div>;
+    return <div className="page-gate-loading">{t("common.loading")}</div>;
   }
 
   if (status === "allowed") {
@@ -59,7 +60,7 @@ function PagePaywall({ pageKey, uid, onUnlocked }) {
   const payForAccess = async (event) => {
     event.preventDefault();
     if (!email.trim()) {
-      toast.error("Enter an email so we can send your receipt.");
+      toast.error(t("pageAccess.enterAnEmailSoWeCan"));
       return;
     }
 
@@ -67,7 +68,7 @@ function PagePaywall({ pageKey, uid, onUnlocked }) {
     try {
       await startAnonymousPageCheckout({ email: email.trim(), pageKey });
     } catch (error) {
-      toast.error(error.message || "Could not start payment.");
+      toast.error(error.message || t("pageAccess.couldNotStartPayment"));
     } finally {
       setPaying(false);
     }
@@ -76,7 +77,7 @@ function PagePaywall({ pageKey, uid, onUnlocked }) {
   const verifyAsStudent = async (event) => {
     event.preventDefault();
     if (!studentCard) {
-      toast.error("Choose a photo of your student card first.");
+      toast.error(t("pageAccess.choosePhotoOfYourStudentCard"));
       return;
     }
 
@@ -96,10 +97,10 @@ function PagePaywall({ pageKey, uid, onUnlocked }) {
         createdAt: serverTimestamp(),
       });
 
-      toast.success("Student access granted - enjoy free access to data & statistics.");
+      toast.success(t("pageAccess.studentAccessGrantedEnjoyFreeAccess"));
       onUnlocked();
     } catch (error) {
-      toast.error(error.message || "Could not verify student card.");
+      toast.error(error.message || t("pageAccess.couldNotVerifyStudentCard"));
     } finally {
       setVerifyingStudent(false);
     }
@@ -109,26 +110,24 @@ function PagePaywall({ pageKey, uid, onUnlocked }) {
     <div className="page-gate">
       <div className="page-gate-card">
         <Lock size={28} className="page-gate-icon" />
-        <h1>{PAGE_LABELS[pageKey] || "This page"} costs N$5 for visitors without an account</h1>
+        <h1>{t("pageAccess.costs", { page: tv(PAGE_LABELS[pageKey]) || t("pageAccess.thisPage") })}</h1>
         <p className="page-gate-sub">
-          It's free the moment you register or sign in - AfriAgriFed never charges registered
-          members for data or statistics. Not ready to register? Pay a one-time N$5 for this page,
-          or verify as a student for free access.
+          {t("pageAccess.itFreeTheMomentYouRegister")}
         </p>
 
         <div className="page-gate-options">
           <a className="page-gate-option" href="/register">
             <LogIn size={18} />
             <div>
-              <strong>Register or sign in</strong>
-              <span>Free, permanent access to every page</span>
+              <strong>{t("pageAccess.registerOrSignIn")}</strong>
+              <span>{t("pageAccess.freePermanentAccessToEveryPage")}</span>
             </div>
           </a>
 
           <form className="page-gate-option page-gate-pay" onSubmit={payForAccess}>
             <div className="page-gate-option-heading">
               <span className="page-gate-price">N$5</span>
-              <strong>Pay for this page</strong>
+              <strong>{t("pageAccess.payForThisPage")}</strong>
             </div>
             <input
               type="email"
@@ -137,19 +136,19 @@ function PagePaywall({ pageKey, uid, onUnlocked }) {
               onChange={(e) => setEmail(e.target.value)}
             />
             <button className="aaf-btn aaf-btn-primary" disabled={paying}>
-              {paying ? "Starting..." : "Pay N$5"}
+              {paying ? t("pageAccess.starting") : t("pageAccess.pay5")}
             </button>
           </form>
 
           <form className="page-gate-option page-gate-student" onSubmit={verifyAsStudent}>
             <div className="page-gate-option-heading">
               <GraduationCap size={20} />
-              <strong>I'm a student</strong>
+              <strong>{t("pageAccess.student")}</strong>
             </div>
-            <span className="page-gate-sub-small">Upload your student card for free access.</span>
+            <span className="page-gate-sub-small">{t("pageAccess.uploadYourStudentCardForFree")}</span>
             <input type="file" accept="image/*" onChange={(e) => setStudentCard(e.target.files?.[0])} />
             <button className="aaf-btn aaf-btn-ghost" disabled={verifyingStudent}>
-              {verifyingStudent ? "Verifying..." : "Verify & Unlock"}
+              {verifyingStudent ? t("pageAccess.verifying") : t("pageAccess.verifyUnlock")}
             </button>
           </form>
         </div>

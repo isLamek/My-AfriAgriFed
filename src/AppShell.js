@@ -21,6 +21,7 @@ import { getAdminProfile } from "./admin";
 import { ensurePublicProfile, PROFILE_UPDATED_EVENT } from "./publicProfile";
 import "./AppShell.css";
 import "./glass.css";
+import { t, LanguageSwitcher } from "./i18n";
 
 /** The signed-in member's photo and name at the foot of the menu. */
 function MemberChip({ collapsed, onOpen }) {
@@ -37,13 +38,13 @@ function MemberChip({ collapsed, onOpen }) {
   }, []);
   const user = auth.currentUser;
   if (!user) return null;
-  const name = card?.displayName || user.displayName || user.email?.split("@")[0] || "Member";
+  const name = card?.displayName || user.displayName || user.email?.split("@")[0] || t("shell.member");
   return (
-    <button type="button" className="aaf-member-chip" onClick={onOpen} title={collapsed ? `${name} - your profile` : "Your profile"}>
+    <button type="button" className="aaf-member-chip" onClick={onOpen} title={collapsed ? t("shell.nameProfile", { name }) : t("shell.yourProfile")}>
       <Avatar name={name} photoURL={card?.photoURL} size={34} />
       <span className="aaf-sidebar-label aaf-member-text">
         <strong>{name}</strong>
-        <small>{card?.username ? `@${card.username}` : "Set up your profile"}</small>
+        <small>{card?.username ? `@${card.username}` : t("shell.setUpYourProfile")}</small>
       </span>
     </button>
   );
@@ -143,14 +144,14 @@ export default function AppShell({
       <button
         className="aaf-mobile-toggle"
         onClick={() => setMobileOpen((prev) => !prev)}
-        aria-label="Toggle navigation"
+        aria-label={t("shell.toggleNavigation")}
       >
         <Menu size={20} />
       </button>
 
       <div className={`aaf-sidebar-rail ${desktopCollapsed ? "collapsed" : ""}`}>
       <aside className={`aaf-sidebar ${mobileOpen ? "open" : ""} ${desktopCollapsed ? "collapsed" : ""}`}>
-        <div className="aaf-sidebar-brand" onClick={() => navigate("/")} title="AfriAgriFed home">
+        <div className="aaf-sidebar-brand" onClick={() => navigate("/")} title={t("shell.afriagrifedHome")}>
           <img src={seedMark} alt="AfriAgriFed" />
           <span className="aaf-sidebar-label">AfriAgriFed</span>
         </div>
@@ -175,12 +176,14 @@ export default function AppShell({
           ))}
         </nav>
 
+        <LanguageSwitcher tone="dark" compact={desktopCollapsed} className="aaf-sidebar-lang" />
+
         <MemberChip collapsed={desktopCollapsed} onOpen={() => go({ path: "/profile" })} />
 
         {onLogout && (
-          <button className="aaf-sidebar-logout" onClick={onLogout} title={desktopCollapsed ? "Logout" : undefined}>
+          <button className="aaf-sidebar-logout" onClick={onLogout} title={desktopCollapsed ? t("shell.logout") : undefined}>
             <span className="aaf-sidebar-icon"><LogOut size={18} /></span>
-            <span className="aaf-sidebar-label">Logout</span>
+            <span className="aaf-sidebar-label">{t("shell.logout")}</span>
           </button>
         )}
       </aside>
@@ -189,9 +192,9 @@ export default function AppShell({
           type="button"
           className="aaf-rail-toggle"
           onClick={toggleDesktopSidebar}
-          aria-label={desktopCollapsed ? "Expand menu" : "Collapse menu"}
+          aria-label={desktopCollapsed ? t("shell.expandMenu") : t("shell.collapseMenu")}
           aria-expanded={!desktopCollapsed}
-          title={desktopCollapsed ? "Expand menu  [" : "Collapse menu  ["}
+          title={desktopCollapsed ? t("shell.expandMenu2") : t("shell.collapseMenu2")}
         >
           {desktopCollapsed ? <ChevronRight size={14} /> : <ChevronLeft size={14} />}
         </button>

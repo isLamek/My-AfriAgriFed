@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import "./FarmerQuestionnaire.css";
+import { t, tv } from "./i18n";
 
 
 export default function FarmerQuestionnaire({ 
@@ -102,28 +103,28 @@ export default function FarmerQuestionnaire({
     
     switch(currentSection) {
       case 1:
-        if (!formData.businessName.trim()) newErrors.businessName = "Business name is required";
-        if (formData.typeOfFarming.length === 0) newErrors.typeOfFarming = "Select at least one farming type";
-        if (!formData.scaleOfFarming) newErrors.scaleOfFarming = "Scale of farming is required";
-        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = "Phone number is required";
-        if (!formData.typeOfFarmingBusiness) newErrors.typeOfFarmingBusiness = "Business type is required";
-        if (!formData.yearsInFarming) newErrors.yearsInFarming = "Years in farming is required";
+        if (!formData.businessName.trim()) newErrors.businessName = t("farmerForm.businessNameIsRequired");
+        if (formData.typeOfFarming.length === 0) newErrors.typeOfFarming = t("farmerForm.selectAtLeastOneFarmingType");
+        if (!formData.scaleOfFarming) newErrors.scaleOfFarming = t("farmerForm.scaleOfFarmingIsRequired");
+        if (!formData.phoneNumber.trim()) newErrors.phoneNumber = t("farmerForm.phoneNumberIsRequired");
+        if (!formData.typeOfFarmingBusiness) newErrors.typeOfFarmingBusiness = t("farmerForm.businessTypeIsRequired");
+        if (!formData.yearsInFarming) newErrors.yearsInFarming = t("farmerForm.yearsInFarmingIsRequired");
         break;
         
       case 2:
-        if (!formData.country.trim()) newErrors.country = "Country is required";
-        if (!formData.provinceStateRegion.trim()) newErrors.provinceStateRegion = "Province/State/Region is required";
-        if (!formData.totalLandSize) newErrors.totalLandSize = "Land size is required";
-        if (!formData.landOwnershipType) newErrors.landOwnershipType = "Land ownership type is required";
+        if (!formData.country.trim()) newErrors.country = t("farmerForm.countryIsRequired");
+        if (!formData.provinceStateRegion.trim()) newErrors.provinceStateRegion = t("farmerForm.provinceStateRegionIsRequired");
+        if (!formData.totalLandSize) newErrors.totalLandSize = t("farmerForm.landSizeIsRequired");
+        if (!formData.landOwnershipType) newErrors.landOwnershipType = t("farmerForm.landOwnershipTypeIsRequired");
         break;
         
       case 3:
-        if (formData.sellProduce === "") newErrors.sellProduce = "Please select an option";
-        if (formData.sellProduce === "Yes" && !formData.percentageSold) newErrors.percentageSold = "Percentage sold is required";
+        if (formData.sellProduce === "") newErrors.sellProduce = t("farmerForm.pleaseSelectAnOption");
+        if (formData.sellProduce === "Yes" && !formData.percentageSold) newErrors.percentageSold = t("farmerForm.percentageSoldIsRequired");
         break;
         
       case 5:
-        if (formData.farmingChallenges.length === 0) newErrors.farmingChallenges = "Select at least one challenge";
+        if (formData.farmingChallenges.length === 0) newErrors.farmingChallenges = t("farmerForm.selectAtLeastOneChallenge");
         break;
     }
     
@@ -170,23 +171,23 @@ export default function FarmerQuestionnaire({
 
   const renderSectionA = () => (
     <div className="section-container">
-      <h2>Section A: Personal & Business Information</h2>
+      <h2>{t("farmerForm.sectionPersonalBusinessInformation")}</h2>
       
       <div className="form-group">
-        <label>1. Business Name *</label>
+        <label>{t("farmerForm.1BusinessName")}</label>
         <input
           type="text"
           name="businessName"
           value={formData.businessName}
           onChange={handleInputChange}
-          placeholder="Enter your business name"
+          placeholder={t("farmerForm.enterYourBusinessName")}
           className={errors.businessName ? 'error' : ''}
         />
         {errors.businessName && <span className="error-text">{errors.businessName}</span>}
       </div>
 
       <div className="form-group">
-        <label>2. Type of Farming * (Check all that apply)</label>
+        <label>{t("farmerForm.2TypeOfFarmingCheckAll")}</label>
         <div className="checkbox-group">
           {['Livestock', 'Crop farming', 'Mixed farming', 'Aquaculture farming', 'Others'].map(type => (
             <label key={type} className="checkbox-label">
@@ -197,7 +198,7 @@ export default function FarmerQuestionnaire({
                 checked={formData.typeOfFarming.includes(type)}
                 onChange={handleInputChange}
               />
-              <span>{type}</span>
+              <span>{tv(type)}</span>
             </label>
           ))}
         </div>
@@ -205,59 +206,59 @@ export default function FarmerQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>3. Specify farming product</label>
+        <label>{t("farmerForm.3SpecifyFarmingProduct")}</label>
         <input
           type="text"
           name="specifyFarmingProduct"
           value={formData.specifyFarmingProduct}
           onChange={handleInputChange}
-          placeholder="e.g., Maize, Cattle, Tomatoes, Fish"
+          placeholder={t("farmerForm.egMaizeCattleTomatoesFish")}
         />
       </div>
 
       <div className="form-group">
-        <label>4. Scale of farming *</label>
+        <label>{t("farmerForm.4ScaleOfFarming")}</label>
         <select
           name="scaleOfFarming"
           value={formData.scaleOfFarming}
           onChange={handleInputChange}
           className={errors.scaleOfFarming ? 'error' : ''}
         >
-          <option value="">Select scale</option>
-          <option value="Small-scale">Small-scale</option>
-          <option value="Medium-scale">Medium-scale</option>
-          <option value="Large-scale">Large-scale</option>
-          <option value="Commercial">Commercial</option>
+          <option value="">{t("farmerForm.selectScale")}</option>
+          <option value="Small-scale">{t("farmerForm.smallScale")}</option>
+          <option value="Medium-scale">{t("farmerForm.mediumScale")}</option>
+          <option value="Large-scale">{t("farmerForm.largeScale")}</option>
+          <option value="Commercial">{t("farmerForm.commercial")}</option>
         </select>
         {errors.scaleOfFarming && <span className="error-text">{errors.scaleOfFarming}</span>}
       </div>
 
       <div className="form-group">
-        <label>5. Registration Number</label>
+        <label>{t("farmerForm.5RegistrationNumber")}</label>
         <input
           type="text"
           name="registrationNumber"
           value={formData.registrationNumber}
           onChange={handleInputChange}
-          placeholder="Business registration number"
+          placeholder={t("farmerForm.businessRegistrationNumber")}
         />
       </div>
 
       <div className="form-group">
-        <label>6. Phone Number *</label>
+        <label>{t("farmerForm.6PhoneNumber")}</label>
         <input
           type="tel"
           name="phoneNumber"
           value={formData.phoneNumber}
           onChange={handleInputChange}
-          placeholder="+264 XX XXX XXXX"
+          placeholder={t("farmerForm.264XxXxxXxxx")}
           className={errors.phoneNumber ? 'error' : ''}
         />
         {errors.phoneNumber && <span className="error-text">{errors.phoneNumber}</span>}
       </div>
 
       <div className="form-group">
-        <label>7. Email (optional)</label>
+        <label>{t("farmerForm.7EmailOptional")}</label>
         <input
           type="email"
           name="businessEmail"
@@ -268,7 +269,7 @@ export default function FarmerQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>8. Type of Farming Business *</label>
+        <label>{t("farmerForm.8TypeOfFarmingBusiness")}</label>
         <div className="radio-group">
           {['Sole proprietor', 'Family-run', 'Cooperative member', 'Company/Commercial farm'].map(type => (
             <label key={type} className="radio-label">
@@ -279,7 +280,7 @@ export default function FarmerQuestionnaire({
                 checked={formData.typeOfFarmingBusiness === type}
                 onChange={handleInputChange}
               />
-              <span>{type}</span>
+              <span>{tv(type)}</span>
             </label>
           ))}
         </div>
@@ -287,7 +288,7 @@ export default function FarmerQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>9. Years in Farming *</label>
+        <label>{t("farmerForm.9YearsInFarming")}</label>
         <div className="radio-group">
           {['<1 year', '1-3 years', '3-5 years', '5-10 years', '10+ years'].map(year => (
             <label key={year} className="radio-label">
@@ -298,7 +299,7 @@ export default function FarmerQuestionnaire({
                 checked={formData.yearsInFarming === year}
                 onChange={handleInputChange}
               />
-              <span>{year}</span>
+              <span>{tv(year)}</span>
             </label>
           ))}
         </div>
@@ -309,58 +310,58 @@ export default function FarmerQuestionnaire({
 
   const renderSectionB = () => (
     <div className="section-container">
-      <h2>Section B: Farm Location & Size</h2>
+      <h2>{t("farmerForm.sectionFarmLocationSize")}</h2>
       
       <div className="form-group">
-        <label>10. Country *</label>
+        <label>{t("farmerForm.10Country")}</label>
         <input
           type="text"
           name="country"
           value={formData.country}
           onChange={handleInputChange}
-          placeholder="e.g., Namibia"
+          placeholder={t("farmerForm.egNamibia")}
           className={errors.country ? 'error' : ''}
         />
         {errors.country && <span className="error-text">{errors.country}</span>}
       </div>
 
       <div className="form-group">
-        <label>11. Province/State/Region *</label>
+        <label>{t("farmerForm.11ProvinceStateRegion")}</label>
         <input
           type="text"
           name="provinceStateRegion"
           value={formData.provinceStateRegion}
           onChange={handleInputChange}
-          placeholder="e.g., Oshana Region"
+          placeholder={t("farmerForm.egOshanaRegion")}
           className={errors.provinceStateRegion ? 'error' : ''}
         />
         {errors.provinceStateRegion && <span className="error-text">{errors.provinceStateRegion}</span>}
       </div>
 
       <div className="form-group">
-        <label>12. District/County</label>
+        <label>{t("farmerForm.12DistrictCounty")}</label>
         <input
           type="text"
           name="districtCounty"
           value={formData.districtCounty}
           onChange={handleInputChange}
-          placeholder="e.g., Oshakati West"
+          placeholder={t("farmerForm.egOshakatiWest")}
         />
       </div>
 
       <div className="form-group">
-        <label>13. Village/Community</label>
+        <label>{t("farmerForm.13VillageCommunity")}</label>
         <input
           type="text"
           name="villageCommunity"
           value={formData.villageCommunity}
           onChange={handleInputChange}
-          placeholder="e.g., Oneshila"
+          placeholder={t("farmerForm.egOneshila")}
         />
       </div>
 
       <div className="form-group">
-        <label>14. Total Land Size Used for Farming *</label>
+        <label>{t("farmerForm.14TotalLandSizeUsedFor")}</label>
         <div className="radio-group">
           {['<1 hectare', '1-5 hectares', '5-10 hectares', '>10 hectares'].map(size => (
             <label key={size} className="radio-label">
@@ -371,7 +372,7 @@ export default function FarmerQuestionnaire({
                 checked={formData.totalLandSize === size}
                 onChange={handleInputChange}
               />
-              <span>{size}</span>
+              <span>{tv(size)}</span>
             </label>
           ))}
         </div>
@@ -379,7 +380,7 @@ export default function FarmerQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>15. Land Ownership Type *</label>
+        <label>{t("farmerForm.15LandOwnershipType")}</label>
         <div className="radio-group">
           {['Owned', 'Leased', 'Communal', 'Rented', 'Other'].map(type => (
             <label key={type} className="radio-label">
@@ -390,7 +391,7 @@ export default function FarmerQuestionnaire({
                 checked={formData.landOwnershipType === type}
                 onChange={handleInputChange}
               />
-              <span>{type}</span>
+              <span>{tv(type)}</span>
             </label>
           ))}
         </div>
@@ -401,10 +402,10 @@ export default function FarmerQuestionnaire({
 
   const renderSectionC = () => (
     <div className="section-container">
-      <h2>Section C: Sales & Marketing</h2>
+      <h2>{t("farmerForm.sectionSalesMarketing")}</h2>
       
       <div className="form-group">
-        <label>16. Do you sell your produce? *</label>
+        <label>{t("farmerForm.16DoYouSellYourProduce")}</label>
         <div className="radio-group">
           <label className="radio-label">
             <input
@@ -414,7 +415,7 @@ export default function FarmerQuestionnaire({
               checked={formData.sellProduce === "Yes"}
               onChange={handleInputChange}
             />
-            <span>Yes</span>
+            <span>{t("common.yes")}</span>
           </label>
           <label className="radio-label">
             <input
@@ -424,7 +425,7 @@ export default function FarmerQuestionnaire({
               checked={formData.sellProduce === "No"}
               onChange={handleInputChange}
             />
-            <span>No</span>
+            <span>{t("common.no")}</span>
           </label>
         </div>
         {errors.sellProduce && <span className="error-text">{errors.sellProduce}</span>}
@@ -433,7 +434,7 @@ export default function FarmerQuestionnaire({
       {formData.sellProduce === "Yes" && (
         <>
           <div className="form-group">
-            <label>17. What percentage of your produce is sold? *</label>
+            <label>{t("farmerForm.17WhatPercentageOfYourProduce")}</label>
             <div className="radio-group">
               {['0-25%', '26-50%', '51-75%', '76-100%'].map(percent => (
                 <label key={percent} className="radio-label">
@@ -444,7 +445,7 @@ export default function FarmerQuestionnaire({
                     checked={formData.percentageSold === percent}
                     onChange={handleInputChange}
                   />
-                  <span>{percent}</span>
+                  <span>{tv(percent)}</span>
                 </label>
               ))}
             </div>
@@ -452,7 +453,7 @@ export default function FarmerQuestionnaire({
           </div>
 
           <div className="form-group">
-            <label>18. Average sales per year (estimate)</label>
+            <label>{t("farmerForm.18AverageSalesPerYearEstimate")}</label>
             <div className="radio-group">
               {['< $500', '$500-$2,000', '$2,000-$5,000', '$5,000-$10,000', '>$10,000'].map(range => (
                 <label key={range} className="radio-label">
@@ -463,14 +464,14 @@ export default function FarmerQuestionnaire({
                     checked={formData.averageSalesPerYear === range}
                     onChange={handleInputChange}
                   />
-                  <span>{range}</span>
+                  <span>{tv(range)}</span>
                 </label>
               ))}
             </div>
           </div>
 
           <div className="form-group">
-            <label>19. Where do you sell your products? (Check all that apply)</label>
+            <label>{t("farmerForm.19WhereDoYouSellYour")}</label>
             <div className="checkbox-group">
               {['Local markets', 'Middlemen', 'Export buyers', 'Cooperatives', 'Direct to consumers', 'Processing companies'].map(channel => (
                 <label key={channel} className="checkbox-label">
@@ -481,7 +482,7 @@ export default function FarmerQuestionnaire({
                     checked={formData.salesChannels.includes(channel)}
                     onChange={handleInputChange}
                   />
-                  <span>{channel}</span>
+                  <span>{tv(channel)}</span>
                 </label>
               ))}
             </div>
@@ -490,18 +491,18 @@ export default function FarmerQuestionnaire({
       )}
 
       <div className="form-group">
-        <label>20. Main harvest/production times (months)</label>
+        <label>{t("farmerForm.20MainHarvestProductionTimesMonths")}</label>
         <input
           type="text"
           name="mainHarvestTimes"
           value={formData.mainHarvestTimes}
           onChange={handleInputChange}
-          placeholder="e.g., June-August, November-December"
+          placeholder={t("farmerForm.egJuneAugustNovemberDecember")}
         />
       </div>
 
       <div className="form-group">
-        <label>21. Mode of transport used for delivering produce</label>
+        <label>{t("farmerForm.21ModeOfTransportUsedFor")}</label>
         <div className="radio-group">
           {['Own vehicle', 'Hired transport', 'Public transport', 'On foot/animal-powered', 'Other'].map(mode => (
             <label key={mode} className="radio-label">
@@ -512,7 +513,7 @@ export default function FarmerQuestionnaire({
                 checked={formData.transportMode === mode}
                 onChange={handleInputChange}
               />
-              <span>{mode}</span>
+              <span>{tv(mode)}</span>
             </label>
           ))}
         </div>
@@ -522,10 +523,10 @@ export default function FarmerQuestionnaire({
 
   const renderSectionD = () => (
     <div className="section-container">
-      <h2>Section D: Inputs & Resources</h2>
+      <h2>{t("farmerForm.sectionInputsResources")}</h2>
       
       <div className="form-group">
-        <label>28. Where do you get your farming inputs (seed, feed, fertilizer)? (Check all that apply)</label>
+        <label>{t("farmerForm.28WhereDoYouGetYour")}</label>
         <div className="checkbox-group">
           {['Local Agro-dealers', 'Government programs', 'Cooperatives', 'Own production (seed saving, etc.)', 'Other'].map(source => (
             <label key={source} className="checkbox-label">
@@ -536,14 +537,14 @@ export default function FarmerQuestionnaire({
                 checked={formData.farmingInputsSource.includes(source)}
                 onChange={handleInputChange}
               />
-              <span>{source}</span>
+              <span>{tv(source)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>29. Do you have access to irrigation?</label>
+        <label>{t("farmerForm.29DoYouHaveAccessTo")}</label>
         <div className="radio-group">
           <label className="radio-label">
             <input
@@ -553,7 +554,7 @@ export default function FarmerQuestionnaire({
               checked={formData.irrigationAccess === "Yes"}
               onChange={handleInputChange}
             />
-            <span>Yes</span>
+            <span>{t("common.yes")}</span>
           </label>
           <label className="radio-label">
             <input
@@ -563,7 +564,7 @@ export default function FarmerQuestionnaire({
               checked={formData.irrigationAccess === "No"}
               onChange={handleInputChange}
             />
-            <span>No</span>
+            <span>{t("common.no")}</span>
           </label>
         </div>
       </div>
@@ -572,10 +573,10 @@ export default function FarmerQuestionnaire({
 
   const renderSectionE = () => (
     <div className="section-container">
-      <h2>Section E: Farming Methods & Challenges</h2>
+      <h2>{t("farmerForm.sectionFarmingMethodsChallenges")}</h2>
       
       <div className="form-group">
-        <label>30. What type of farming methods do you use?</label>
+        <label>{t("farmerForm.30WhatTypeOfFarmingMethods")}</label>
         <div className="radio-group">
           {['Traditional', 'Organic', 'Conservation agriculture', 'Mechanized', 'Mixed methods'].map(method => (
             <label key={method} className="radio-label">
@@ -586,14 +587,14 @@ export default function FarmerQuestionnaire({
                 checked={formData.farmingMethods.includes(method)}
                 onChange={handleInputChange}
               />
-              <span>{method}</span>
+              <span>{tv(method)}</span>
             </label>
           ))}
         </div>
       </div>
 
       <div className="form-group">
-        <label>31. What are your biggest farming challenges? * (Check all that apply)</label>
+        <label>{t("farmerForm.31WhatAreYourBiggestFarming")}</label>
         <div className="checkbox-grid">
           {[
             'Lack of financing', 'High cost of inputs', 'Poor market access', 
@@ -609,7 +610,7 @@ export default function FarmerQuestionnaire({
                 checked={formData.farmingChallenges.includes(challenge)}
                 onChange={handleInputChange}
               />
-              <span>{challenge}</span>
+              <span>{tv(challenge)}</span>
             </label>
           ))}
         </div>
@@ -617,12 +618,12 @@ export default function FarmerQuestionnaire({
       </div>
 
       <div className="form-group">
-        <label>32. Which challenge affects your income the most?</label>
+        <label>{t("farmerForm.32WhichChallengeAffectsYourIncome")}</label>
         <textarea
           name="biggestIncomeChallenge"
           value={formData.biggestIncomeChallenge}
           onChange={handleInputChange}
-          placeholder="Describe the biggest challenge affecting your income..."
+          placeholder={t("farmerForm.describeTheBiggestChallengeAffectingYour")}
           rows="3"
         />
       </div>
@@ -631,10 +632,10 @@ export default function FarmerQuestionnaire({
 
   const renderSectionF = () => (
     <div className="section-container">
-      <h2>Section F: Technology & Support</h2>
+      <h2>{t("farmerForm.sectionTechnologySupport")}</h2>
       
       <div className="form-group">
-        <label>33. Do you use a smartphone or mobile device for farming activities?</label>
+        <label>{t("farmerForm.33DoYouUseSmartphoneOr")}</label>
         <div className="radio-group">
           <label className="radio-label">
             <input
@@ -644,7 +645,7 @@ export default function FarmerQuestionnaire({
               checked={formData.smartphoneUsage === "Yes"}
               onChange={handleInputChange}
             />
-            <span>Yes</span>
+            <span>{t("common.yes")}</span>
           </label>
           <label className="radio-label">
             <input
@@ -654,13 +655,13 @@ export default function FarmerQuestionnaire({
               checked={formData.smartphoneUsage === "No"}
               onChange={handleInputChange}
             />
-            <span>No</span>
+            <span>{t("common.no")}</span>
           </label>
         </div>
       </div>
 
       <div className="form-group">
-        <label>34. Are you a member of any farmers' association or cooperative?</label>
+        <label>{t("farmerForm.34AreYouMemberOfAny")}</label>
         <div className="radio-group">
           <label className="radio-label">
             <input
@@ -670,7 +671,7 @@ export default function FarmerQuestionnaire({
               checked={formData.associationMember === "Yes"}
               onChange={handleInputChange}
             />
-            <span>Yes</span>
+            <span>{t("common.yes")}</span>
           </label>
           <label className="radio-label">
             <input
@@ -680,13 +681,13 @@ export default function FarmerQuestionnaire({
               checked={formData.associationMember === "No"}
               onChange={handleInputChange}
             />
-            <span>No</span>
+            <span>{t("common.no")}</span>
           </label>
         </div>
       </div>
 
       <div className="form-group">
-        <label>35. Types of support you would like to receive: (Check all that apply)</label>
+        <label>{t("farmerForm.35TypesOfSupportYouWould")}</label>
         <div className="checkbox-grid">
           {[
             'Training', 'Access to loans', 'Subsidized inputs', 'Market linkages',
@@ -700,7 +701,7 @@ export default function FarmerQuestionnaire({
                 checked={formData.supportNeeded.includes(support)}
                 onChange={handleInputChange}
               />
-              <span>{support}</span>
+              <span>{tv(support)}</span>
             </label>
           ))}
         </div>
@@ -712,8 +713,8 @@ export default function FarmerQuestionnaire({
   return (
     <div className="farmer-questionnaire">
       <div className="questionnaire-header">
-        <h1>Farmer Registration Questionnaire</h1>
-        <p>Complete all sections to register as a verified farmer</p>
+        <h1>{t("farmerForm.farmerRegistrationQuestionnaire")}</h1>
+        <p>{t("farmerForm.completeAllSectionsToRegisterAs")}</p>
       </div>
 
       <div className="progress-container">
@@ -724,7 +725,7 @@ export default function FarmerQuestionnaire({
               className={`step ${currentSection > index + 1 ? 'completed' : ''} ${currentSection === index + 1 ? 'active' : ''}`}
             >
               <div className="step-number">{index + 1}</div>
-              <div className="step-label">{section}</div>
+              <div className="step-label">{tv(section)}</div>
             </div>
           ))}
         </div>
@@ -739,18 +740,18 @@ export default function FarmerQuestionnaire({
           className="btn-secondary" 
           onClick={handleBack}
         >
-          {currentSection === 1 ? 'Cancel' : 'Back'}
+          {currentSection === 1 ? t("common.cancel") : t("common.back")}
         </button>
         <button 
           className="btn-primary" 
           onClick={handleNext}
         >
-          {currentSection === sections.length ? 'Complete Registration' : 'Next Section'}
+          {currentSection === sections.length ? t("farmerForm.completeRegistration") : t("farmerForm.nextSection")}
         </button>
       </div>
 
       <div className="progress-indicator">
-        <span>Section {currentSection} of {sections.length}</span>
+        <span>{t("questionnaire.sectionOf", { n: currentSection, total: sections.length })}</span>
         <div className="progress-bar">
           <div 
             className="progress-fill" 

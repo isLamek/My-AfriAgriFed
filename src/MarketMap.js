@@ -12,11 +12,12 @@ import NotificationBell from "./NotificationBell";
 import { chatWith } from "./chat";
 import { BASEMAPS, NAMIBIA_BOUNDS, VIEWS } from "./farmview/config";
 import { supportsWebGL } from "./farmview/NoMapFallback";
-import { validLocation } from "./marketLocation";
+import { displayPlace, validLocation } from "./marketLocation";
 import { maskContactInfo } from "./contactGuard";
 import "./MarketMap.css";
+import { t, tv, tRich, formatNumber } from "./i18n";
 
-const money = (n) => `N$${Number(n || 0).toLocaleString("en-NA", { maximumFractionDigits: 2 })}`;
+const money = (n) => `N$${formatNumber(Number(n || 0), { maximumFractionDigits: 2 })}`;
 
 /** Posts at the same spot share one pin (many people pick the same town). */
 export function groupByPlace(items) {
@@ -44,10 +45,10 @@ function PinCard({ group, onClose }) {
   const navigate = useNavigate();
   const uid = auth.currentUser?.uid;
   return (
-    <aside className="mm-card aaf-card" aria-label={`Posts at ${group.label}`}>
+    <aside className="mm-card aaf-card" aria-label={t("marketMap.postsAt", { place: displayPlace(group.label) })}>
       <header>
-        <h2><MapPin size={16} /> {group.label}</h2>
-        <button type="button" onClick={onClose} aria-label="Close"><X size={16} /></button>
+        <h2><MapPin size={16} /> {displayPlace(group.label)}</h2>
+        <button type="button" onClick={onClose} aria-label={t("common.close")}><X size={16} /></button>
       </header>
       <ul>
         {group.items.map((item) => {
@@ -56,28 +57,28 @@ function PinCard({ group, onClose }) {
           const soldOut = item.kind === "sale" && d.quantity === 0;
           return (
             <li key={`${item.kind}-${item.id}`} className={`mm-item ${item.kind}`}>
-              <span className="mm-badge">{item.kind === "sale" ? "For sale" : "Wanted"}</span>
+              <span className="mm-badge">{item.kind === "sale" ? t("marketMap.forSale") : t("marketMap.wanted")}</span>
               <strong>{item.title}</strong>
               {item.kind === "sale" ? (
                 <span className="mm-meta">
-                  {money(d.price)} / {d.unit || "kg"}
-                  {d.quantity != null && (soldOut ? " · sold out" : ` · ${d.quantity} left`)}
+                  {money(d.price)} / {tv(d.unit || "kg")}
+                  {d.quantity != null && (soldOut ? t("marketMap.soldOut") : ` · ${t("marketMap.left", { count: d.quantity })}`)}
                 </span>
               ) : (
                 <span className="mm-meta">
-                  {d.quantityNeeded} {d.unit} needed{d.deadline ? ` by ${d.deadline}` : ""}
+                  {d.deadline ? t("marketMap.neededBy", { quantity: d.quantityNeeded, unit: tv(d.unit), date: d.deadline }) : t("marketMap.needed", { quantity: d.quantityNeeded, unit: tv(d.unit) })}
                 </span>
               )}
               {item.kind === "wanted" && d.notes && <span className="mm-notes">{maskContactInfo(d.notes).slice(0, 140)}</span>}
-              <span className="mm-owner">{item.kind === "sale" ? "Sold by" : "Requested by"} {mine ? "you" : item.ownerName || "a member"}</span>
+              <span className="mm-owner">{item.kind === "sale" ? t("marketMap.soldBy") : t("marketMap.requestedBy")} {mine ? "you" : item.ownerName || t("marketMap.member")}</span>
               <div className="mm-actions">
                 {item.kind === "sale" ? (
                   <button type="button" className="aaf-btn aaf-btn-primary aaf-btn-sm" onClick={() => navigate("/dashboard", { state: { page: "prices" } })}>
-                    <ShoppingBasket size={14} /> {soldOut ? "See marketplace" : "Buy in marketplace"}
+                    <ShoppingBasket size={14} /> {soldOut ? t("marketMap.seeMarketplace") : t("marketMap.buyInMarketplace")}
                   </button>
                 ) : (
                   <button type="button" className="aaf-btn aaf-btn-primary aaf-btn-sm" onClick={() => navigate("/demand-board")}>
-                    <Tag size={14} /> Open on Demand Board
+                    <Tag size={14} /> {t("marketMap.openOnDemandBoard")}
                   </button>
                 )}
                 {!mine && item.ownerId && (
@@ -92,7 +93,7 @@ function PinCard({ group, onClose }) {
                       })
                     }
                   >
-                    <MessageCircle size={14} /> Message {item.kind === "sale" ? "seller" : "buyer"}
+                    <MessageCircle size={14} /> {item.kind === "sale" ? t("marketMap.messageSeller") : t("marketMap.messageBuyer")}
                   </button>
                 )}
               </div>
@@ -185,15 +186,15 @@ export default function MarketMap() {
       const el = document.createElement("button");
       el.type = "button";
       el.className = `mm-pin ${sale && wanted ? "both" : sale ? "sale" : "wanted"}${group.key === selectedKey ? " on" : ""}`;
-      el.setAttribute("aria-label", `${group.label}: ${sale} for sale, ${wanted} wanted`);
+      el.setAttribute("aria-label", t("marketMap.pinLabel", { place: displayPlace(group.label), sale, wanted }));
       const first = group.items[0];
       // textContent only: titles are typed by members
       el.textContent =
         group.items.length > 1
-          ? `${group.items.length} posts`
+          ? t("marketMap.postsCount", { count: group.items.length })
           : first.kind === "sale"
           ? `${first.title} · ${money(first.data.price)}`
-          : `Wanted: ${first.title}`;
+          : t("marketMap.wantedPin", { title: first.title });
       el.addEventListener("click", (e) => {
         e.stopPropagation();
         setSelectedKey(group.key);
@@ -207,9 +208,9 @@ export default function MarketMap() {
 
   return (
     <AppShell
-      eyebrow="Marketplace"
-      title="Market Map"
-      subtitle="Where produce is for sale and where buyers need it. Pins show the area, never anyone's exact spot."
+      eyebrow={t("marketMap.marketplace")}
+      title={t("marketMap.marketMap")}
+      subtitle={t("marketMap.whereProduceIsForSaleAnd")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
@@ -217,18 +218,18 @@ export default function MarketMap() {
     >
       <div className="mm-toolbar">
         <button type="button" className={`mm-chip sale ${show.sale ? "on" : ""}`} onClick={() => toggle("sale")} aria-pressed={show.sale}>
-          <span className="mm-dot" /> For sale ({counts.sale})
+          <span className="mm-dot" /> {t("marketMap.forSaleChip", { count: counts.sale })}
         </button>
         <button type="button" className={`mm-chip wanted ${show.wanted ? "on" : ""}`} onClick={() => toggle("wanted")} aria-pressed={show.wanted}>
-          <span className="mm-dot" /> Wanted ({counts.wanted})
+          <span className="mm-dot" /> {t("marketMap.wantedChip", { count: counts.wanted })}
         </button>
-        <span className="mm-tip">Add a pin: choose "Where is it?" when you post a listing or a Demand Board request.</span>
+        <span className="mm-tip">{t("marketMap.addPinChooseWhereIsIt")}</span>
       </div>
 
       {noMap ? (
         <section className="aaf-card mm-list">
-          <p className="mm-tip">This browser can't draw maps right now (graphics are switched off), so here are the same posts by place.</p>
-          {groups.length === 0 && <p>No posts with a location yet.</p>}
+          <p className="mm-tip">{t("marketMap.thisBrowserCanDrawMapsRight")}</p>
+          {groups.length === 0 && <p>{t("marketMap.noPostsWithLocationYet")}</p>}
           {groups.map((g) => (
             <PinCard key={g.key} group={g} onClose={() => {}} />
           ))}
@@ -240,8 +241,7 @@ export default function MarketMap() {
             <div className="mm-empty aaf-card">
               <MapPin size={18} />
               <p>
-                No posts with a location yet. When you add a listing or a Demand Board request, choose <strong>Where is it?</strong> and it
-                appears here.
+                {tRich("marketMap.noPostsYet", { where: <strong>{t("marketMap.whereIsIt")}</strong> })}
               </p>
             </div>
           )}

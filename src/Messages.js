@@ -8,7 +8,7 @@ import NotificationBell from "./NotificationBell";
 import useAccountContext from "./useAccountContext";
 import { auth } from "./firebaseConfig";
 import { formatRelativeTime } from "./timeFormat";
-import { CHAT_NOTICE, maskContactInfo } from "./contactGuard";
+import { chatNotice, maskContactInfo } from "./contactGuard";
 import {
   MAX_MESSAGE,
   isUnread,
@@ -20,8 +20,9 @@ import {
   toMillis,
 } from "./conversations";
 import "./Messages.css";
+import { t, tv } from "./i18n";
 
-const TOPIC_LABEL = { listing: "Listing", order: "Order", demand: "Bulk request" };
+const TOPIC_LABEL = { listing: "Listing", order: "Order", demand: "Bulk request" }; // shown through tv()
 const TOPIC_LINK = {
   listing: ["/dashboard", { page: "prices" }],
   order: ["/track-orders"],
@@ -34,10 +35,10 @@ function Thread({ conversation, me, onBack }) {
   const [text, setText] = useState("");
   const [sending, setSending] = useState(false);
   const endRef = useRef(null);
-  const otherName = conversation.names?.[otherParticipant(conversation, me.uid)] || "Member";
+  const otherName = conversation.names?.[otherParticipant(conversation, me.uid)] || t("common.member");
 
   useEffect(
-    () => subscribeMessages(conversation.id, setMessages, (error) => toast.error(`Could not load messages: ${error.message}`)),
+    () => subscribeMessages(conversation.id, setMessages, (error) => toast.error(t("messages.couldNotLoad", { error: error.message }))),
     [conversation.id]
   );
 
@@ -60,7 +61,7 @@ function Thread({ conversation, me, onBack }) {
     } catch (error) {
       toast.error(
         error.code === "permission-denied"
-          ? "That message can't be sent. Phone numbers, e-mails and links are not allowed in chats."
+          ? t("messages.thatMessageCanBeSentPhone")
           : error.message
       );
     } finally {
@@ -72,15 +73,15 @@ function Thread({ conversation, me, onBack }) {
   const link = TOPIC_LINK[topic.kind];
 
   return (
-    <section className="msg-thread aaf-card" aria-label={`Conversation with ${otherName}`}>
+    <section className="msg-thread aaf-card" aria-label={t("messages.conversationWith", { name: otherName })}>
       <header className="msg-thread-head">
-        <button type="button" className="msg-back" onClick={onBack} aria-label="Back to all conversations">
+        <button type="button" className="msg-back" onClick={onBack} aria-label={t("messages.backToAllConversations")}>
           <ArrowLeft size={18} />
         </button>
         <div>
           <strong>{otherName}</strong>
           <span>
-            {TOPIC_LABEL[topic.kind] || "About"}: {topic.title || "-"}
+            {tv(TOPIC_LABEL[topic.kind]) || t("messages.about")}: {topic.title || "-"}
           </span>
         </div>
         {link && (
@@ -89,19 +90,19 @@ function Thread({ conversation, me, onBack }) {
             className="aaf-btn aaf-btn-secondary aaf-btn-sm"
             onClick={() => navigate(link[0], link[1] ? { state: link[1] } : undefined)}
           >
-            View {TOPIC_LABEL[topic.kind].toLowerCase()}
+            {{ listing: t("messages.viewListing"), order: t("messages.viewOrder"), demand: t("messages.viewRequest") }[topic.kind]}
           </button>
         )}
       </header>
 
       <p className="msg-notice">
-        <ShieldCheck size={15} aria-hidden="true" /> {CHAT_NOTICE}
+        <ShieldCheck size={15} aria-hidden="true" /> {chatNotice()}
       </p>
 
       <div className="msg-scroll" aria-live="polite">
-        {messages === null && <p className="aaf-empty">Loading...</p>}
+        {messages === null && <p className="aaf-empty">{t("common.loading")}</p>}
         {messages && messages.length === 0 && (
-          <p className="aaf-empty">No messages yet. Ask about availability, quantity, delivery or collection.</p>
+          <p className="aaf-empty">{t("messages.noMessagesYetAskAboutAvailability")}</p>
         )}
         {(messages || []).map((m) => (
           <div key={m.id} className={`msg-bubble ${m.senderId === me.uid ? "mine" : ""}`}>
@@ -114,21 +115,21 @@ function Thread({ conversation, me, onBack }) {
 
       <form className="msg-compose" onSubmit={send}>
         <label htmlFor="msg-input" className="aaf-visually-hidden">
-          Message {otherName}
+          {t("messages.messageName", { name: otherName })}
         </label>
         <textarea
           id="msg-input"
           rows={2}
           value={text}
           maxLength={MAX_MESSAGE}
-          placeholder={`Message ${otherName}...`}
+          placeholder={t("messages.messageNameEllipsis", { name: otherName })}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) send(e);
           }}
         />
         <button className="aaf-btn aaf-btn-primary" type="submit" disabled={sending || !text.trim()}>
-          <Send size={15} aria-hidden="true" /> Send
+          <Send size={15} aria-hidden="true" /> {t("common.send")}
         </button>
       </form>
     </section>
@@ -154,32 +155,31 @@ export default function Messages() {
     [conversations, conversationId]
   );
 
-  const me = { uid, name: user?.displayName || user?.email || "Member" };
+  const me = { uid, name: user?.displayName || user?.email || t("common.member") };
 
   return (
     <AppShell
-      eyebrow="Account"
-      title="Messages"
-      subtitle="Private conversations with the buyers and sellers you deal with. Everything stays on AfriAgriFed."
+      eyebrow={t("messages.account")}
+      title={t("messages.messages")}
+      subtitle={t("messages.privateConversationsWithTheBuyersAnd")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
       theme={theme}
     >
       <div className={`msg-layout ${open ? "has-open" : ""}`}>
-        <section className="msg-list aaf-card" aria-label="Conversations">
-          {loadError && <p className="aaf-empty">Could not load your messages: {loadError}</p>}
-          {!loadError && conversations === null && <p className="aaf-empty">Loading...</p>}
+        <section className="msg-list aaf-card" aria-label={t("messages.conversations")}>
+          {loadError && <p className="aaf-empty">{t("messages.couldNotLoadYours", { error: loadError })}</p>}
+          {!loadError && conversations === null && <p className="aaf-empty">{t("common.loading")}</p>}
           {conversations && conversations.length === 0 && (
             <p className="aaf-empty">
-              No conversations yet. Use "Message seller" on a listing, "Message" on an order, or "Message buyer" on a bulk
-              request to start one.
+              {t("messages.noConversationsYetUseMessageSeller")}
             </p>
           )}
           <ul>
             {(conversations || []).map((c) => {
               const unread = isUnread(c, uid);
-              const name = c.names?.[otherParticipant(c, uid)] || "Member";
+              const name = c.names?.[otherParticipant(c, uid)] || t("common.member");
               return (
                 <li key={c.id}>
                   <button
@@ -193,11 +193,11 @@ export default function Messages() {
                       <time>{formatRelativeTime(toMillis(c.lastMessageAt || c.createdAt))}</time>
                     </span>
                     <span className="msg-row-topic">
-                      {TOPIC_LABEL[c.topic?.kind] || "About"}: {c.topic?.title}
+                      {TOPIC_LABEL[c.topic?.kind] || t("messages.about")}: {c.topic?.title}
                     </span>
                     <span className="msg-row-last">
-                      {unread && <span className="msg-dot" aria-label="Unread" />}
-                      {c.lastMessage ? maskContactInfo(c.lastMessage) : "No messages yet"}
+                      {unread && <span className="msg-dot" aria-label={t("messages.unread")} />}
+                      {c.lastMessage ? maskContactInfo(c.lastMessage) : t("messages.noMessagesYet")}
                     </span>
                   </button>
                 </li>
@@ -211,7 +211,7 @@ export default function Messages() {
         ) : (
           <section className="msg-thread msg-placeholder aaf-card">
             <p className="aaf-empty">
-              {conversationId && conversations ? "This conversation could not be found." : "Choose a conversation to read it."}
+              {conversationId && conversations ? t("messages.thisConversationCouldNotBeFound") : t("messages.chooseConversationToReadIt")}
             </p>
           </section>
         )}

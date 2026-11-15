@@ -15,19 +15,20 @@ import NotificationBell from "./NotificationBell";
 import Avatar from "./Avatar";
 import {
   BIO_MAX, COVERS, NAMIBIA_REGIONS, ROLE_LABELS, avatarDataUrl, coverFor, ensurePublicProfile, isUsernameFree,
-  normalizeUsername, profileTextProblem, publicRole, savePublicProfile, starterCard, usernameProblem,
+  normalizeUsername, formatMemberSince, profileTextProblem, publicRole, savePublicProfile, starterCard, usernameProblem,
 } from "./publicProfile";
 import seedMark from "./images/seed-mark.png";
 import "./Profile.css";
+import { t, tv, joinAnd } from "./i18n";
 
 function formatLabel(key) {
   return key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
 }
 
 function formatValue(value) {
-  if (value === null || value === undefined || value === "") return "Not provided";
+  if (value === null || value === undefined || value === "") return t("profile.notProvided");
   if (typeof value?.toDate === "function") return value.toDate().toLocaleString();
-  if (Array.isArray(value)) return value.length ? value.join(", ") : "Not provided";
+  if (Array.isArray(value)) return value.length ? value.join(", ") : t("profile.notProvided");
   if (typeof value === "object") return null;
   return String(value);
 }
@@ -35,7 +36,7 @@ function formatValue(value) {
 function InfoGrid({ data }) {
   if (!data || typeof data !== "object") return null;
   const entries = Object.entries(data);
-  if (!entries.length) return <p className="profile-empty">Nothing on file yet.</p>;
+  if (!entries.length) return <p className="profile-empty">{t("profile.nothingOnFileYet")}</p>;
 
   return (
     <div className="profile-fields">
@@ -78,7 +79,7 @@ function StatusRow({ label, value }) {
     <div className="profile-status-row">
       <span>{label}</span>
       <strong className={`profile-status ${tone}`}>
-        {tone === "good" ? <BadgeCheck size={14} /> : <Clock size={14} />} {text}
+        {tone === "good" ? <BadgeCheck size={14} /> : <Clock size={14} />} {tv(text)}
       </strong>
     </div>
   );
@@ -139,11 +140,11 @@ export default function Profile() {
       setNameCheck({ state: "bad", message: problem });
       return undefined;
     }
-    setNameCheck({ state: "checking", message: "Checking..." });
+    setNameCheck({ state: "checking", message: t("profile.checking") });
     let live = true;
     const timer = setTimeout(() => {
       isUsernameFree(name, auth.currentUser?.uid)
-        .then((free) => live && setNameCheck(free ? { state: "good", message: `@${name} is free` } : { state: "bad", message: `@${name} is taken` }))
+        .then((free) => live && setNameCheck(free ? { state: "good", message: t("profile.nameFree", { name: `@${name}` }) } : { state: "bad", message: t("profile.nameTaken", { name: `@${name}` }) }))
         .catch(() => live && setNameCheck({ state: "idle", message: "" }));
     }, 400);
     return () => {
@@ -193,8 +194,8 @@ export default function Profile() {
     setSaving(true);
     try {
       if (username && username !== (card?.username || "") && !(await isUsernameFree(username, user.uid))) {
-        setNameCheck({ state: "bad", message: `@${username} is taken` });
-        toast.error(`@${username} was just taken. Please pick another.`);
+        setNameCheck({ state: "bad", message: t("profile.nameTaken", { name: `@${username}` }) });
+        toast.error(t("profile.justTaken", { name: `@${username}` }));
         return;
       }
       const personalInfo = {
@@ -215,9 +216,9 @@ export default function Profile() {
       setAccount((prev) => ({ ...prev, personalInfo }));
       setCard({ uid: user.uid, ...saved });
       cancelEdit();
-      toast.success("Profile saved.");
+      toast.success(t("profile.profileSaved"));
     } catch (error) {
-      toast.error(error.code === "permission-denied" ? "That couldn't be saved. Check the username and bio, then try again." : error.message);
+      toast.error(error.code === "permission-denied" ? t("profile.thatCouldnBeSavedCheckThe") : error.message);
     } finally {
       setSaving(false);
     }
@@ -241,9 +242,9 @@ export default function Profile() {
       if (account?.id) await updateDoc(doc(db, "users", user.uid), { profilePicture: { url: photoURL } }).catch(() => {});
       if (photoURL.startsWith("https://")) await updateProfile(user, { photoURL }).catch(() => {});
       setCard({ uid: user.uid, ...saved });
-      toast.success("Profile picture updated.");
+      toast.success(t("profile.profilePictureUpdated"));
     } catch (error) {
-      toast.error(error.message || "That photo couldn't be saved.");
+      toast.error(error.message || t("profile.thatPhotoCouldnBeSaved"));
     } finally {
       setUploading(false);
     }
@@ -253,7 +254,7 @@ export default function Profile() {
     try {
       const saved = await savePublicProfile(user.uid, { ...base(), role, photoURL: "" }, card?.username || "");
       setCard({ uid: user.uid, ...saved });
-      toast.success("Profile picture removed.");
+      toast.success(t("profile.profilePictureRemoved"));
     } catch (error) {
       toast.error(error.message);
     }
@@ -261,12 +262,12 @@ export default function Profile() {
 
   const sendReset = async () => {
     if (!user?.email) return;
-    setResetStatus("Sending...");
+    setResetStatus(t("profile.sending"));
     try {
       await sendPasswordResetEmail(auth, user.email);
-      setResetStatus(`Reset link sent to ${user.email}.`);
+      setResetStatus(t("profile.resetSent", { email: user.email }));
     } catch (error) {
-      setResetStatus(error.message || "Could not send reset email.");
+      setResetStatus(error.message || t("profile.couldNotSendResetEmail"));
     }
   };
 
@@ -279,7 +280,7 @@ export default function Profile() {
     return (
       <div className="profile-loading">
         <img src={seedMark} alt="AfriAgriFed" />
-        <p>Loading profile...</p>
+        <p>{t("profile.loadingProfile")}</p>
       </div>
     );
   }
@@ -290,19 +291,19 @@ export default function Profile() {
 
   // What's still missing, so the member knows how to finish their profile.
   const todo = [
-    !card?.photoURL && "a photo",
-    !card?.username && "a username",
-    !card?.bio && "a short bio",
-    !card?.region && "your region",
+    !card?.photoURL && t("profile.addPhoto"),
+    !card?.username && t("profile.addUsername"),
+    !card?.bio && t("profile.addBio"),
+    !card?.region && t("profile.addRegion"),
   ].filter(Boolean);
   const complete = Math.round(((4 - todo.length) / 4) * 100);
   const cover = editing && form ? coverFor({ role, cover: form.cover }) : coverFor(card || { role });
 
   return (
     <AppShell
-      eyebrow="Account"
-      title="My Profile"
-      subtitle="How other members see you, and your account details."
+      eyebrow={t("profile.account")}
+      title={t("profile.myProfile")}
+      subtitle={t("profile.howOtherMembersSeeYouAnd")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
@@ -319,8 +320,8 @@ export default function Profile() {
               className="profile-photo-btn"
               onClick={() => fileInput.current?.click()}
               disabled={uploading}
-              aria-label="Change profile picture"
-              title="Change profile picture"
+              aria-label={t("profile.changeProfilePicture")}
+              title={t("profile.changeProfilePicture")}
             >
               {uploading ? <span className="profile-spinner" /> : <Camera size={16} />}
             </button>
@@ -330,12 +331,12 @@ export default function Profile() {
           <div className="profile-identity">
             <h2>{name}</h2>
             <p className="profile-handle">
-              {card?.username ? `@${card.username}` : <button type="button" className="profile-link" onClick={startEdit}>Choose a username</button>}
+              {card?.username ? `@${card.username}` : <button type="button" className="profile-link" onClick={startEdit}>{t("profile.chooseUsername")}</button>}
             </p>
             <div className="profile-meta">
-              <span className="profile-role">{ROLE_LABELS[role] || "Member"}</span>
+              <span className="profile-role">{tv(ROLE_LABELS[role]) || t("profile.member")}</span>
               {card?.region && <span><MapPin size={14} /> {card.region}</span>}
-              {card?.memberSince && <span><CalendarDays size={14} /> Member since {card.memberSince}</span>}
+              {card?.memberSince && <span><CalendarDays size={14} /> {t("profile.memberSince", { date: formatMemberSince(card.memberSince) })}</span>}
             </div>
             {card?.bio && <p className="profile-bio">{card.bio}</p>}
           </div>
@@ -343,11 +344,11 @@ export default function Profile() {
           {!editing && (
             <div className="profile-hero-actions">
               <button type="button" className="aaf-btn aaf-btn-primary" onClick={startEdit}>
-                <Pencil size={14} /> Edit profile
+                <Pencil size={14} /> {t("profile.editProfile")}
               </button>
               {card?.photoURL && (
                 <button type="button" className="aaf-btn aaf-btn-ghost" onClick={removePhoto}>
-                  Remove photo
+                  {t("profile.removePhoto")}
                 </button>
               )}
             </div>
@@ -357,84 +358,81 @@ export default function Profile() {
         {todo.length > 0 && !editing && (
           <div className="profile-progress">
             <div className="profile-progress-bar"><span style={{ width: `${complete}%` }} /></div>
-            <p>
-              Your profile is {complete}% complete. Add {todo.join(", ").replace(/, ([^,]*)$/, " and $1")} so buyers and
-              sellers know who they're dealing with.
-            </p>
+            <p>{t("profile.completeness", { percent: complete, list: joinAnd(todo) })}</p>
           </div>
         )}
       </section>
 
       {editing && form && (
         <section className="aaf-card profile-editor">
-          <h3>Edit profile</h3>
+          <h3>{t("profile.editProfile")}</h3>
           <div className="profile-edit-grid">
             <label>
-              First name
+              {t("profile.firstName")}
               <input value={form.firstName} onChange={set("firstName")} maxLength={40} />
             </label>
             <label>
-              Last name
+              {t("profile.lastName")}
               <input value={form.lastName} onChange={set("lastName")} maxLength={40} />
             </label>
             <label className="wide">
-              Name shown to members
-              <input value={form.displayName} onChange={set("displayName")} maxLength={60} placeholder="Your name, farm or business" />
-              <small>Leave empty to use your first and last name.</small>
+              {t("profile.nameShownToMembers")}
+              <input value={form.displayName} onChange={set("displayName")} maxLength={60} placeholder={t("profile.yourNameFarmOrBusiness")} />
+              <small>{t("profile.leaveEmptyToUseYourFirst")}</small>
             </label>
             <label>
-              Username
+              {t("profile.username")}
               <span className={`profile-at-field ${nameCheck.state}`}>
                 <AtSign size={15} />
                 <input
                   value={form.username}
                   onChange={(e) => setForm((prev) => ({ ...prev, username: normalizeUsername(e.target.value) }))}
                   maxLength={20}
-                  placeholder="e.g. ndapewa_farms"
+                  placeholder={t("profile.egNdapewaFarms")}
                   autoComplete="off"
                   spellCheck={false}
                 />
               </span>
               <small className={`profile-name-check ${nameCheck.state}`} aria-live="polite">
-                {nameCheck.message || "Letters, numbers and underscores. Others can find you by it."}
+                {nameCheck.message || t("profile.lettersNumbersAndUnderscoresOthersCan")}
               </small>
             </label>
             <label>
-              Region
+              {t("profile.region")}
               <select value={form.region} onChange={set("region")}>
-                <option value="">Choose your region</option>
+                <option value="">{t("profile.chooseYourRegion")}</option>
                 {NAMIBIA_REGIONS.map((r) => (
                   <option key={r} value={r}>{r}</option>
                 ))}
               </select>
             </label>
             <label className="wide">
-              Bio
+              {t("profile.bio")}
               <textarea
                 value={form.bio}
                 onChange={set("bio")}
                 maxLength={BIO_MAX}
                 rows={3}
-                placeholder="What you farm, buy or research. No phone numbers or e-mails: members reach you through Messages."
+                placeholder={t("profile.whatYouFarmBuyOrResearch")}
               />
               <small>{form.bio.length}/{BIO_MAX}</small>
             </label>
             <label>
-              Nationality
+              {t("profile.nationality")}
               <input value={form.nationality} onChange={set("nationality")} maxLength={40} />
             </label>
             <label>
-              Gender
+              {t("profile.gender")}
               <select value={form.gender} onChange={set("gender")}>
-                <option value="">Prefer not to say</option>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
+                <option value="">{t("profile.preferNotToSay")}</option>
+                <option value="male">{t("profile.male")}</option>
+                <option value="female">{t("profile.female")}</option>
+                <option value="other">{t("profile.other")}</option>
               </select>
             </label>
 
             <fieldset className="wide profile-covers">
-              <legend>Cover photo</legend>
+              <legend>{t("profile.coverPhoto")}</legend>
               <div>
                 {COVERS.map((c) => (
                   <button
@@ -445,7 +443,7 @@ export default function Profile() {
                     onClick={() => setForm((prev) => ({ ...prev, cover: c.id }))}
                     aria-pressed={coverFor({ role, cover: form.cover }) === c.image}
                   >
-                    <span>{c.label}</span>
+                    <span>{tv(c.label)}</span>
                   </button>
                 ))}
               </div>
@@ -454,25 +452,25 @@ export default function Profile() {
 
           <div className="profile-edit-actions">
             <button type="button" className="aaf-btn aaf-btn-primary" onClick={save} disabled={saving}>
-              <Check size={14} /> {saving ? "Saving..." : "Save profile"}
+              <Check size={14} /> {saving ? t("profile.saving") : t("profile.saveProfile")}
             </button>
             <button type="button" className="aaf-btn aaf-btn-ghost" onClick={cancelEdit} disabled={saving}>
-              <X size={14} /> Cancel
+              <X size={14} /> {t("common.cancel")}
             </button>
           </div>
         </section>
       )}
 
       <div className="profile-tabs" role="tablist">
-        {TABS.map((t) => (
+        {TABS.map((item) => (
           <button
-            key={t.key}
+            key={item.key}
             role="tab"
-            aria-selected={tab === t.key}
-            className={`profile-tab ${tab === t.key ? "active" : ""}`}
-            onClick={() => setTab(t.key)}
+            aria-selected={tab === item.key}
+            className={`profile-tab ${tab === item.key ? "active" : ""}`}
+            onClick={() => setTab(item.key)}
           >
-            {t.icon} {t.label}
+            {item.icon} {tv(item.label)}
           </button>
         ))}
       </div>
@@ -480,26 +478,26 @@ export default function Profile() {
       {tab === "about" && (
         <div className="profile-panels">
           <section className="aaf-card profile-section">
-            <h3>Personal details</h3>
-            <p className="profile-private-note"><Lock size={13} /> Only you and the AfriAgriFed team see this.</p>
+            <h3>{t("profile.personalDetails")}</h3>
+            <p className="profile-private-note"><Lock size={13} /> {t("profile.onlyYouAndTheAfriagrifedTeam")}</p>
             <div className="profile-fields">
-              <div className="profile-field"><span>Name</span><strong>{[info.firstName, info.lastName].filter(Boolean).join(" ") || "Not provided"}</strong></div>
-              <div className="profile-field"><span>E-mail</span><strong>{user?.email}</strong></div>
-              <div className="profile-field"><span>Nationality</span><strong>{info.nationality || "Not provided"}</strong></div>
-              <div className="profile-field"><span>Gender</span><strong>{info.gender ? formatLabel(info.gender) : "Not provided"}</strong></div>
+              <div className="profile-field"><span>{t("profile.name")}</span><strong>{[info.firstName, info.lastName].filter(Boolean).join(" ") || t("profile.notProvided")}</strong></div>
+              <div className="profile-field"><span>{t("profile.mail")}</span><strong>{user?.email}</strong></div>
+              <div className="profile-field"><span>{t("profile.nationality")}</span><strong>{info.nationality || t("profile.notProvided")}</strong></div>
+              <div className="profile-field"><span>{t("profile.gender")}</span><strong>{info.gender ? formatLabel(info.gender) : t("profile.notProvided")}</strong></div>
             </div>
           </section>
 
           <section className="aaf-card profile-section">
-            <h3>Account status</h3>
-            <StatusRow label="Registration" value={isAdmin ? "verified" : account?.accountStatus?.registrationStatus || account?.status} />
-            <StatusRow label="Documents" value={isAdmin ? "not_required" : account?.accountStatus?.documentStatus} />
-            <StatusRow label="E-mail" value={user?.emailVerified ? "verified" : "pending"} />
+            <h3>{t("profile.accountStatus")}</h3>
+            <StatusRow label={t("profile.registration")} value={isAdmin ? "verified" : account?.accountStatus?.registrationStatus || account?.status} />
+            <StatusRow label={t("profile.documents")} value={isAdmin ? "not_required" : account?.accountStatus?.documentStatus} />
+            <StatusRow label={t("profile.eMail")} value={user?.emailVerified ? "verified" : "pending"} />
           </section>
 
           {account?.questionnaireData && Object.keys(account.questionnaireData).length > 0 && (
             <section className="aaf-card profile-section">
-              <h3>Sign-up details</h3>
+              <h3>{t("profile.signUpDetails")}</h3>
               <InfoGrid data={account.questionnaireData} />
             </section>
           )}
@@ -508,7 +506,7 @@ export default function Profile() {
 
       {tab === "documents" && (
         <section className="aaf-card profile-section">
-          <h3>Documents</h3>
+          <h3>{t("profile.documents")}</h3>
           {account?.documents && Object.values(account.documents).some((d) => d?.url) ? (
             <div className="profile-documents-grid">
               {Object.entries(account.documents).map(([docName, file]) =>
@@ -517,28 +515,28 @@ export default function Profile() {
                     <span><Paperclip size={18} /></span>
                     <div>
                       <strong>{formatLabel(docName)}</strong>
-                      <p>{file.fileName || "View file"}</p>
+                      <p>{file.fileName || t("profile.viewFile")}</p>
                     </div>
                   </a>
                 ) : null
               )}
             </div>
           ) : (
-            <p className="profile-empty">No documents on file.</p>
+            <p className="profile-empty">{t("profile.noDocumentsOnFile")}</p>
           )}
         </section>
       )}
 
       {tab === "security" && (
         <section className="aaf-card profile-section">
-          <h3>Security</h3>
+          <h3>{t("profile.security")}</h3>
           <div className="profile-field">
-            <span>E-mail</span>
+            <span>{t("profile.mail")}</span>
             <strong>{user?.email}</strong>
           </div>
-          <p className="profile-security-text">Send yourself a link to choose a new password.</p>
+          <p className="profile-security-text">{t("profile.sendYourselfLinkToChooseNew")}</p>
           <button type="button" className="aaf-btn aaf-btn-primary" onClick={sendReset}>
-            Send password reset e-mail
+            {t("profile.sendPasswordResetMail")}
           </button>
           {resetStatus && <p className="profile-reset-status">{resetStatus}</p>}
         </section>

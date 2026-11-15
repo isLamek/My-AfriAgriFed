@@ -17,6 +17,7 @@ import { RATE_PER_WORKING_DAY, countWorkingDays } from "./promoPricing";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import InsightsFrame from "./InsightsFrame";
+import { t, tIn } from "./i18n";
 
 const emptyPromo = { productName: "", description: "", startDate: "", endDate: "" };
 
@@ -75,24 +76,24 @@ export default function Promotions() {
     event.preventDefault();
 
     if (!formData.productName.trim()) {
-      toast.error("Please add a product name.");
+      toast.error(t("promotions.pleaseAddProductName"));
       return;
     }
 
     if (!formData.startDate || !formData.endDate) {
-      toast.error("Pick a start and end date.");
+      toast.error(t("promotions.pickStartAndEndDate"));
       return;
     }
     if (formData.startDate < todayIso()) {
-      toast.error("The start date can't be in the past.");
+      toast.error(t("promotions.theStartDateCanBeIn"));
       return;
     }
     if (formData.endDate < formData.startDate) {
-      toast.error("The end date must be on or after the start date.");
+      toast.error(t("promotions.theEndDateMustBeOn"));
       return;
     }
     if (workingDays === 0) {
-      toast.error("Those dates fall on a weekend. Pick at least one working day.");
+      toast.error(t("promotions.thoseDatesFallOnWeekendPick"));
       return;
     }
 
@@ -120,15 +121,15 @@ export default function Promotions() {
 
       logTelemetryEvent(TELEMETRY_EVENTS.PROMOTION_CREATED, { productName: formData.productName, cost });
 
-      toast("Redirecting to payment to activate your promotion...");
+      toast(t("promotions.redirectingToPaymentToActivateYour"));
       // The server works the price out from the saved dates; `cost` above is only a preview.
       await startPromotionCheckout({
         promotionId: docRef.id,
-        description: `Promotion: ${formData.productName} (${workingDays} working day${workingDays > 1 ? "s" : ""})`,
+        description: tIn("en", "promotions.paymentDescription", { product: formData.productName, count: workingDays }),
       });
     } catch (error) {
       console.error(error);
-      toast.error("Could not create promotion: " + error.message);
+      toast.error(t("promotions.couldNotCreate", { error: error.message }));
     } finally {
       setPosting(false);
     }
@@ -142,14 +143,14 @@ export default function Promotions() {
 
   return (
     <InsightsFrame
-      eyebrow="Visible to producers, consumers & institutions"
-      title="Promotions"
-      subtitle="Farmers spotlight products here to reach preferential customers."
+      eyebrow={t("promotions.visibleToProducersConsumersInstitutions")}
+      title={t("promotions.promotions")}
+      subtitle={t("promotions.farmersSpotlightProductsHereToReach")}
       activePath="/promotions"
     >
-      <div className="promo-ticker" aria-label="Active promotions">
+      <div className="promo-ticker" aria-label={t("promotions.activePromotions")}>
         {activePromotions.length === 0 ? (
-          <p className="insight-empty" style={{ padding: "0 1rem" }}>No active promotions right now.</p>
+          <p className="insight-empty" style={{ padding: "0 1rem" }}>{t("promotions.noActivePromotionsRightNow")}</p>
         ) : (
           <div className="promo-ticker-track">
             {[...activePromotions, ...activePromotions].map((promo, index) => (
@@ -167,40 +168,40 @@ export default function Promotions() {
       <div className="promo-layout">
         {canPost && (
           <section className="aaf-card">
-            <h2 style={{ margin: "0 0 4px", fontSize: "1.05rem" }}>Promote a product</h2>
+            <h2 style={{ margin: "0 0 4px", fontSize: "1.05rem" }}>{t("promotions.promoteProduct")}</h2>
             <p className="insight-foot" style={{ margin: "0 0 12px" }}>
-              N${RATE_PER_WORKING_DAY} per working day (weekends excluded).
+              {t("promotions.ratePerDay", { rate: RATE_PER_WORKING_DAY })}
             </p>
             <form className="promo-form" onSubmit={postPromotion}>
               <label>
-                Product name
+                {t("promotions.productName")}
                 <input name="productName" value={formData.productName} onChange={handleChange} maxLength={80} />
               </label>
               <label>
-                Description
+                {t("promotions.description")}
                 <textarea name="description" value={formData.description} onChange={handleChange} rows="3" maxLength={400} />
               </label>
               <div className="promo-form-row">
                 <label>
-                  Start date
+                  {t("promotions.startDate")}
                   <input type="date" name="startDate" min={todayIso()} value={formData.startDate} onChange={handleChange} />
                 </label>
                 <label>
-                  End date
+                  {t("promotions.endDate")}
                   <input type="date" name="endDate" min={formData.startDate || todayIso()} value={formData.endDate} onChange={handleChange} />
                 </label>
               </div>
               <label>
-                Photo (optional)
+                {t("promotions.photoOptional")}
                 <input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0])} />
               </label>
               {workingDays > 0 && (
                 <p className="promo-cost">
-                  {workingDays} working day{workingDays > 1 ? "s" : ""} · N${cost} total
+                  {t("promotions.costSummary", { count: workingDays, cost })}
                 </p>
               )}
               <button className="aaf-btn aaf-btn-primary" disabled={posting}>
-                {posting ? "Posting..." : `Pay N$${cost || 0} & post promotion`}
+                {posting ? t("promotions.posting") : t("promotions.payAndPost", { cost: cost || 0 })}
               </button>
             </form>
           </section>
@@ -208,7 +209,7 @@ export default function Promotions() {
 
         <section className="promo-list">
           {visiblePromotions.length === 0 ? (
-            <p className="insight-empty">No promotions yet.</p>
+            <p className="insight-empty">{t("promotions.noPromotionsYet")}</p>
           ) : (
             visiblePromotions.map((promo) => (
               <article className="aaf-card promo-card" key={promo.id}>
@@ -217,10 +218,10 @@ export default function Promotions() {
                   <h3>{promo.productName}</h3>
                   {promo.description && <p>{promo.description}</p>}
                   <p className="promo-meta">
-                    {promo.startDate || "-"} to {promo.endDate || "-"} ·{" "}
-                    {promo.status === "pending_payment" ? "Awaiting payment" : isActive(promo) ? "Active" : "Expired"}
+                    {t("promotions.dateRange", { start: promo.startDate || "-", end: promo.endDate || "-" })} ·{" "}
+                    {promo.status === "pending_payment" ? t("promotions.awaitingPayment") : isActive(promo) ? t("promotions.active") : t("promotions.expired")}
                   </p>
-                  <p className="promo-meta">By {promo.farmerName}</p>
+                  <p className="promo-meta">{t("promotions.by", { name: promo.farmerName })}</p>
                 </div>
               </article>
             ))

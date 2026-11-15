@@ -17,6 +17,7 @@ import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import InsightsFrame from "./InsightsFrame";
 import "./Internships.css";
+import { t } from "./i18n";
 
 const emptyForm = { title: "", description: "", location: "", slots: 1 };
 
@@ -59,7 +60,7 @@ export default function Internships() {
     event.preventDefault();
 
     if (!formData.title.trim()) {
-      toast.error("Please add a title.");
+      toast.error(t("internships.pleaseAddTitle"));
       return;
     }
 
@@ -83,7 +84,7 @@ export default function Internships() {
       setFormData(emptyForm);
     } catch (error) {
       console.error(error);
-      toast.error("Could not post internship: " + error.message);
+      toast.error(t("internships.couldNotPost", { error: error.message }));
     } finally {
       setPosting(false);
     }
@@ -101,8 +102,8 @@ export default function Internships() {
     });
 
     await notifyUser(item.postedById, {
-      title: "Internship request approved",
-      body: `${user?.email || "A farmer"} approved your request: ${item.title}`,
+      key: "notif.internship.approved",
+      params: { name: user?.displayName || t("internships.aFarmer"), item: item.title },
       link: "/internships",
     });
 
@@ -121,8 +122,8 @@ export default function Internships() {
     });
 
     await notifyUser(item.postedById, {
-      title: "Internship offer claimed",
-      body: `${user?.email || "An institution"} wants to fill: ${item.title}. Please approve.`,
+      key: "notif.internship.claimed",
+      params: { name: user?.displayName || t("internships.anInstitution"), item: item.title },
       link: "/internships",
     });
 
@@ -140,8 +141,8 @@ export default function Internships() {
     });
 
     await notifyUser(item.claimedById, {
-      title: "Internship placement approved",
-      body: `Your placement request for "${item.title}" was approved.`,
+      key: "notif.internship.placement",
+      params: { item: item.title },
       link: "/internships",
     });
 
@@ -157,30 +158,30 @@ export default function Internships() {
     const uid = auth.currentUser?.uid;
     const isOwner = item.postedById === uid;
 
-    if (item.status === "closed") return <span className="status-pill closed">Closed</span>;
+    if (item.status === "closed") return <span className="status-pill closed">{t("internships.closed")}</span>;
 
     if (item.status === "open") {
       if (item.type === "request" && userType === "farmer") {
-        return <button onClick={() => approveRequestAsFarmer(item)}>Offer &amp; Approve</button>;
+        return <button onClick={() => approveRequestAsFarmer(item)}>{t("internships.offerApprove")}</button>;
       }
       if (item.type === "offer" && userType === "institution") {
-        return <button onClick={() => claimOfferAsInstitution(item)}>Request Placement</button>;
+        return <button onClick={() => claimOfferAsInstitution(item)}>{t("internships.requestPlacement")}</button>;
       }
       if (isOwner) {
-        return <button className="ghost-btn" onClick={() => closeListing(item)}>Close</button>;
+        return <button className="ghost-btn" onClick={() => closeListing(item)}>{t("common.close")}</button>;
       }
-      return <span className="status-pill open">Open</span>;
+      return <span className="status-pill open">{t("internships.open")}</span>;
     }
 
     if (item.status === "claimed") {
       if (isOwner && userType === "farmer") {
-        return <button onClick={() => approveClaimAsFarmer(item)}>Approve {item.claimedByName}</button>;
+        return <button onClick={() => approveClaimAsFarmer(item)}>{t("internships.approveName", { name: item.claimedByName })}</button>;
       }
-      return <span className="status-pill pending">Pending farmer approval</span>;
+      return <span className="status-pill pending">{t("internships.pendingFarmerApproval")}</span>;
     }
 
     if (item.status === "approved") {
-      return <span className="status-pill approved">Approved</span>;
+      return <span className="status-pill approved">{t("internships.approved")}</span>;
     }
 
     return null;
@@ -188,36 +189,36 @@ export default function Internships() {
 
   return (
     <InsightsFrame
-      eyebrow="Producers &amp; institutions"
-      title="Internships"
-      subtitle="Farmers offer placements, institutions request them. Farmers give the final approval."
+      eyebrow={t("internships.producersInstitutions")}
+      title={t("internships.internships")}
+      subtitle={t("internships.farmersOfferPlacementsInstitutionsRequestThe")}
       activePath="/internships"
     >
       <main className="internships-layout">
         {canPost && (
           <section className="internships-form-card">
-            <h2>{postType === "offer" ? "Offer an Internship" : "Request an Internship"}</h2>
+            <h2>{postType === "offer" ? t("internships.offerAnInternship") : t("internships.requestAnInternship")}</h2>
             <form onSubmit={postInternship}>
               <label>
-                Title
+                {t("internships.title")}
                 <input name="title" value={formData.title} onChange={handleChange} />
               </label>
               <label>
-                Description
+                {t("internships.description")}
                 <textarea name="description" value={formData.description} onChange={handleChange} rows="4" />
               </label>
               <div className="form-row">
                 <label>
-                  Location
+                  {t("internships.location")}
                   <input name="location" value={formData.location} onChange={handleChange} />
                 </label>
                 <label>
-                  Slots
+                  {t("internships.slots")}
                   <input type="number" min="1" name="slots" value={formData.slots} onChange={handleChange} />
                 </label>
               </div>
               <button className="publish-btn" disabled={posting}>
-                {posting ? "Posting..." : postType === "offer" ? "Post Offer" : "Post Request"}
+                {posting ? t("internships.posting") : postType === "offer" ? t("internships.postOffer") : t("internships.postRequest")}
               </button>
             </form>
           </section>
@@ -225,13 +226,13 @@ export default function Internships() {
 
         <section className="internships-list">
           {internships.length === 0 ? (
-            <p className="empty-state">No internship listings yet.</p>
+            <p className="empty-state">{t("internships.noInternshipListingsYet")}</p>
           ) : (
             internships.map((item) => (
               <article className="internship-card" key={item.id}>
                 <div className="internship-meta">
-                  <span className={`type-pill ${item.type}`}>{item.type === "offer" ? "Farmer Offer" : "Institution Request"}</span>
-                  <span>{item.slots} slot(s)</span>
+                  <span className={`type-pill ${item.type}`}>{item.type === "offer" ? t("internships.farmerOffer") : t("internships.institutionRequest")}</span>
+                  <span>{t("internships.slots", { count: item.slots })}</span>
                 </div>
                 <h3>{item.title}</h3>
                 <p>{item.description}</p>
@@ -240,7 +241,7 @@ export default function Internships() {
                     <MapPin size={14} /> {item.location}
                   </p>
                 )}
-                <p className="internship-host">Posted by {item.postedByName}</p>
+                <p className="internship-host">{t("internships.postedBy", { name: item.postedByName })}</p>
                 <div className="internship-actions">{renderActions(item)}</div>
               </article>
             ))

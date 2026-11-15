@@ -70,6 +70,7 @@ export function scoreCrops({ seasonRainMm, seasonTempC }) {
 }
 
 export function suitabilityLabel(score) {
+  // English words kept as data; screens show them through tv()
   if (score == null) return "No data";
   if (score >= 80) return "Well suited";
   if (score >= 55) return "Suitable";

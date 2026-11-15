@@ -16,6 +16,7 @@ import cattleImg from "./images/dash-cattle.jpg";
 import namibiaImg from "./images/dash-namibia.jpg";
 import marketImg from "./images/dash-market.jpg";
 import grainsImg from "./images/dash-grains.jpg";
+import { t, formatDate } from "./i18n";
 
 export const USERNAME_PATTERN = /^[a-z0-9_]{3,20}$/;
 const RESERVED = new Set(["admin", "admins", "afriagrifed", "afriagrfed", "support", "help", "system", "moderator", "staff", "official"]);
@@ -53,21 +54,21 @@ export const normalizeUsername = (value) => String(value || "").trim().replace(/
 export function usernameProblem(value) {
   const name = normalizeUsername(value);
   if (!name) return null; // a username is optional
-  if (!USERNAME_PATTERN.test(name)) return "Use 3 to 20 letters, numbers or underscores (no spaces).";
-  if (RESERVED.has(name)) return "That username is reserved. Please pick another.";
-  if (/^[0-9_]+$/.test(name)) return "Include at least one letter.";
+  if (!USERNAME_PATTERN.test(name)) return t("profile.usernameFormat");
+  if (RESERVED.has(name)) return t("profile.usernameReserved");
+  if (/^[0-9_]+$/.test(name)) return t("profile.usernameNeedsLetter");
   return null;
 }
 
 /** null when fine, otherwise a sentence to show the member. */
 export function profileTextProblem({ displayName, bio }) {
   const name = String(displayName || "").trim();
-  if (!name) return "Please enter your name.";
-  if (name.length > NAME_MAX) return `Keep your name under ${NAME_MAX} characters.`;
-  if (String(bio || "").length > BIO_MAX) return `Keep your bio under ${BIO_MAX} characters.`;
+  if (!name) return t("profile.nameRequired");
+  if (name.length > NAME_MAX) return t("profile.nameTooLong", { max: NAME_MAX });
+  if (String(bio || "").length > BIO_MAX) return t("profile.bioTooLong", { max: BIO_MAX });
   for (const text of [name, bio]) {
     const check = checkForContactInfo(text || "");
-    if (!check.ok) return "Phone numbers, e-mails and links can't go on your public profile. Members reach you through Messages.";
+    if (!check.ok) return t("profile.noContact");
   }
   return null;
 }
@@ -141,12 +142,18 @@ export async function savePublicProfile(uid, next, previousUsername = "") {
   return card;
 }
 
+// Saved as year-month ("2026-10") so each reader sees it in their own language;
+// cards saved earlier hold text like "Oct 2026", which is shown as it is.
 export const memberSinceLabel = (user) => {
   const created = user?.metadata?.creationTime ? new Date(user.metadata.creationTime) : null;
-  return created && !Number.isNaN(created.getTime())
-    ? created.toLocaleDateString("en-GB", { month: "short", year: "numeric" })
-    : "";
+  return created && !Number.isNaN(created.getTime()) ? created.toISOString().slice(0, 7) : "";
 };
+
+export function formatMemberSince(value) {
+  const m = /^(\d{4})-(\d{2})$/.exec(String(value || ""));
+  if (!m) return String(value || "");
+  return formatDate(new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, 1)), { month: "short", year: "numeric", timeZone: "UTC" });
+}
 
 /** A first card built from what the member gave at sign-up. */
 export function starterCard(user, account, isAdmin) {
@@ -199,7 +206,7 @@ export function ensurePublicProfile(user, getAdmin) {
 export function avatarDataUrl(file, size = 256, quality = 0.82) {
   return new Promise((resolve, reject) => {
     if (!file || !/^image\//.test(file.type)) {
-      reject(new Error("Please choose a photo (JPG or PNG)."));
+      reject(new Error(t("publicProfile.pleaseChoosePhotoJpgOrPng")));
       return;
     }
     const url = URL.createObjectURL(file);
@@ -217,7 +224,7 @@ export function avatarDataUrl(file, size = 256, quality = 0.82) {
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("That photo couldn't be read. Please try another."));
+      reject(new Error(t("publicProfile.thatPhotoCouldnBeReadPlease")));
     };
     img.src = url;
   });

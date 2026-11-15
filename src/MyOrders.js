@@ -10,6 +10,7 @@ import NotificationBell from "./NotificationBell";
 import { normaliseStatus, STATUS_LABELS } from "./orderStatus";
 import { quantityText } from "./purchase";
 import "./MyOrders.css";
+import { t, tv } from "./i18n";
 
 export default function MyOrders() {
   const navigate = useNavigate();
@@ -61,9 +62,9 @@ export default function MyOrders() {
 
   return (
     <AppShell
-      eyebrow="Purchase history"
-      title="My Orders"
-      subtitle="Everything you've bought through the AfriAgriFed marketplace."
+      eyebrow={t("orders.purchaseHistory")}
+      title={t("orders.myOrders")}
+      subtitle={t("orders.everythingYouVeBoughtThroughThe")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
@@ -72,37 +73,37 @@ export default function MyOrders() {
       <section className="aaf-card">
         {orders.length === 0 ? (
           <p className="dashboard-empty-state">
-            No orders yet. Purchases you make on the Marketplace will show up here.
+            {t("orders.noOrdersYetPurchasesYouMake")}
           </p>
         ) : (
           <table className="orders-table aaf-stack-table">
             <thead>
               <tr>
-                <th>Product</th>
-                <th>Amount</th>
-                <th>Status</th>
-                <th>Date</th>
-                <th>Reference</th>
+                <th>{t("orders.product")}</th>
+                <th>{t("orders.amount")}</th>
+                <th>{t("orders.status")}</th>
+                <th>{t("orders.date")}</th>
+                <th>{t("orders.reference")}</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
               {orders.map((order) => (
                 <tr key={order.id}>
-                  <td data-label="Product">
+                  <td data-label={t("orders.product")}>
                     {order.product}
                     {quantityText(order) && <span className="order-qty"> · {quantityText(order)}</span>}
                   </td>
-                  <td data-label="Amount">
+                  <td data-label={t("orders.amount")}>
                     {order.currency || "NAD"} {order.amount}
                   </td>
-                  <td data-label="Status">
-                    <span className={`order-status ${normaliseStatus(order.status)}`}>{STATUS_LABELS[normaliseStatus(order.status)]}</span>
+                  <td data-label={t("orders.status")}>
+                    <span className={`order-status ${normaliseStatus(order.status)}`}>{tv(STATUS_LABELS[normaliseStatus(order.status)])}</span>
                   </td>
-                  <td data-label="Date">{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : "—"}</td>
-                  <td data-label="Reference" className="order-ref">{order.transactionId}</td>
+                  <td data-label={t("orders.date")}>{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : "—"}</td>
+                  <td data-label={t("orders.reference")} className="order-ref">{order.transactionId}</td>
                   <td>
-                    <button className="order-track" onClick={() => navigate("/track-orders")}>Track</button>
+                    <button className="order-track" onClick={() => navigate("/track-orders")}>{t("orders.track")}</button>
                   </td>
                 </tr>
               ))}

@@ -122,10 +122,12 @@ function register(app, deps) {
     return { ok: res.ok, data };
   }
 
-  async function notify(userId, { title, body, link }) {
+  // title/body are the English text; key/params let the app show it in the reader's language
+  // (the key must exist in src/i18n/locales/en.js as <key>.title and <key>.body).
+  async function notify(userId, { key, params, title, body, link }) {
     if (!userId) return;
     try {
-      await store.add("notifications", { userId, title, body, link, read: false, createdAt: store.now() });
+      await store.add("notifications", { userId, title, body, ...(key ? { key, params: params || {} } : {}), link, read: false, createdAt: store.now() });
     } catch (error) {
       log.warn("[payments] could not notify:", error.message);
     }
@@ -301,6 +303,8 @@ function register(app, deps) {
       const what = `${quantity > 1 ? `${quantity} x ` : ""}${payment.product}`;
       if (created) {
         await notify(payment.sellerId, {
+          key: "notif.order.paid",
+          params: { what: String(what).slice(0, 120) },
           title: "New order",
           body: `${what} was just paid for. Confirm it to start fulfilment.`,
           link: "/track-orders",
@@ -313,6 +317,8 @@ function register(app, deps) {
       const stock = await store.reserveStock({ orderPath: `orders/${orderId}`, listingPath: `marketPrices/${payment.listingId}`, quantity });
       if (stock.applied && stock.oversold) {
         await notify(payment.sellerId, {
+          key: "notif.order.oversold",
+          params: { qty: String(stock.available), what: String(what).slice(0, 120) },
           title: "Order needs your attention",
           body: `Only ${stock.available} of ${what} were left when this order was paid, so it cannot be filled in full. Contact the buyer, or ask for a refund.`,
           link: "/track-orders",

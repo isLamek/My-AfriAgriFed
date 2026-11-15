@@ -125,11 +125,7 @@ export default function Admin() {
       "adminReview.notes": "Documents verified successfully",
     });
 
-    await notifyUser(userId, {
-      title: "Your account was approved",
-      body: "You can now sign in and access your dashboard.",
-      link: "/signin",
-    });
+    await notifyUser(userId, { key: "notif.account.approved", link: "/signin" });
 
     logTelemetryEvent(TELEMETRY_EVENTS.ADMIN_USER_APPROVED, { userId });
   };
@@ -145,11 +141,7 @@ export default function Admin() {
       "adminReview.notes": reason,
     });
 
-    await notifyUser(userId, {
-      title: "Your account was not approved",
-      body: reason,
-      link: "/signin",
-    });
+    await notifyUser(userId, { key: "notif.account.rejected", params: { reason }, link: "/signin" });
 
     logTelemetryEvent(TELEMETRY_EVENTS.ADMIN_USER_REJECTED, { userId, reason });
   };
@@ -164,11 +156,7 @@ export default function Admin() {
       "adminReview.reviewedAt": serverTimestamp(),
     });
 
-    await notifyUser(userId, {
-      title: "Your account was approved",
-      body: "You can now sign in and access your dashboard.",
-      link: "/signin",
-    });
+    await notifyUser(userId, { key: "notif.account.approved", link: "/signin" });
 
     logTelemetryEvent(TELEMETRY_EVENTS.ADMIN_USER_APPROVED, { userId });
   };

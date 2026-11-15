@@ -13,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { Bell } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import "./NotificationBell.css";
+import { t } from "./i18n";
+import { notificationText } from "./notifications";
 
 export default function NotificationBell() {
   const navigate = useNavigate();
@@ -68,7 +70,7 @@ export default function NotificationBell() {
       <button
         className="bell-btn"
         onClick={() => setOpen((prev) => !prev)}
-        aria-label="Notifications"
+        aria-label={t("notifications.notifications")}
       >
         <Bell size={19} />
         {unreadCount > 0 && <span className="bell-badge">{unreadCount}</span>}
@@ -76,10 +78,10 @@ export default function NotificationBell() {
 
       {open && (
         <div className="bell-dropdown">
-          <h4>Notifications</h4>
+          <h4>{t("notifications.notifications")}</h4>
 
           {items.length === 0 ? (
-            <p className="bell-empty">No notifications yet.</p>
+            <p className="bell-empty">{t("notifications.noNotificationsYet")}</p>
           ) : (
             items.map((item) => (
               <button
@@ -87,8 +89,8 @@ export default function NotificationBell() {
                 className={`bell-item ${item.read ? "" : "unread"}`}
                 onClick={() => openNotification(item)}
               >
-                <strong>{item.title}</strong>
-                {item.body && <span>{item.body}</span>}
+                <strong>{notificationText(item, t).title}</strong>
+                {notificationText(item, t).body && <span>{notificationText(item, t).body}</span>}
               </button>
             ))
           )}

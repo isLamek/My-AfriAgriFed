@@ -7,7 +7,7 @@
 //
 // See docs/I18N.md for how the language files work and how to add a language.
 
-export { t, getLanguage, setLanguage, subscribe, hasKey, formatNumber, formatDate, formatDateTime } from "./core";
+export { t, tIn, tv, joinAnd, joinOr, getLanguage, setLanguage, subscribe, hasKey, formatNumber, formatDate, formatDateTime } from "./core";
 export { tRich } from "./rich";
 export { I18nProvider, useI18n } from "./I18nProvider";
 export { default as LanguageSwitcher } from "./LanguageSwitcher";

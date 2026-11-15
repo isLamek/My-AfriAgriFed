@@ -11,6 +11,7 @@ import { useLocation } from "react-router-dom";
 import { MessageCircle, X, Send, RotateCcw } from "lucide-react";
 import { API_BASE_URL, backendConfigured } from "./apiBase";
 import "./AIChat.css";
+import { t } from "./i18n";
 
 // Any component can open the chat: window.dispatchEvent(new Event(OPEN_CHAT_EVENT)).
 // The home page's bot bubble uses this.
@@ -260,14 +261,14 @@ export default function AIChat({ userType }) {
           }
         }
 
-        if (!answer) throw new Error("The assistant did not reply. Please try again.");
+        if (!answer) throw new Error(t("assistant.theAssistantDidNotReplyPlease"));
       } catch (e) {
         if (e.name === "AbortError") return;
         // Stop mid-word rather than typing out a reply that was cut off.
         if (typerRef.current.frame) cancelAnimationFrame(typerRef.current.frame);
         typerRef.current.frame = 0;
         setRevealing(false);
-        setError(e.message || "Something went wrong.");
+        setError(e.message || t("assistant.somethingWentWrong"));
         // Drop the empty assistant bubble so the error is the last thing shown.
         setMessages((prev) => (prev.at(-1)?.content === "" ? prev.slice(0, -1) : prev));
       } finally {
@@ -308,19 +309,19 @@ export default function AIChat({ userType }) {
         className="aaf-chat-launcher"
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
-        aria-label={open ? "Close the AAF Assistant" : "Open the AAF Assistant"}
+        aria-label={open ? t("assistant.closeTheAafAssistant") : t("assistant.openTheAafAssistant")}
       >
         {open ? <X size={20} strokeWidth={2} /> : <MessageCircle size={20} strokeWidth={2} />}
-        {!open && <span className="aaf-chat-launcher-label">Ask AAF</span>}
+        {!open && <span className="aaf-chat-launcher-label">{t("assistant.askAaf")}</span>}
       </button>
       )}
 
       {open && (
-        <section className={`aaf-chat-panel${isHome ? " aaf-chat-panel-home" : ""}`} role="dialog" aria-label="AAF Assistant" aria-modal="false">
+        <section className={`aaf-chat-panel${isHome ? " aaf-chat-panel-home" : ""}`} role="dialog" aria-label={t("assistant.aafAssistant")} aria-modal="false">
           <header className="aaf-chat-header">
             <div>
-              <h2>AAF Assistant</h2>
-              <p>Answers about the platform and about farming in Namibia</p>
+              <h2>{t("assistant.aafAssistant")}</h2>
+              <p>{t("assistant.answersAboutThePlatformAndAbout")}</p>
             </div>
             <div className="aaf-chat-header-actions">
               <button
@@ -329,7 +330,7 @@ export default function AIChat({ userType }) {
                   setOpen(false);
                   launcherRef.current?.focus();
                 }}
-                aria-label="Close the AAF Assistant"
+                aria-label={t("assistant.closeTheAafAssistant")}
               >
                 <X size={18} strokeWidth={2} />
               </button>
@@ -361,7 +362,7 @@ export default function AIChat({ userType }) {
                 {m.content ? (
                   <MessageText text={m.content} />
                 ) : (
-                  <span className="aaf-chat-typing" aria-label="The assistant is typing">
+                  <span className="aaf-chat-typing" aria-label={t("assistant.theAssistantIsTyping")}>
                     <i />
                     <i />
                     <i />
@@ -382,7 +383,7 @@ export default function AIChat({ userType }) {
             }}
           >
             <label className="aaf-sr-only" htmlFor="aaf-chat-input">
-              Your question for the AAF Assistant
+              {t("assistant.yourQuestionForTheAafAssistant")}
             </label>
             <textarea
               id="aaf-chat-input"
@@ -390,7 +391,7 @@ export default function AIChat({ userType }) {
               value={input}
               maxLength={MAX_INPUT}
               rows={1}
-              placeholder={unavailable ? "The assistant is not switched on yet" : "Ask a question"}
+              placeholder={unavailable ? t("assistant.theAssistantIsNotSwitchedOn") : t("assistant.askQuestion")}
               disabled={streaming || revealing || unavailable}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={(e) => {
@@ -401,25 +402,24 @@ export default function AIChat({ userType }) {
                 }
               }}
             />
-            <button type="submit" disabled={!input.trim() || streaming || revealing || unavailable} aria-label="Send">
+            <button type="submit" disabled={!input.trim() || streaming || revealing || unavailable} aria-label={t("common.send")}>
               <Send size={18} strokeWidth={2} />
             </button>
           </form>
 
           <div className="aaf-chat-footer">
             <p className="aaf-chat-note">
-              The assistant cannot see your listings, orders or account, and can make mistakes. For account help,
-              contact support.
+              {t("assistant.theAssistantCannotSeeYourListings")}
             </p>
             {messages.length > 0 && (
               <button
                 type="button"
                 className="aaf-chat-clear"
                 onClick={reset}
-                title="Delete this conversation"
+                title={t("assistant.deleteThisConversation")}
               >
                 <RotateCcw size={13} strokeWidth={2} />
-                Clear chat
+                {t("assistant.clearChat")}
               </button>
             )}
           </div>

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { CONSENT, getConsent, onConsentChange, setConsent } from "./consent";
 import "./Legal.css";
+import { t } from "./i18n";
 
 /**
  * Asks once whether optional analytics may run. Both choices are the same
@@ -14,17 +15,16 @@ export default function CookieBanner() {
   if (choice) return null;
 
   return (
-    <section className="cookie-banner" aria-label="Cookie choice">
+    <section className="cookie-banner" aria-label={t("cookies.cookieChoice")}>
       <p>
-        We use essential storage to keep you signed in. With your permission we also record simple, anonymous usage events to
-        improve AfriAgriFed. No advertising, no third-party trackers. <Link to="/cookies">Cookie policy</Link>
+        {t("cookies.notice")} <Link to="/cookies">{t("cookies.policy")}</Link>
       </p>
       <div className="cookie-banner-actions">
         <button className="aaf-btn aaf-btn-secondary aaf-btn-sm" onClick={() => setConsent(CONSENT.DECLINED)}>
-          Essential only
+          {t("cookies.essentialOnly")}
         </button>
         <button className="aaf-btn aaf-btn-secondary aaf-btn-sm" onClick={() => setConsent(CONSENT.ALLOWED)}>
-          Allow analytics
+          {t("cookies.allowAnalytics")}
         </button>
       </div>
     </section>

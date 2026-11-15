@@ -2,6 +2,8 @@
 // they can be tested. The server enforces the same limits when it prices an
 // order (server/checkout.js); this only drives what the buyer sees.
 
+import { t, tv } from "./i18n";
+
 export const MAX_QUANTITY = 1000;
 export const LOW_STOCK_AT = 5;
 
@@ -26,10 +28,10 @@ export const lineTotal = (price, quantity) => round2((Number(price) || 0) * (Num
 /** What to say about a listing's stock: { state, text }. */
 export function stockLabel(listing) {
   const left = availableUnits(listing);
-  if (left === 0) return { state: "sold_out", text: "Sold out" };
+  if (left === 0) return { state: "sold_out", text: t("purchase.soldOut") };
   if (left === Infinity) return { state: "unlimited", text: "" };
-  if (left <= LOW_STOCK_AT) return { state: "low", text: `Only ${left} left` };
-  return { state: "in_stock", text: `${left} available` };
+  if (left <= LOW_STOCK_AT) return { state: "low", text: t("purchase.onlyLeft", { count: left }) };
+  return { state: "in_stock", text: t("purchase.available", { count: left }) };
 }
 
 // Whole amounts as N$50, amounts with cents as N$226.50 (never N$226.5).
@@ -41,6 +43,6 @@ export const formatNad = (n) => {
 /** "3 kg" / "3" for an order line. */
 export function quantityText(order) {
   const q = order?.quantity;
-  if (!q || q === 1) return order?.unit ? `1 ${order.unit}` : "";
-  return `${q}${order.unit ? ` ${order.unit}` : ""}`;
+  if (!q || q === 1) return order?.unit ? `1 ${tv(order.unit)}` : "";
+  return `${q}${order.unit ? ` ${tv(order.unit)}` : ""}`;
 }

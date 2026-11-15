@@ -3,8 +3,7 @@ import { MessageSquare, Minus, Plus, ShieldCheck } from "lucide-react";
 import { clampQuantity, formatNad, lineTotal, stockLabel } from "./purchase";
 import { maskContactInfo } from "./contactGuard";
 import { exampleProducePhoto, fallBackToExample } from "./produceImages";
-
-export const PAYMENT_METHODS = "Card, mobile money or bank transfer, all handled securely by our payment partner";
+import { t } from "./i18n";
 
 /**
  * One marketplace listing, with a quantity picker, the running total and a
@@ -31,7 +30,7 @@ export default function ListingCard({ listing, isOwn, onBuy, onMessage }) {
       ) : (
         <div className="price-card-photo-example">
           <img src={exampleProducePhoto(listing.product)} alt="" className="price-card-image" />
-          <span>Example photo</span>
+          <span>{t("listing.examplePhoto")}</span>
         </div>
       )}
       <h3>{maskContactInfo(listing.product)}</h3>
@@ -42,23 +41,23 @@ export default function ListingCard({ listing, isOwn, onBuy, onMessage }) {
       </p>
 
       {stock.text && <p className={`price-qty ${stock.state}`}>{stock.text}</p>}
-      {listing.sellerName && <p className="price-seller">Sold by {listing.sellerName}</p>}
+      {listing.sellerName && <p className="price-seller">{t("listing.soldBy", { name: listing.sellerName })}</p>}
 
       {isOwn ? (
-        <span className="price-own-badge">Your listing</span>
+        <span className="price-own-badge">{t("listing.yourListing")}</span>
       ) : soldOut ? (
         <>
-          <span className="price-soldout-badge">Sold out</span>
+          <span className="price-soldout-badge">{t("listing.soldOut")}</span>
           {onMessage && (
             <button type="button" className="price-message-btn" onClick={() => onMessage(listing)}>
-              <MessageSquare size={14} aria-hidden="true" /> Ask when it's back
+              <MessageSquare size={14} aria-hidden="true" /> {t("listing.askWhenItBack")}
             </button>
           )}
         </>
       ) : (
         <>
-          <div className="qty-box" role="group" aria-label={`Quantity of ${listing.product}`}>
-            <button type="button" onClick={() => step(-1)} disabled={quantity <= 1} aria-label="One fewer">
+          <div className="qty-box" role="group" aria-label={t("listing.quantityOf", { product: listing.product })}>
+            <button type="button" onClick={() => step(-1)} disabled={quantity <= 1} aria-label={t("listing.oneFewer")}>
               <Minus size={14} />
             </button>
             <input
@@ -66,27 +65,27 @@ export default function ListingCard({ listing, isOwn, onBuy, onMessage }) {
               inputMode="numeric"
               min="1"
               value={typed}
-              aria-label="Quantity"
+              aria-label={t("listing.quantity")}
               onChange={(e) => setTyped(e.target.value)}
               onBlur={() => setTyped(String(quantity))} // tidy up whatever was typed
             />
-            <button type="button" onClick={() => step(1)} aria-label="One more">
+            <button type="button" onClick={() => step(1)} aria-label={t("listing.oneMore")}>
               <Plus size={14} />
             </button>
           </div>
 
           <button className="pay-now-btn" disabled={!payoutsReady} onClick={() => onBuy(listing, quantity)}>
-            {payoutsReady ? `Pay now · ${formatNad(total)}` : "Online payment coming soon"}
+            {payoutsReady ? t("listing.payNow", { amount: formatNad(total) }) : t("listing.onlinePaymentComingSoon")}
           </button>
 
           <p className="pay-guarantee">
-            <ShieldCheck size={14} aria-hidden="true" /> Order protected by the AfriAgriFed Payment Guarantee
+            <ShieldCheck size={14} aria-hidden="true" /> {t("listing.orderProtectedByTheAfriagrifedPayment")}
           </p>
-          <p className="pay-methods">{PAYMENT_METHODS}.</p>
+          <p className="pay-methods">{t("listing.paymentMethods")}</p>
 
           {onMessage && (
             <button type="button" className="price-message-btn" onClick={() => onMessage(listing)}>
-              <MessageSquare size={14} aria-hidden="true" /> Message seller
+              <MessageSquare size={14} aria-hidden="true" /> {t("listing.messageSeller")}
             </button>
           )}
         </>

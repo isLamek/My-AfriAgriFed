@@ -17,6 +17,7 @@ import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import InsightsFrame from "./InsightsFrame";
 import "./TrainingPrograms.css";
+import { t, tIn } from "./i18n";
 
 const emptyProgram = {
   title: "",
@@ -67,7 +68,7 @@ export default function TrainingPrograms() {
     event.preventDefault();
 
     if (!formData.title.trim() || !formData.startDate) {
-      toast.error("Please add a title and a start date.");
+      toast.error(t("training.pleaseAddTitleAndStartDate"));
       return;
     }
 
@@ -89,7 +90,7 @@ export default function TrainingPrograms() {
         userId: user?.uid || "",
         userName: user?.email || "Institution",
         authorRole: "Institution",
-        content: `New training program: ${formData.title} (${formData.mode}, starts ${formData.startDate}). See Training Programs for details.`,
+        content: tIn("en", "training.feedPost", { title: formData.title, mode: formData.mode, date: formData.startDate }),
         imageUrl: "",
         comments: {},
         createdAt: Date.now(),
@@ -100,7 +101,7 @@ export default function TrainingPrograms() {
       setFormData(emptyProgram);
     } catch (error) {
       console.error(error);
-      toast.error("Could not post training program: " + error.message);
+      toast.error(t("training.couldNotPost", { error: error.message }));
     } finally {
       setPosting(false);
     }
@@ -108,59 +109,59 @@ export default function TrainingPrograms() {
 
   return (
     <InsightsFrame
-      eyebrow="Education &amp; producers"
-      title="Training Programs"
-      subtitle="Programs institutions run for farmers, shared to the community feed."
+      eyebrow={t("training.educationProducers")}
+      title={t("training.trainingPrograms")}
+      subtitle={t("training.programsInstitutionsRunForFarmersShared")}
       activePath="/training"
     >
       <main className="training-layout">
         {canPost && (
           <section className="training-form-card">
-            <h2>Post a Training Program</h2>
+            <h2>{t("training.postTrainingProgram")}</h2>
             <form onSubmit={postProgram}>
               <label>
-                Title
-                <input name="title" value={formData.title} onChange={handleChange} placeholder="e.g., Soil health & composting workshop" />
+                {t("training.title")}
+                <input name="title" value={formData.title} onChange={handleChange} placeholder={t("training.egSoilHealthCompostingWorkshop")} />
               </label>
 
               <label>
-                Description
+                {t("training.description")}
                 <textarea name="description" value={formData.description} onChange={handleChange} rows="4" />
               </label>
 
               <div className="form-row">
                 <label>
-                  Mode
+                  {t("training.mode")}
                   <select name="mode" value={formData.mode} onChange={handleChange}>
-                    <option>In-person</option>
-                    <option>Online</option>
-                    <option>Hybrid</option>
+                    <option>{t("training.inPerson")}</option>
+                    <option>{t("training.online")}</option>
+                    <option>{t("training.hybrid")}</option>
                   </select>
                 </label>
 
                 <label>
-                  Location / Link
-                  <input name="location" value={formData.location} onChange={handleChange} placeholder="Venue or meeting link" />
+                  {t("training.locationLink")}
+                  <input name="location" value={formData.location} onChange={handleChange} placeholder={t("training.venueOrMeetingLink")} />
                 </label>
               </div>
 
               <label>
-                Start Date
+                {t("training.startDate")}
                 <input type="date" name="startDate" value={formData.startDate} onChange={handleChange} />
               </label>
 
               <label>
-                Recorded class / tutorial link (optional)
+                {t("training.recordedClassTutorialLinkOptional")}
                 <input
                   name="videoUrl"
                   value={formData.videoUrl}
                   onChange={handleChange}
-                  placeholder="YouTube, Vimeo or other video link"
+                  placeholder={t("training.youtubeVimeoOrOtherVideoLink")}
                 />
               </label>
 
               <button className="publish-btn" disabled={posting}>
-                {posting ? "Posting..." : "Post Program"}
+                {posting ? t("training.posting") : t("training.postProgram")}
               </button>
             </form>
           </section>
@@ -168,7 +169,7 @@ export default function TrainingPrograms() {
 
         <section className="training-list">
           {programs.length === 0 ? (
-            <p className="empty-state">No training programs posted yet.</p>
+            <p className="empty-state">{t("training.noTrainingProgramsPostedYet")}</p>
           ) : (
             programs.map((program) => (
               <article className="training-card" key={program.id}>
@@ -187,11 +188,11 @@ export default function TrainingPrograms() {
                   <p className="training-location">
                     <Video size={14} />{" "}
                     <a href={program.videoUrl} target="_blank" rel="noreferrer">
-                      Watch recorded class
+                      {t("training.watchRecordedClass")}
                     </a>
                   </p>
                 )}
-                <p className="training-host">Hosted by {program.institutionName}</p>
+                <p className="training-host">{t("training.hostedBy", { name: program.institutionName })}</p>
               </article>
             ))
           )}

@@ -291,9 +291,27 @@ service cloud.firestore {
     // bypass these rules). Anyone signed in may still notify someone else, as the
     // app's flows need (a pledge, an internship decision), but not with arbitrary
     // fields or oversized text, and a recipient can only mark one as read.
+    // key + params let the reader see it in their own language (src/notifications.js);
+    // title and body stay as the English fallback.
+    function validNotificationParams(p) {
+      return p is map
+        && p.keys().hasOnly(['name', 'qty', 'unit', 'product', 'item', 'status', 'reason', 'what'])
+        && p.get('name', '') is string && p.get('name', '').size() <= 120
+        && p.get('qty', '') is string && p.get('qty', '').size() <= 120
+        && p.get('unit', '') is string && p.get('unit', '').size() <= 120
+        && p.get('product', '') is string && p.get('product', '').size() <= 120
+        && p.get('item', '') is string && p.get('item', '').size() <= 120
+        && p.get('status', '') is string && p.get('status', '').size() <= 120
+        && p.get('reason', '') is string && p.get('reason', '').size() <= 400
+        && p.get('what', '') is string && p.get('what', '').size() <= 120;
+    }
+
     match /notifications/{id} {
       allow create: if signedIn()
-        && request.resource.data.keys().hasOnly(['userId', 'title', 'body', 'link', 'read', 'createdAt'])
+        && request.resource.data.keys().hasOnly(['userId', 'title', 'body', 'link', 'read', 'createdAt', 'key', 'params'])
+        && request.resource.data.get('key', '') is string && request.resource.data.get('key', '').size() <= 60
+        && request.resource.data.get('key', '').matches('^[A-Za-z0-9.]*$')
+        && validNotificationParams(request.resource.data.get('params', {}))
         && request.resource.data.userId is string && request.resource.data.userId.size() > 0 && request.resource.data.userId.size() <= 128
         && request.resource.data.title is string && request.resource.data.title.size() > 0 && request.resource.data.title.size() <= 120
         && request.resource.data.get('body', '') is string && request.resource.data.get('body', '').size() <= 400

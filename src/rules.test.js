@@ -64,7 +64,8 @@ describe("firestore.rules: accounts and admins", () => {
   });
   it("notifications are shape-checked and can only be marked read", () => {
     const b = block(firestore, "match /notifications/{id}");
-    expect(b).toMatch(/hasOnly\(\['userId', 'title', 'body', 'link', 'read', 'createdAt'\]\)/);
+    expect(b).toMatch(/hasOnly\(\['userId', 'title', 'body', 'link', 'read', 'createdAt', 'key', 'params'\]\)/);
+    expect(b).toMatch(/validNotificationParams\(/);
     expect(b).toMatch(/affectedKeys\(\)\.hasOnly\(\['read'\]\)/);
   });
   it("analytics events need a sign-in and your own uid", () => {

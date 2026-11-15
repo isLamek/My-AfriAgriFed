@@ -21,6 +21,7 @@ import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import toast from "react-hot-toast";
 import "./InstitutionDashboard.css";
+import { t } from "./i18n";
 
 const emptyArticle = {
   title: "",
@@ -103,7 +104,7 @@ export default function InstitutionDashboard() {
     event.preventDefault();
 
     if (!formData.title.trim() || !formData.summary.trim()) {
-      toast.error("Please add a title and summary before publishing.");
+      toast.error(t("institution.pleaseAddTitleAndSummaryBefore"));
       return;
     }
 
@@ -157,8 +158,8 @@ export default function InstitutionDashboard() {
         });
 
         await notifyUser(respondingTo.farmerId, {
-          title: "Your research problem was answered",
-          body: `${formData.title}`,
+          key: "notif.research.answered",
+          params: { item: formData.title },
           link: "/research",
         });
 
@@ -195,19 +196,19 @@ export default function InstitutionDashboard() {
 
   return (
     <AppShell
-      eyebrow="Institution dashboard"
-      title="Farming Research Desk"
-      subtitle="Publish agricultural research, field reports, links and PDFs."
+      eyebrow={t("institution.institutionDashboard")}
+      title={t("institution.farmingResearchDesk")}
+      subtitle={t("institution.publishAgriculturalResearchFieldReportsLinks")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
       theme={isAdminUser ? "admin" : "institution"}
     >
       <section className="farmer-problems aaf-card">
-        <h2>Farmer Problems Awaiting Research</h2>
+        <h2>{t("institution.farmerProblemsAwaitingResearch")}</h2>
 
         {openProblems.length === 0 ? (
-          <p className="empty-state">No open problems from farmers right now.</p>
+          <p className="empty-state">{t("institution.noOpenProblemsFromFarmersRight")}</p>
         ) : (
           <div className="farmer-problems-grid">
             {openProblems.map((problem) => (
@@ -215,7 +216,7 @@ export default function InstitutionDashboard() {
                 <strong>{problem.title}</strong>
                 <p>{problem.description}</p>
                 <span className="problem-farmer">From {problem.farmerName}</span>
-                <button onClick={() => startResponse(problem)}>Respond with Research</button>
+                <button onClick={() => startResponse(problem)}>{t("institution.respondWithResearch")}</button>
               </div>
             ))}
           </div>
@@ -224,67 +225,67 @@ export default function InstitutionDashboard() {
 
       <main className="institution-layout">
         <section className="research-publisher aaf-card">
-          <h2>{respondingTo ? `Respond to: ${respondingTo.title}` : "Upload Research"}</h2>
+          <h2>{respondingTo ? `Respond to: ${respondingTo.title}` : t("institution.uploadResearch")}</h2>
           {respondingTo && (
             <button type="button" className="cancel-response-btn" onClick={() => {
               setRespondingTo(null);
               setFormData(emptyArticle);
             }}>
-              Cancel response
+              {t("institution.cancelResponse")}
             </button>
           )}
 
           <form onSubmit={publishArticle}>
             <label>
-              Headline
+              {t("institution.headline")}
               <input
                 name="title"
                 value={formData.title}
                 onChange={handleChange}
-                placeholder="e.g., Drought-tolerant millet trial results"
+                placeholder={t("institution.egDroughtTolerantMilletTrialResults")}
               />
             </label>
 
             <label>
-              Summary
+              {t("institution.summary")}
               <textarea
                 name="summary"
                 value={formData.summary}
                 onChange={handleChange}
                 rows="5"
-                placeholder="Write a short research summary..."
+                placeholder={t("institution.writeShortResearchSummary")}
               />
             </label>
 
             <div className="form-row">
               <label>
-                Category
+                {t("institution.category")}
                 <select
                   name="category"
                   value={formData.category}
                   onChange={handleChange}
                 >
-                  <option>Research</option>
-                  <option>Field Trial</option>
-                  <option>Market Insight</option>
-                  <option>Climate</option>
-                  <option>Training</option>
+                  <option>{t("institution.research")}</option>
+                  <option>{t("institution.fieldTrial")}</option>
+                  <option>{t("institution.marketInsight")}</option>
+                  <option>{t("institution.climate")}</option>
+                  <option>{t("institution.training")}</option>
                 </select>
               </label>
 
               <label>
-                Source Name
+                {t("institution.sourceName")}
                 <input
                   name="sourceName"
                   value={formData.sourceName}
                   onChange={handleChange}
-                  placeholder="Institution or journal"
+                  placeholder={t("institution.institutionOrJournal")}
                 />
               </label>
             </div>
 
             <label>
-              Research Link
+              {t("institution.researchLink")}
               <input
                 type="url"
                 name="articleUrl"
@@ -296,7 +297,7 @@ export default function InstitutionDashboard() {
 
             <div className="file-row">
               <label>
-                Photo
+                {t("institution.photo")}
                 <input
                   type="file"
                   accept="image/*"
@@ -305,7 +306,7 @@ export default function InstitutionDashboard() {
               </label>
 
               <label>
-                PDF
+                {t("institution.pdf")}
                 <input
                   type="file"
                   accept="application/pdf,.pdf"
@@ -315,19 +316,19 @@ export default function InstitutionDashboard() {
             </div>
 
             <button className="publish-btn" disabled={publishing}>
-              {publishing ? "Publishing..." : "Publish Article"}
+              {publishing ? t("institution.publishing") : t("institution.publishArticle")}
             </button>
           </form>
         </section>
 
         <section className="research-feed aaf-card">
           <div className="feed-heading">
-            <p className="eyebrow">Research news</p>
-            <h2>Agricultural Articles</h2>
+            <p className="eyebrow">{t("institution.researchNews")}</p>
+            <h2>{t("institution.agriculturalArticles")}</h2>
           </div>
 
           {articles.length === 0 ? (
-            <p className="empty-state">No research articles published yet.</p>
+            <p className="empty-state">{t("institution.noResearchArticlesPublishedYet")}</p>
           ) : (
             articles.map((article) => (
               <article className="research-card" key={article.id}>
@@ -337,7 +338,7 @@ export default function InstitutionDashboard() {
 
                 <div className="research-card-content">
                   <div className="article-meta">
-                    <span>{article.category || "Research"}</span>
+                    <span>{article.category || t("institution.research")}</span>
                     <span>{article.sourceName || article.authorEmail}</span>
                   </div>
 
@@ -347,12 +348,12 @@ export default function InstitutionDashboard() {
                   <div className="article-actions">
                     {article.articleUrl && (
                       <a href={article.articleUrl} target="_blank" rel="noreferrer">
-                        Open Link
+                        {t("institution.openLink")}
                       </a>
                     )}
                     {article.pdf?.url && (
                       <a href={article.pdf.url} target="_blank" rel="noreferrer">
-                        View PDF
+                        {t("institution.viewPdf")}
                       </a>
                     )}
                   </div>

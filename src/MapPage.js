@@ -26,6 +26,7 @@ import WindParticles from "./farmview/windParticles";
 import NoMapFallback, { supportsWebGL } from "./farmview/NoMapFallback";
 import { attachReadout } from "./farmview/cursorReadout";
 import "./MapPage.css";
+import { t, tv } from "./i18n";
 
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const SAT_FRAMES = 12;
@@ -537,7 +538,7 @@ export default function MapPage() {
   // position stays in this browser; it is never saved or sent anywhere.
   const locateMe = useCallback(() => {
     if (!navigator.geolocation) {
-      toast.error("This browser can't share your location.");
+      toast.error(t("weatherMap.thisBrowserCanShareYourLocation"));
       return;
     }
     setLocating(true);
@@ -548,14 +549,14 @@ export default function MapPage() {
         if (!map) return;
         const [west, south, east, north] = NAMIBIA_BOUNDS;
         if (coords.longitude < west || coords.longitude > east || coords.latitude < south || coords.latitude > north) {
-          toast("You seem to be outside Namibia, so the map can't show your spot.");
+          toast(t("weatherMap.youSeemToBeOutsideNamibia"));
           return;
         }
         const spot = { lat: coords.latitude, lng: coords.longitude };
         if (!meMarkerRef.current) {
           const el = document.createElement("div");
           el.className = "fv-me";
-          el.title = "You are here";
+          el.title = t("weatherMap.youAreHere");
           meMarkerRef.current = new maplibregl.Marker({ element: el });
         }
         meMarkerRef.current.setLngLat([spot.lng, spot.lat]).addTo(map);
@@ -568,8 +569,8 @@ export default function MapPage() {
         setLocating(false);
         toast.error(
           error.code === 1
-            ? "Location is blocked for this site. Allow it in your browser's address bar, then try again."
-            : "Your location couldn't be found. Please try again outdoors or with Wi-Fi on."
+            ? t("weatherMap.locationIsBlockedForThisSite")
+            : t("weatherMap.yourLocationCouldnBeFoundPlease")
         );
       },
       { enableHighAccuracy: true, timeout: 15000, maximumAge: 60000 }
@@ -603,8 +604,8 @@ export default function MapPage() {
   return (
     <AppShell
       eyebrow="Namibia"
-      title="Map"
-      subtitle="Live weather, satellite and farming information, region by region."
+      title={t("weatherMap.map")}
+      subtitle={t("weatherMap.liveWeatherSatelliteAndFarmingInformation")}
       navSections={navSections}
       headerRight={<NotificationBell />}
       onLogout={logout}
@@ -615,28 +616,28 @@ export default function MapPage() {
         <div className="fv-map" data-band="mid" ref={containerRef} />
 
         <div className={`fv-controls aaf-card ${layersOpen ? "open" : ""}`}>
-          <div className="fv-seg" role="group" aria-label="Map type">
+          <div className="fv-seg" role="group" aria-label={t("weatherMap.mapType")}>
             {Object.entries(BASEMAPS).map(([id, b]) => (
               <button key={id} className={basemap === id ? "on" : ""} onClick={() => setBasemap(id)}>
-                {b.label}
+                {tv(b.label)}
               </button>
             ))}
           </div>
           <button type="button" className="fv-layers-toggle" onClick={() => setLayersOpen((v) => !v)} aria-expanded={layersOpen}>
             <Layers size={14} />
-            <span>{[layer.kind !== "none" ? layer.label : null, windOn ? "Wind" : null, firesOn ? "Fires" : null].filter(Boolean).join(" + ") || "Layers"}</span>
+            <span>{[layer.kind !== "none" ? tv(layer.label) : null, windOn ? t("weatherMap.wind") : null, firesOn ? t("weatherMap.firesShort") : null].filter(Boolean).join(" + ") || t("weatherMap.layers")}</span>
             <ChevronDown size={14} className="fv-layers-chevron" />
           </button>
 
-          <p className="fv-label"><Layers size={14} /> Weather</p>
+          <p className="fv-label"><Layers size={14} /> {t("weatherMap.weather")}</p>
           <div className="fv-layers">
             {WEATHER_LAYERS.filter((l) => l.id !== "none").map((l) => (
               <button key={l.id} className={layerId === l.id ? "on" : ""} onClick={() => setLayerId(layerId === l.id ? "none" : l.id)}>
-                {l.label}
+                {tv(l.label)}
               </button>
             ))}
             <button className={`fv-wind ${windOn ? "on" : ""}`} onClick={() => setWindOn((v) => !v)} aria-pressed={windOn}>
-              <Wind size={13} /> Wind
+              <Wind size={13} /> {t("weatherMap.wind")}
             </button>
           </div>
 
@@ -651,43 +652,43 @@ export default function MapPage() {
                   </div>
                 </>
               )}
-              {layer.kind !== "none" && <p className="fv-note">{layer.note}</p>}
-              {windOn && layer.kind !== "sat" && <p className="fv-note">Wind: modelled flow 10 m above ground; faster wind shows brighter trails.</p>}
+              {layer.kind !== "none" && <p className="fv-note">{tv(layer.note)}</p>}
+              {windOn && layer.kind !== "sat" && <p className="fv-note">{t("weatherMap.windModelledFlow10AboveGround")}</p>}
               <p className="fv-source">
-                {[layer.source, windOn && layer.kind !== "sat" ? "Wind: ECMWF IFS 0.25° via Open-Meteo" : null].filter(Boolean).join(" · ")}
+                {[layer.source, windOn && layer.kind !== "sat" ? t("weatherMap.windSource") : null].filter(Boolean).join(" · ")}
               </p>
             </div>
           )}
           {features.fires && (
             <>
-              <p className="fv-label"><Flame size={14} /> Hazards</p>
+              <p className="fv-label"><Flame size={14} /> {t("weatherMap.hazards")}</p>
               <div className="fv-layers">
                 <button className={`fv-fire-chip ${firesOn ? "on" : ""}`} onClick={() => setFiresOn((v) => !v)} aria-pressed={firesOn}>
-                  <Flame size={13} /> Fire hotspots
+                  <Flame size={13} /> {t("weatherMap.fireHotspots")}
                 </button>
               </div>
               {firesOn && (
                 <div className="fv-legend">
                   <div className="fv-fire-key">
-                    <span><i style={{ background: "#e11d2e" }} /> under 6 h</span>
-                    <span><i style={{ background: "#f97316" }} /> 6-24 h</span>
-                    <span><i style={{ background: "#facc15" }} /> 24-48 h</span>
+                    <span><i style={{ background: "#e11d2e" }} /> {t("weatherMap.under6")}</span>
+                    <span><i style={{ background: "#f97316" }} /> {t("weatherMap.age6to24")}</span>
+                    <span><i style={{ background: "#facc15" }} /> {t("weatherMap.age24to48")}</span>
                   </div>
                   <p className="fv-note">
                     {fireData?.error
-                      ? "Fire data is unavailable right now."
+                      ? t("weatherMap.fireDataIsUnavailableRightNow")
                       : !fireData
-                      ? "Loading fire hotspots…"
-                      : `${fireData.list.length} satellite heat detection${fireData.list.length === 1 ? "" : "s"} in the last 48 hours. These are not confirmed fires, and satellites pass only a few times a day.`}
+                      ? t("weatherMap.loadingFireHotspots")
+                      : t("weatherMap.fireDetections", { count: fireData.list.length })}
                   </p>
-                  <p className="fv-source">NASA FIRMS (VIIRS), updated about every 15 minutes</p>
+                  <p className="fv-source">{t("weatherMap.nasaFirmsViirsUpdatedAboutEvery")}</p>
                 </div>
               )}
             </>
           )}
-          {gridError && <p className="fv-warn">Could not load the forecast grid ({gridError}). Satellite layers and tap-for-weather still work.</p>}
-          {!grid && !gridError && <p className="fv-muted">Loading forecast…</p>}
-          {satError && <p className="fv-warn">Satellite imagery is unavailable right now ({satError}).</p>}
+          {gridError && <p className="fv-warn">{t("weatherMap.gridError", { error: gridError })}</p>}
+          {!grid && !gridError && <p className="fv-muted">{t("weatherMap.loadingForecast")}</p>}
+          {satError && <p className="fv-warn">{t("weatherMap.satError", { error: satError })}</p>}
 
           {isFarmer && (
             <FarmsSection
@@ -702,21 +703,21 @@ export default function MapPage() {
           )}
 
           <div className="fv-jump">
-            <p className="fv-label"><MapPin size={14} /> Go to</p>
+            <p className="fv-label"><MapPin size={14} /> {t("weatherMap.goTo")}</p>
             <div className="fv-layers">
               <button className="fv-locate" onClick={locateMe} disabled={locating}>
-                <LocateFixed size={13} /> {locating ? "Finding you..." : "My location"}
+                <LocateFixed size={13} /> {locating ? t("weatherMap.findingYou") : t("weatherMap.myLocation")}
               </button>
-              <button onClick={() => flyToBounds(VIEWS.namibia.bounds)}>All Namibia</button>
-              <button onClick={() => flyToBounds(VIEWS.oshana.bounds)}>Oshana</button>
+              <button onClick={() => flyToBounds(VIEWS.namibia.bounds)}>{t("weatherMap.allNamibia")}</button>
+              <button onClick={() => flyToBounds(VIEWS.oshana.bounds)}>{t("weatherMap.oshana")}</button>
             </div>
             <select
               className="fv-select"
-              aria-label="Go to a region"
+              aria-label={t("weatherMap.goToRegion")}
               value=""
               onChange={(e) => e.target.value && goToRegion(e.target.value)}
             >
-              <option value="">Choose a region…</option>
+              <option value="">{t("weatherMap.chooseRegion")}</option>
               {(regions?.features || []).map((f) => (
                 <option key={f.properties.name} value={f.properties.name}>
                   {regionLabel(f.properties.name)}
@@ -724,12 +725,12 @@ export default function MapPage() {
               ))}
             </select>
           </div>
-          <p className="fv-muted fv-tip">Tap anywhere on the map for that spot's weather and crop information.</p>
+          <p className="fv-muted fv-tip">{t("weatherMap.tapAnywhereOnTheMapFor")}</p>
         </div>
 
         {showTimeline && timelineLength > 0 && (
-          <div className="fv-timeline aaf-card" role="group" aria-label="Time">
-            <button className="fv-play" onClick={() => setPlaying((p) => !p)} aria-label={playing ? "Pause" : "Play"}>
+          <div className="fv-timeline aaf-card" role="group" aria-label={t("weatherMap.time")}>
+            <button className="fv-play" onClick={() => setPlaying((p) => !p)} aria-label={playing ? t("weatherMap.pause") : t("weatherMap.play")}>
               {playing ? <Pause size={16} /> : <Play size={16} />}
             </button>
             <input
@@ -738,19 +739,19 @@ export default function MapPage() {
               max={timelineLength - 1}
               value={timelineIdx}
               onChange={(e) => (isSat ? setFrameIdx(Number(e.target.value)) : setHourIdx(Number(e.target.value)))}
-              aria-label="Time"
+              aria-label={t("weatherMap.time")}
             />
             <div className="fv-time">
               <strong>{timeLabel}</strong>
-              <span>{agoLabel} · {isSat ? "Observed" : "Forecast"}</span>
+              <span>{agoLabel} · {isSat ? t("weatherMap.observed") : t("weatherMap.forecast")}</span>
             </div>
           </div>
         )}
 
         {showPanel && (
           <aside className={`fv-panel aaf-card ${panelOpen ? "open" : "closed"}`}>
-            <button className="fv-panel-toggle" onClick={() => setPanelOpen((v) => !v)} aria-label="Toggle details">
-              {panelOpen ? "Hide details" : "Show details"}
+            <button className="fv-panel-toggle" onClick={() => setPanelOpen((v) => !v)} aria-label={t("weatherMap.toggleDetails")}>
+              {panelOpen ? t("weatherMap.hideDetails") : t("weatherMap.showDetails")}
             </button>
 
             {draft ? (
@@ -769,8 +770,8 @@ export default function MapPage() {
               <>
                 {selectedFarm && (
                   <div className="fv-tabs" role="tablist">
-                    <button role="tab" aria-selected={panelTab === "farm"} className={panelTab === "farm" ? "on" : ""} onClick={() => setPanelTab("farm")}>My farm</button>
-                    <button role="tab" aria-selected={panelTab === "conditions"} className={panelTab === "conditions" ? "on" : ""} onClick={() => setPanelTab("conditions")}>Weather &amp; crops</button>
+                    <button role="tab" aria-selected={panelTab === "farm"} className={panelTab === "farm" ? "on" : ""} onClick={() => setPanelTab("farm")}>{t("weatherMap.myFarm")}</button>
+                    <button role="tab" aria-selected={panelTab === "conditions"} className={panelTab === "conditions" ? "on" : ""} onClick={() => setPanelTab("conditions")}>{t("weatherMap.weatherCrops")}</button>
                   </div>
                 )}
                 {selectedFarm && panelTab === "farm" ? (

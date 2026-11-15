@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { verifyAndFinalizePayment } from "./payments";
+import { t } from "./i18n";
 
 export default function PaymentCallback() {
   const [searchParams] = useSearchParams();
@@ -30,33 +31,32 @@ export default function PaymentCallback() {
   }, [searchParams]);
 
   const returnTo = purpose === "page_access" ? `/${refId || "data"}` : purpose === "order" ? "/track-orders" : "/dashboard";
-  const returnLabel = purpose === "page_access" ? "Go to page" : purpose === "order" ? "Track your order" : "Back to Dashboard";
+  const returnLabel = purpose === "page_access" ? t("paymentResult.goToPage") : purpose === "order" ? t("paymentResult.trackOrder") : t("paymentResult.backToDashboard");
 
   return (
     <div style={{ padding: "3rem", textAlign: "center", fontFamily: "Inter, sans-serif" }}>
-      {status === "verifying" && <p>Confirming your payment...</p>}
+      {status === "verifying" && <p>{t("paymentResult.confirmingYourPayment")}</p>}
       {status === "success" && (
         <>
-          <h1>Payment confirmed</h1>
+          <h1>{t("paymentResult.paymentConfirmed")}</h1>
           <p>
             {purpose === "promotion"
-              ? "Your promotion is now live."
+              ? t("paymentResult.yourPromotionIsNowLive")
               : purpose === "page_access"
-              ? "This page is now unlocked."
-              : "Your order has been recorded."}
+              ? t("paymentResult.thisPageIsNowUnlocked")
+              : t("paymentResult.yourOrderHasBeenRecorded")}
           </p>
         </>
       )}
       {status === "failed" && (
         <>
-          <h1>Payment could not be verified</h1>
+          <h1>{t("paymentResult.paymentCouldNotBeVerified")}</h1>
           <p>
-            {message || "We could not confirm this payment yet."} If you were charged, your order is recorded as soon as
-            the payment provider confirms it; otherwise contact support with your transaction reference.
+            {message || t("paymentResult.weCouldNotConfirmThisPayment")} {t("paymentResult.ifCharged")}
           </p>
         </>
       )}
-      {status === "cancelled" && <h1>Payment cancelled</h1>}
+      {status === "cancelled" && <h1>{t("paymentResult.paymentCancelled")}</h1>}
 
       <button onClick={() => navigate(returnTo)} style={{ marginTop: "1.5rem" }}>
         {returnLabel}

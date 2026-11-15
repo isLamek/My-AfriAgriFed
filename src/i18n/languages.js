@@ -23,6 +23,14 @@ export const LANGUAGES = [
   // { code: "af", name: "Afrikaans", native: "Afrikaans", locale: "af-NA", status: "beta", plural: oneOrOther, mt: true },
 ];
 
+// A test language, only outside production builds: every catalog text is shown
+// wrapped like "[[Save]]". English left on a page WITHOUT the brackets is text that
+// was never moved into a catalog (see scripts/i18n/pseudo-scan.js and docs/I18N.md).
+export const PSEUDO = "pseudo";
+if (process.env.NODE_ENV !== "production") {
+  LANGUAGES.push({ code: PSEUDO, name: "Pseudo (testing)", native: "⟦Pseudo⟧", locale: "en-NA", status: "test", plural: oneOrOther, mt: false });
+}
+
 export const DEFAULT_LANGUAGE = "en";
 
 export const isSupported = (code) => LANGUAGES.some((l) => l.code === code);

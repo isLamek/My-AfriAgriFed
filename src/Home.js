@@ -19,6 +19,7 @@ import { backendConfigured } from "./apiBase";
 import farmersImg from "./images/farming.jpg";
 import consumersImg from "./images/consumers.jpg";
 import educatorsImg from "./images/educators.jpg";
+import { t, LanguageSwitcher } from "./i18n";
 
 // The assistant runs on the backend; until that is online the bubble stays a
 // greeting rather than a button that does nothing.
@@ -50,26 +51,26 @@ export default function Home() {
   const navigate = useNavigate();
 
   const heroCards = [
-    { title: "Farming Data", desc: "Agricultural insights", img: farmingImg },
-    { title: "Statistics", desc: "Real-time analytics", img: statisticsImg },
-    { title: "Promotion", desc: "Market products", img: promotionImg },
-    { title: "Programs", desc: "Training resources", img: programsImg }
+    { title: t("home.cardFarmingData"), desc: t("home.cardFarmingDataDesc"), img: farmingImg },
+    { title: t("home.cardStatistics"), desc: t("home.cardStatisticsDesc"), img: statisticsImg },
+    { title: t("home.cardPromotion"), desc: t("home.cardPromotionDesc"), img: promotionImg },
+    { title: t("home.cardPrograms"), desc: t("home.cardProgramsDesc"), img: programsImg }
   ];
 
   const sectionCards = [
   { 
-    title: "Farmers", 
-    desc: "Maximized interaction, connectivity to the market and educational resources to foster smooth upscaling.",
+    title: t("home.sectionFarmers"), 
+    desc: t("home.sectionFarmersDesc"),
     img: farmersImg 
   },
   { 
-    title: "Consumers", 
-    desc: "Direct connectivity of Farmers and producers with buyers for fresh produce, sustained production and efficient transactions.",
+    title: t("home.sectionConsumers"), 
+    desc: t("home.sectionConsumersDesc"),
     img: consumersImg 
   },
   { 
-    title: "Tertiary Institutions", 
-    desc: "Education resources, research data, training programs and solutions to problems towards boosting production.",
+    title: t("home.sectionInstitutions"), 
+    desc: t("home.sectionInstitutionsDesc"),
     img: educatorsImg 
   }
 ];
@@ -187,7 +188,7 @@ export default function Home() {
       gsap.set(headlineRef.current, { text: "" });
       tl.to(headlineRef.current, {
         duration: 2.5,
-        text: "Fighting Food Insecurity, One Connection at a Time",
+        text: t("home.headline"),
         ease: "none"
       });
     }
@@ -240,7 +241,7 @@ export default function Home() {
       aiTl.set(aiMessageRef.current, { text: "" })
          .to(aiMessageRef.current, {
            duration: 3,
-           text: "Hi, I am the AAF Assistant",
+           text: t("home.botHello"),
            ease: "none"
          })
          .to(aiMessageRef.current, {
@@ -256,7 +257,7 @@ export default function Home() {
          })
          .to(aiMessageRef.current, {
            duration: 3,
-           text: CHAT_ON ? "Tap me to ask a question" : "Coming soon to answer your questions",
+           text: CHAT_ON ? t("home.botTap") : t("home.botSoon"),
            ease: "none"
          });
     }
@@ -275,26 +276,27 @@ export default function Home() {
       {/* NAVBAR */}
       <nav ref={navRef} className="navbar">
         <div className="nav-links">
+          <LanguageSwitcher tone="dark" />
           <button
             ref={el => addToNavBtnRefs(el, 0)}
             className="nav-btn"
             onClick={handleRegisterClick}
           >
-            Register
+            {t("home.register")}
           </button>
           <button
             ref={el => addToNavBtnRefs(el, 1)}
             className="nav-btn"
             onClick={handleSignInClick}
           >
-            Sign In
+            {t("common.signIn")}
           </button>
           <button
             ref={el => addToNavBtnRefs(el, 2)}
             className="nav-btn primary"
             onClick={handleContactClick}
           >
-            Contact Us
+            {t("home.contactUs")}
           </button>
         </div>
       </nav>
@@ -309,7 +311,7 @@ export default function Home() {
               type="button"
               className="ai-bot-button"
               onClick={() => window.dispatchEvent(new Event(OPEN_CHAT_EVENT))}
-              aria-label="Open the AAF Assistant"
+              aria-label={t("home.openTheAafAssistant")}
             >
               <img
                 ref={aiBotRef}
@@ -319,7 +321,7 @@ export default function Home() {
               />
             </button>
           ) : (
-            <img ref={aiBotRef} src={aiBot} alt="AAF Assistant (coming soon)" className="ai-bot" />
+            <img ref={aiBotRef} src={aiBot} alt={t("home.aafAssistantComingSoon")} className="ai-bot" />
           )}
           <div className="ai-message" ref={aiMessageRef}></div>
         </div>
@@ -330,25 +332,25 @@ export default function Home() {
         {/* LOGO CONTAINER */}
         <div className="logo-container">
           <div className="logo-box" ref={logoRef}>
-            <img src={fullLogo} alt="AfriAgriFed - Digitalizing Africa's food security from African soil" className="hero-logo" />
+            <img src={fullLogo} alt={t("home.afriagrifedDigitalizingAfricaFoodSecurityFro")} className="hero-logo" />
           </div>
         </div>
 
         <h1 ref={headlineRef} className="hero-title">
-          Fighting Food Insecurity, One Connection at a Time
+          {t("home.fightingFoodInsecurityOneConnectionAt")}
         </h1>
 
         <p ref={subtitleRef} className="hero-subtitle">
-          AfriAgriFed combats Africa's food insecurity by boosting food production through data driven agricultural innovation.
+          {t("home.afriagrifedCombatsAfricaFoodInsecurityBy")}
         </p>
 
         {/* Prominent Call-to-Action Buttons */}
         <div className="cta-buttons">
           <button className="cta-btn primary" onClick={handleRegisterClick}>
-            Get Started - Register Now
+            {t("home.getStartedRegisterNow")}
           </button>
           <button className="cta-btn secondary" onClick={handleSignInClick}>
-            Sign In to Your Account
+            {t("home.signInToYourAccount")}
           </button>
         </div>
 
@@ -373,8 +375,8 @@ export default function Home() {
       {/* TARGET AUDIENCE SECTION */}
       <section ref={sectionRef} className="audience-section">
         <div className="section-header">
-          <h2>Our Target Audience</h2>
-            <p>Grouping producers, the market and educators into an agriculturally focused platform.</p>
+          <h2>{t("home.ourTargetAudience")}</h2>
+            <p>{t("home.groupingProducersTheMarketAndEducators")}</p>
         </div>
         
         <div className="section-cards">
@@ -400,53 +402,53 @@ export default function Home() {
       {/* CONTACT SECTION */}
       <section className="contact-section">
         <div className="section-header">
-          <h2>Contact Us</h2>
-          <p>Get in touch with our team for inquiries and support</p>
+          <h2>{t("home.contactUs")}</h2>
+          <p>{t("home.getInTouchWithOurTeam")}</p>
         </div>
 
         <div className="contact-container">
           <div className="contact-info">
-            <h3>Contact Information</h3>
+            <h3>{t("home.contactInformation")}</h3>
             <div className="contact-details">
               <div className="contact-item">
                 <div className="contact-icon"><Mail size={20} /></div>
                 <div>
-                  <h4>Email</h4>
-                  <p>afriagrifed@outlook.com</p>
+                  <h4>{t("home.email")}</h4>
+                  <p>{t("home.afriagrifedOutlookCom")}</p>
                 </div>
               </div>
               <div className="contact-item">
                 <div className="contact-icon"><Phone size={20} /></div>
                 <div>
-                  <h4>Phone</h4>
+                  <h4>{t("home.phone")}</h4>
                   <p>+264 81 778 6565</p>
                 </div>
               </div>
               <div className="contact-item">
                 <div className="contact-icon"><MapPin size={20} /></div>
                 <div>
-                  <h4>Location</h4>
-                  <p>Oshakati, Namibia</p>
+                  <h4>{t("home.location")}</h4>
+                  <p>{t("home.oshakatiNamibia")}</p>
                 </div>
               </div>
               <div className="contact-item">
                 <div className="contact-icon"><Clock size={20} /></div>
                 <div>
-                  <h4>Working Hours</h4>
-                  <p>Mon - Fri: 8:00 AM - 5:00 PM</p>
+                  <h4>{t("home.workingHours")}</h4>
+                  <p>{t("home.monFri800Am5")}</p>
                 </div>
               </div>
             </div>
           </div>
 
           <div className="contact-form-container">
-            <h3>Send us a Message</h3>
+            <h3>{t("home.sendUsMessage")}</h3>
             <form className="contact-form" onSubmit={handleSubmit}>
               <div className="form-group">
                 <input
                   type="text"
                   name="name"
-                  placeholder="Your Name"
+                  placeholder={t("home.yourName")}
                   value={formData.name}
                   onChange={handleInputChange}
                   required
@@ -456,7 +458,7 @@ export default function Home() {
                 <input
                   type="email"
                   name="email"
-                  placeholder="Your Email"
+                  placeholder={t("home.yourEmail")}
                   value={formData.email}
                   onChange={handleInputChange}
                   required
@@ -465,7 +467,7 @@ export default function Home() {
               <div className="form-group">
                 <textarea
                   name="message"
-                  placeholder="Your Message"
+                  placeholder={t("home.yourMessage")}
                   rows="5"
                   value={formData.message}
                   onChange={handleInputChange}
@@ -473,7 +475,7 @@ export default function Home() {
                 ></textarea>
               </div>
               <button type="submit" className="submit-btn" disabled={isSubmitted}>
-                {isSubmitted ? "Message Sent!" : "Send Message"}
+                {isSubmitted ? t("home.messageSent") : t("home.sendMessage")}
               </button>
             </form>
           </div>
@@ -483,11 +485,11 @@ export default function Home() {
       {/* FOOTER BANNER */}
       <footer className="footer-banner">
         <div className="footer-content">
-          <img src={footerLogo} alt="AfriAgriFed - Digitalizing Africa's food security from African soil" className="footer-brand-banner" loading="lazy" />
-          <p className="footer-tagline">Digitizing Namibia's Agricultural Landscape</p>
+          <img src={footerLogo} alt={t("home.afriagrifedDigitalizingAfricaFoodSecurityFro")} className="footer-brand-banner" loading="lazy" />
+          <p className="footer-tagline">{t("home.digitizingNamibiaAgriculturalLandscape")}</p>
 
           <div className="footer-social">
-            <p>Follow Us</p>
+            <p>{t("home.followUs")}</p>
             <div className="social-icons">
               <span className="social-icon"><FacebookIcon /></span>
               <span className="social-icon"><XIcon /></span>
@@ -498,7 +500,7 @@ export default function Home() {
         </div>
 
         <div className="footer-bottom">
-          <p>&copy; {new Date().getFullYear()} AfriAgriFed. All rights reserved.</p>
+          <p>&copy; {t("home.rights", { year: new Date().getFullYear() })}</p>
         </div>
       </footer>
     </div>

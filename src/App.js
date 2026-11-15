@@ -39,6 +39,7 @@ import AppErrorBoundary, { lazyWithReload } from "./AppErrorBoundary";
 import Legal from "./Legal";
 import CookieBanner from "./CookieBanner";
 import AIChat from "./AIChat";
+import { t } from "./i18n";
 
 // Lazy-loaded so the map library only downloads when someone opens the map.
 const MapPage = lazyWithReload(() => import("./MapPage"));
@@ -57,7 +58,7 @@ const isApprovedStatus = (userData) =>
 // clicked "Community Feed" in the menu lost their farmer menu.
 function RoleHome() {
   const { userType, profileLoaded } = useAccountContext("/dashboard");
-  if (!profileLoaded) return <p style={{ padding: 24 }}>Loading...</p>;
+  if (!profileLoaded) return <p style={{ padding: 24 }}>{t("common.loading")}</p>;
   if (userType === "institution") return <Navigate to="/institutiondashboard" replace />;
   return <ConsumerDashboard role={userType === "farmer" ? "farmer" : "consumer"} />;
 }
@@ -76,7 +77,7 @@ function ProtectedRoute({ children }) {
   }, []);
 
   if (checking) {
-    return <p>Checking account...</p>;
+    return <p>{t("app.checkingAccount")}</p>;
   }
 
   if (!user) {
@@ -115,7 +116,7 @@ function FarmerRoute({ children }) {
   }
 
   if (allowed === null) {
-    return <p>Checking farmer approval...</p>;
+    return <p>{t("app.checkingFarmerApproval")}</p>;
   }
 
   return allowed ? children : <Navigate to="/dashboard" replace />;
@@ -150,7 +151,7 @@ function InstitutionRoute({ children }) {
   }
 
   if (allowed === null) {
-    return <p>Checking institution approval...</p>;
+    return <p>{t("app.checkingInstitutionApproval")}</p>;
   }
 
   return allowed ? children : <Navigate to="/dashboard" replace />;
@@ -182,7 +183,7 @@ function AdminRoute({ children }) {
   }
 
   if (allowed === null) {
-    return <p>Checking admin...</p>;
+    return <p>{t("app.checkingAdmin")}</p>;
   }
 
   // Admin rights belong to an e-mail address, so the address must be proven first
@@ -192,8 +193,8 @@ function AdminRoute({ children }) {
       <VerifyEmailGate
         user={user}
         onVerified={() => refresh((n) => n + 1)}
-        title="Verify your e-mail to open the Admin area"
-        reason="Admin access is tied to your e-mail address, so we need to confirm it is yours."
+        title={t("app.verifyYourMailToOpenThe")}
+        reason={t("app.adminAccessIsTiedToYour")}
       />
     );
   }
@@ -306,7 +307,7 @@ function App() {
         path="/market-map"
         element={
           <ProtectedRoute>
-            <React.Suspense fallback={<p style={{ padding: 24 }}>Loading the market map…</p>}>
+            <React.Suspense fallback={<p style={{ padding: 24 }}>{t("app.loadingTheMarketMap")}</p>}>
               <MarketMap />
             </React.Suspense>
           </ProtectedRoute>
@@ -329,7 +330,7 @@ function App() {
         path="/map"
         element={
           <ProtectedRoute>
-            <React.Suspense fallback={<p style={{ padding: 24 }}>Loading map…</p>}>
+            <React.Suspense fallback={<p style={{ padding: 24 }}>{t("app.loadingMap")}</p>}>
               <MapPage />
             </React.Suspense>
           </ProtectedRoute>

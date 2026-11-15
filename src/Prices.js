@@ -8,6 +8,7 @@ import poultryImg from "./images/How to Raise Laying Hens - DIY Chicken Feed - E
 import cattleImg from "./images/dash-cattle.jpg";
 import vegetablesImg from "./images/farm3.jpg";
 import grainsImg from "./images/dash-grains.jpg";
+import { t, tv } from "./i18n";
 
 const producePrices = [
   {
@@ -55,14 +56,14 @@ export default function Prices() {
     <div className="prices-page">
       <header className="prices-header">
         <div>
-          <p className="eyebrow">Market averages</p>
-          <h1>Average Produce Prices</h1>
+          <p className="eyebrow">{t("prices.marketAverages")}</p>
+          <h1>{t("prices.averageProducePrices")}</h1>
         </div>
 
         <div className="prices-actions">
-          <button onClick={() => navigate(-1)}>Back</button>
+          <button onClick={() => navigate(-1)}>{t("common.back")}</button>
           <button className="primary" onClick={() => navigate("/profile")}>
-            Profile
+            {t("prices.profile")}
           </button>
         </div>
       </header>
@@ -70,11 +71,11 @@ export default function Prices() {
       <main className="prices-grid">
         {producePrices.map((item) => (
           <article className="produce-card" key={item.name}>
-            <img src={item.image} alt={item.name} />
+            <img src={item.image} alt={tv(item.name)} />
             <div className="produce-content">
-              <h2>{item.name}</h2>
+              <h2>{tv(item.name)}</h2>
               <p className="price-value">{item.averagePrice}</p>
-              <p>{item.unit}</p>
+              <p>{tv(item.unit)}</p>
             </div>
           </article>
         ))}

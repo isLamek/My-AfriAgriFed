@@ -13,6 +13,7 @@
 // every upload failed with "being set up". That is what option 2 fixes.
 
 import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
+import { t } from "./i18n";
 
 const CLOUD_NAME = (process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || "").trim();
 const UPLOAD_PRESET = (process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET || "").trim();
@@ -23,7 +24,7 @@ export const FILE_RULES = {
   image: {
     types: ["image/jpeg", "image/png", "image/webp", "image/gif", "image/heic", "image/heif"],
     maxBytes: 10 * MB,
-    describe: "a JPG, PNG, WebP or GIF photo",
+    describeKey: "cloudinary.describeImage",
   },
   document: {
     types: [
@@ -34,7 +35,7 @@ export const FILE_RULES = {
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ],
     maxBytes: 20 * MB,
-    describe: "a PDF, Word document, JPG or PNG",
+    describeKey: "cloudinary.describeDocument",
   },
 };
 
@@ -45,13 +46,15 @@ export const uploadsConfigured = () => API_BASE_URL !== "" || unsignedAvailable(
 
 /** Throws a readable error if the file is the wrong type or too big. */
 export function checkFile(file, kind = "image") {
-  if (!file) throw new Error("Choose a file first.");
+  if (!file) throw new Error(t("cloudinaryUpload.chooseFileFirst"));
   const rule = FILE_RULES[kind] || FILE_RULES.image;
   if (file.type && !rule.types.includes(file.type)) {
-    throw new Error(`"${file.name}" isn't supported. Please upload ${rule.describe}.`);
+    const error = new Error(t("cloudinary.unsupported", { name: file.name, what: t(rule.describeKey) }));
+    error.userError = true; // the person chose the wrong file: do not quietly try another route
+    throw error;
   }
   if (file.size > rule.maxBytes) {
-    throw new Error(`"${file.name}" is larger than ${Math.round(rule.maxBytes / MB)} MB. Please upload a smaller file.`);
+    throw new Error(t("cloudinary.tooBig", { name: file.name, mb: Math.round(rule.maxBytes / MB) }));
   }
 }
 
@@ -59,17 +62,17 @@ export function checkFile(file, kind = "image") {
 export const cleanFolder = (folder) =>
   String(folder || "uploads").replace(/[^A-Za-z0-9/_-]/g, "").replace(/\/{2,}/g, "/").replace(/^\/|\/$/g, "") || "uploads";
 
+// Cloudinary's own messages are always English; they are matched here and turned into
+// text in the reader's language. userError marks the cases that are the person's file
+// (too big, wrong type), as opposed to a setup problem we can work around.
 function friendlyCloudinaryError(message) {
   const text = String(message || "");
-  if (/upload preset/i.test(text)) {
-    return "Uploads are not set up correctly (the Cloudinary upload preset is missing or not unsigned). Please tell the AfriAgriFed team.";
-  }
-  if (/cloud_name|unknown api key|invalid cloud/i.test(text)) {
-    return "Uploads are not set up correctly (the Cloudinary cloud name is wrong). Please tell the AfriAgriFed team.";
-  }
-  if (/file size too large/i.test(text)) return "That file is too large. Please upload a smaller one.";
-  if (/invalid image file|unsupported/i.test(text)) return "That file type isn't supported. Please try a JPG, PNG or PDF.";
-  return text || "The upload failed. Please try again.";
+  const error = (key) => Object.assign(new Error(t(key)), { userError: key === "cloudinary.serverTooLarge" || key === "cloudinary.serverUnsupported" });
+  if (/upload preset/i.test(text)) return error("cloudinary.presetMissing");
+  if (/cloud_name|unknown api key|invalid cloud/i.test(text)) return error("cloudinary.cloudNameWrong");
+  if (/file size too large/i.test(text)) return error("cloudinary.serverTooLarge");
+  if (/invalid image file|unsupported/i.test(text)) return error("cloudinary.serverUnsupported");
+  return Object.assign(new Error(text || t("cloudinary.failed")), { userError: false });
 }
 
 async function sendToCloudinary(cloudName, resourceType, formData) {
@@ -83,7 +86,7 @@ async function sendToCloudinary(cloudName, resourceType, formData) {
   } catch {
     // Cloudinary always answers JSON; anything else is a network problem.
   }
-  if (!response.ok) throw new Error(friendlyCloudinaryError(data.error?.message));
+  if (!response.ok) throw friendlyCloudinaryError(data.error?.message);
   return data; // { secure_url, public_id, ... }
 }
 
@@ -98,7 +101,7 @@ async function signedUpload(file, folder, resourceType) {
     throw error;
   }
   if (!signatureResponse.ok) {
-    const error = new Error("The upload service is not responding. Please try again in a minute.");
+    const error = new Error(t("cloudinaryUpload.theUploadServiceIsNotResponding"));
     error.backendUnreachable = true;
     throw error;
   }

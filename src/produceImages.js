@@ -9,6 +9,7 @@ import cattleImg from "./images/dash-cattle.jpg";
 import vegetablesImg from "./images/farm3.jpg";
 import grainsImg from "./images/dash-grains.jpg";
 import marketImg from "./images/dash-market.jpg";
+import { t } from "./i18n";
 
 const RULES = [
   [/tomato/i, tomatoesImg],
@@ -41,7 +42,7 @@ export function exampleProducePhoto(product) {
 export function shrinkPhoto(file, { maxSide = 720, maxBytes = 120000 } = {}) {
   return new Promise((resolve, reject) => {
     if (!file || !/^image\//.test(file.type)) {
-      reject(new Error("Please choose a photo (JPG or PNG)."));
+      reject(new Error(t("produceImages.pleaseChoosePhotoJpgOrPng")));
       return;
     }
     const url = URL.createObjectURL(file);
@@ -59,12 +60,12 @@ export function shrinkPhoto(file, { maxSide = 720, maxBytes = 120000 } = {}) {
         quality -= 0.1;
         data = canvas.toDataURL("image/jpeg", quality);
       }
-      if (data.length > maxBytes) reject(new Error("That photo is too detailed to store. Please try a smaller one."));
+      if (data.length > maxBytes) reject(Object.assign(new Error(t("produceImages.thatPhotoIsTooDetailedTo")), { userError: true }));
       else resolve(data);
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      reject(new Error("That photo couldn't be read. Please try another."));
+      reject(new Error(t("produceImages.thatPhotoCouldnBeReadPlease")));
     };
     img.src = url;
   });

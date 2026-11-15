@@ -25,6 +25,7 @@ import {
   MessageCircle,
   MapPinned,
 } from "lucide-react";
+import { t } from "./i18n";
 
 const iconProps = { size: 18, strokeWidth: 2 };
 
@@ -33,45 +34,45 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
   const mainItems = [];
 
   if (userType === "institution") {
-    mainItems.push({ label: "Research Desk", icon: <Microscope {...iconProps} />, path: "/institutiondashboard" });
+    mainItems.push({ label: t("nav.researchDesk"), icon: <Microscope {...iconProps} />, path: "/institutiondashboard" });
   } else {
     // Consumers and farmers share the same dashboard component, with
     // Feed/Marketplace as in-page tabs rather than separate routes.
-    mainItems.push({ label: "Community Feed", hint: "Talk: news, photos, tips and questions", icon: <Newspaper {...iconProps} />, path: "/dashboard", state: { page: "feed" }, onClick: onFeedClick });
-    mainItems.push({ label: "Marketplace", hint: "Buy: ready-to-sell listings", icon: <ShoppingCart {...iconProps} />, path: "/dashboard", state: { page: "prices" }, onClick: onMarketplaceClick });
+    mainItems.push({ label: t("nav.communityFeed"), hint: t("nav.communityFeedHint"), icon: <Newspaper {...iconProps} />, path: "/dashboard", state: { page: "feed" }, onClick: onFeedClick });
+    mainItems.push({ label: t("nav.marketplace"), hint: t("nav.marketplaceHint"), icon: <ShoppingCart {...iconProps} />, path: "/dashboard", state: { page: "prices" }, onClick: onMarketplaceClick });
   }
 
-  mainItems.push({ label: "Demand Board", hint: "Request: buyers post bulk needs, producers pledge", icon: <MessageSquare {...iconProps} />, path: "/demand-board" });
-  mainItems.push({ label: "Market Map", hint: "Where produce is for sale and where it's wanted", icon: <MapPinned {...iconProps} />, path: "/market-map" });
+  mainItems.push({ label: t("nav.demandBoard"), hint: t("nav.demandBoardHint"), icon: <MessageSquare {...iconProps} />, path: "/demand-board" });
+  mainItems.push({ label: t("nav.marketMap"), hint: t("nav.marketMapHint"), icon: <MapPinned {...iconProps} />, path: "/market-map" });
 
   if (userType === "farmer") {
-    mainItems.push({ label: "My Listings", icon: <Tags {...iconProps} />, path: "/my-listings" });
+    mainItems.push({ label: t("nav.myListings"), icon: <Tags {...iconProps} />, path: "/my-listings" });
   }
 
-  mainItems.push({ label: "Research", icon: <BookOpen {...iconProps} />, path: "/research" });
+  mainItems.push({ label: t("nav.research"), icon: <BookOpen {...iconProps} />, path: "/research" });
 
   if (userType === "farmer" || userType === "institution") {
-    mainItems.push({ label: "Training Programs", icon: <GraduationCap {...iconProps} />, path: "/training" });
-    mainItems.push({ label: "Internships", icon: <Handshake {...iconProps} />, path: "/internships" });
+    mainItems.push({ label: t("nav.trainingPrograms"), icon: <GraduationCap {...iconProps} />, path: "/training" });
+    mainItems.push({ label: t("nav.internships"), icon: <Handshake {...iconProps} />, path: "/internships" });
   }
 
-  sections.push({ heading: "Workspace", items: mainItems });
+  sections.push({ heading: t("nav.workspace"), items: mainItems });
 
   sections.push({
-    heading: "Insights",
+    heading: t("nav.insights"),
     items: [
-      { label: "Weather Map", hint: "Live weather, satellite and fire hotspots", icon: <MapIcon {...iconProps} />, path: "/map" },
-      { label: "Data Dashboard", icon: <BarChart3 {...iconProps} />, path: "/data" },
-      { label: "Statistics", icon: <LineChart {...iconProps} />, path: "/statistics" },
-      { label: "Promotions", icon: <Megaphone {...iconProps} />, path: "/promotions" },
+      { label: t("nav.weatherMap"), hint: t("nav.weatherMapHint"), icon: <MapIcon {...iconProps} />, path: "/map" },
+      { label: t("nav.dataDashboard"), icon: <BarChart3 {...iconProps} />, path: "/data" },
+      { label: t("nav.statistics"), icon: <LineChart {...iconProps} />, path: "/statistics" },
+      { label: t("nav.promotions"), icon: <Megaphone {...iconProps} />, path: "/promotions" },
     ],
   });
 
   const accountItems = [
-    { label: "Messages", hint: "Private chats with buyers and sellers", icon: <MessageCircle {...iconProps} />, path: "/messages" },
-    { label: "Order Tracker", icon: <Truck {...iconProps} />, path: "/track-orders" },
-    { label: "My Orders", icon: <Receipt {...iconProps} />, path: "/my-orders" },
-    { label: "Profile", icon: <User {...iconProps} />, path: "/profile" },
+    { label: t("nav.messages"), hint: t("nav.messagesHint"), icon: <MessageCircle {...iconProps} />, path: "/messages" },
+    { label: t("nav.orderTracker"), icon: <Truck {...iconProps} />, path: "/track-orders" },
+    { label: t("nav.myOrders"), icon: <Receipt {...iconProps} />, path: "/my-orders" },
+    { label: t("nav.profile"), icon: <User {...iconProps} />, path: "/profile" },
   ];
 
   if (isAdmin) {
@@ -79,7 +80,7 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
     accountItems.push({ label: "Verification Queue", icon: <CheckCircle2 {...iconProps} />, path: "/admin" });
   }
 
-  sections.push({ heading: "Account", items: accountItems });
+  sections.push({ heading: t("nav.account"), items: accountItems });
 
   // Mark whichever item matches the current route as active.
   return sections.map((section) => ({

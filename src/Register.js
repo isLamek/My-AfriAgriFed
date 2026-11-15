@@ -28,6 +28,7 @@ import {
 
 import { uploadToCloudinary }
 from "./cloudinairyUpload";
+import { t, tRich, LanguageSwitcher } from "./i18n";
 
 
 
@@ -76,7 +77,7 @@ export default function Register({ onBackToHome, onNavigateToSignIn }) {
   };
 
   const handleContactClick = () => {
-    toast("Contact page coming soon!");
+    toast(t("register.contactPageComingSoon"));
   };
 
   const handleInputChange = (e) => {
@@ -98,28 +99,28 @@ export default function Register({ onBackToHome, onNavigateToSignIn }) {
   const validatePhase1 = () => {
     const newErrors = {};
     
-    if (!formData.userType) newErrors.userType = "Please select your account type";
-    if (!formData.firstName.trim()) newErrors.firstName = "First name is required";
-    if (!formData.lastName.trim()) newErrors.lastName = "Last name is required";
-    if (!formData.dob) newErrors.dob = "Date of birth is required";
-    else if (ageOn(formData.dob) < 18) newErrors.dob = "You must be 18 or older to create an account.";
-    if (!formData.nationality.trim()) newErrors.nationality = "Nationality is required";
-    if (!formData.gender) newErrors.gender = "Gender is required";
+    if (!formData.userType) newErrors.userType = t("register.pleaseSelectYourAccountType");
+    if (!formData.firstName.trim()) newErrors.firstName = t("register.firstNameIsRequired");
+    if (!formData.lastName.trim()) newErrors.lastName = t("register.lastNameIsRequired");
+    if (!formData.dob) newErrors.dob = t("register.dateOfBirthIsRequired");
+    else if (ageOn(formData.dob) < 18) newErrors.dob = t("register.youMustBe18OrOlder");
+    if (!formData.nationality.trim()) newErrors.nationality = t("register.nationalityIsRequired");
+    if (!formData.gender) newErrors.gender = t("register.genderIsRequired");
     if (!formData.personalEmail.trim()) {
-      newErrors.personalEmail = "Personal email is required";
+      newErrors.personalEmail = t("register.personalEmailIsRequired");
     } else if (!/\S+@\S+\.\S+/.test(formData.personalEmail)) {
-      newErrors.personalEmail = "Personal email is invalid";
+      newErrors.personalEmail = t("register.personalEmailIsInvalid");
     }
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = t("register.passwordIsRequired");
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = t("register.passwordMustBeAtLeast6");
     }
     if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = "Passwords do not match";
+      newErrors.confirmPassword = t("register.passwordsDoNotMatch");
     }
     if (!formData.agreedToTerms) {
-      newErrors.agreedToTerms = "Please agree to the Terms of service and Privacy policy to continue";
+      newErrors.agreedToTerms = t("register.pleaseAgreeToTheTermsOf");
     }
 
     setErrors(newErrors);
@@ -209,11 +210,11 @@ const handleSubmit = async (completeRegistration = false) => {
       const maxSize = 20 * 1024 * 1024;
 
       if (!allowedTypes.includes(file.type)) {
-        throw new Error(`Invalid file type: ${file.name}`);
+        throw new Error(t("register.invalidFileType", { name: file.name }));
       }
 
       if (file.size > maxSize) {
-        throw new Error(`File too large (max 20MB): ${file.name}`);
+        throw new Error(t("register.fileTooLarge", { name: file.name }));
       }
     };
 
@@ -304,7 +305,7 @@ const handleSubmit = async (completeRegistration = false) => {
 
     logTelemetryEvent(TELEMETRY_EVENTS.SIGN_UP, { userType: formData.userType });
 
-    toast.success("Registration successful!");
+    toast.success(t("register.registrationSuccessful"));
     handleHomeClick();
 
   } catch (error) {
@@ -315,7 +316,7 @@ const handleSubmit = async (completeRegistration = false) => {
       await user.delete().catch(() => {});
     }
 
-    toast.error(friendlyAuthError(error, "Registration failed. Please check your details and try again."));
+    toast.error(friendlyAuthError(error, t("register.failed")));
   } finally {
     setIsSubmitting(false);
   }
@@ -324,11 +325,11 @@ const handleSubmit = async (completeRegistration = false) => {
 
   const renderProgressSteps = () => {
     const steps = [
-      { number: 1, label: 'Personal Info' },
-      { number: 2, label: formData.userType === "farmer" ? "Farm Info" : 
-                        formData.userType === "institution" ? "Institution Info" : 
-                        formData.userType === "consumer" ? "Consumer Info" : "Additional Info" },
-      { number: 3, label: 'Documents' }
+      { number: 1, label: t("register.stepPersonal") },
+      { number: 2, label: formData.userType === "farmer" ? t("register.stepFarm") : 
+                        formData.userType === "institution" ? t("register.stepInstitution") : 
+                        formData.userType === "consumer" ? t("register.stepConsumer") : t("register.stepAdditional") },
+      { number: 3, label: t("register.stepDocuments") }
     ];
 
     return (
@@ -403,14 +404,15 @@ const handleSubmit = async (completeRegistration = false) => {
       {/* NAVBAR - Same as Homepage */}
       <nav className="navbar">
         <div className="nav-links desktop-nav">
+          <LanguageSwitcher tone="dark" />
           <button className="nav-btn" onClick={handleHomeClick}>
-            Home
+            {t("register.home")}
           </button>
           <button className="nav-btn" onClick={handleSignInClick}>
-            Sign In
+            {t("common.signIn")}
           </button>
           <button className="nav-btn primary" onClick={handleContactClick}>
-            Contact Us
+            {t("register.contactUs")}
           </button>
         </div>
       </nav>
@@ -423,7 +425,7 @@ const handleSubmit = async (completeRegistration = false) => {
             <span className="register-brand">AfriAgriFed</span>
           </div>
 
-          <h1 className="register-title">Create Your Account</h1>
+          <h1 className="register-title">{t("register.createYourAccount")}</h1>
 
           {/* Show progress steps only if not in questionnaire */}
           {currentStep !== "questionnaire" && renderProgressSteps()}
@@ -431,36 +433,36 @@ const handleSubmit = async (completeRegistration = false) => {
           {/* Phase 1: Personal Information */}
           {currentStep === 1 && (
             <div className="form-phase">
-              <h2>Personal Information</h2>
+              <h2>{t("register.personalInformation")}</h2>
               <div className="form-grid">
                 <div className="form-group">
-                  <label>First Name *</label>
+                  <label>{t("register.firstName")}</label>
                   <input
                     type="text"
                     name="firstName"
                     value={formData.firstName}
                     onChange={handleInputChange}
                     className={errors.firstName ? 'error' : ''}
-                    placeholder="Enter your first name"
+                    placeholder={t("register.enterYourFirstName")}
                   />
                   {errors.firstName && <span className="error-text">{errors.firstName}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label>Last Name *</label>
+                  <label>{t("register.lastName")}</label>
                   <input
                     type="text"
                     name="lastName"
                     value={formData.lastName}
                     onChange={handleInputChange}
                     className={errors.lastName ? 'error' : ''}
-                    placeholder="Enter your last name"
+                    placeholder={t("register.enterYourLastName")}
                   />
                   {errors.lastName && <span className="error-text">{errors.lastName}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label>Date of Birth *</label>
+                  <label>{t("register.dateOfBirth")}</label>
                   <input
                     type="date"
                     name="dob"
@@ -472,51 +474,51 @@ const handleSubmit = async (completeRegistration = false) => {
                 </div>
 
                 <div className="form-group">
-                  <label>Nationality *</label>
+                  <label>{t("register.nationality")}</label>
                   <input
                     type="text"
                     name="nationality"
                     value={formData.nationality}
                     onChange={handleInputChange}
                     className={errors.nationality ? 'error' : ''}
-                    placeholder="Your nationality"
+                    placeholder={t("register.yourNationality")}
                   />
                   {errors.nationality && <span className="error-text">{errors.nationality}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label>Gender *</label>
+                  <label>{t("register.gender")}</label>
                   <select
                     name="gender"
                     value={formData.gender}
                     onChange={handleInputChange}
                     className={errors.gender ? 'error' : ''}
                   >
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
+                    <option value="">{t("register.selectGender")}</option>
+                    <option value="male">{t("register.male")}</option>
+                    <option value="female">{t("register.female")}</option>
+                    <option value="other">{t("register.other")}</option>
                   </select>
                   {errors.gender && <span className="error-text">{errors.gender}</span>}
                 </div>
                 <div className="form-group full-width">
-                  <label>Account Type *</label>
+                  <label>{t("register.accountType")}</label>
                   <select
                     name="userType"
                     value={formData.userType}
                     onChange={handleInputChange}
                     className={errors.userType ? 'error' : ''}
                   >
-                    <option value="">Select Account Type</option>
-                    <option value="consumer">Consumer / Organization (supermarket, retailer, buyer)</option>
-                    <option value="farmer">Farmer</option>
-                    <option value="institution">Tertiary Institution</option>
+                    <option value="">{t("register.selectAccountType")}</option>
+                    <option value="consumer">{t("register.consumerOrganizationSupermarketRetailerBuyer")}</option>
+                    <option value="farmer">{t("register.farmer")}</option>
+                    <option value="institution">{t("register.tertiaryInstitution")}</option>
                   </select>
                   {errors.userType && <span className="error-text">{errors.userType}</span>}
                 </div>
 
                 <div className="form-group full-width">
-                  <label>Personal Email *</label>
+                  <label>{t("register.personalEmail")}</label>
                   <input
                     type="email"
                     name="personalEmail"
@@ -529,27 +531,27 @@ const handleSubmit = async (completeRegistration = false) => {
                 </div>
 
                 <div className="form-group">
-                  <label>Password *</label>
+                  <label>{t("register.password")}</label>
                   <input
                     type="password"
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
                     className={errors.password ? 'error' : ''}
-                    placeholder="Create a password"
+                    placeholder={t("register.createPassword")}
                   />
                   {errors.password && <span className="error-text">{errors.password}</span>}
                 </div>
 
                 <div className="form-group">
-                  <label>Confirm Password *</label>
+                  <label>{t("register.confirmPassword")}</label>
                   <input
                     type="password"
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleInputChange}
                     className={errors.confirmPassword ? 'error' : ''}
-                    placeholder="Confirm your password"
+                    placeholder={t("register.confirmYourPassword")}
                   />
                   {errors.confirmPassword && <span className="error-text">{errors.confirmPassword}</span>}
                 </div>
@@ -566,22 +568,23 @@ const handleSubmit = async (completeRegistration = false) => {
                         className={errors.agreedToTerms ? 'error' : ''}
                       />
                       <span>
-                        I have read and agree to the{" "}
-                        <Link to="/terms" target="_blank" rel="noopener">Terms of service</Link> and the{" "}
-                        <Link to="/privacy" target="_blank" rel="noopener">Privacy policy</Link>. *
+                        {tRich("register.agreeTerms", {
+                          terms: <Link to="/terms" target="_blank" rel="noopener">{t("register.termsOfService")}</Link>,
+                          privacy: <Link to="/privacy" target="_blank" rel="noopener">{t("register.privacyPolicy")}</Link>,
+                        })}
                       </span>
                     </label>
                     {errors.agreedToTerms && <span className="error-text">{errors.agreedToTerms}</span>}
                     
                     <div className="terms-content">
-                      <p><strong>Afriagrifed Terms and Conditions</strong></p>
-                      <p>Afriagrifed is committed to fighting food insecurity by creating genuine connections between farmers, consumers and education. By creating an account, you agree to:</p>
+                      <p><strong>{t("register.afriagrifedTermsAndConditions")}</strong></p>
+                      <p>{t("register.afriagrifedIsCommittedToFightingFood")}</p>
                       <ul>
-                        <li>Use the platform for its intended purpose of agricultural commerce and fighting food insecurity.</li>
-                        <li>Perform all transactions on the platform for capturing agricultural realistic data and to avoid scams.</li>
+                        <li>{t("register.useThePlatformForItsIntended")}</li>
+                        <li>{t("register.performAllTransactionsOnThePlatform")}</li>
                       </ul>
-                      <p><strong>Legal Compliance:</strong> You acknowledge that any fraudulent activities, scams, or attempts to deceive other users will result in immediate account suspension and may be reported to relevant law enforcement authorities. Afriagrifed reserves the right to cooperate fully with legal investigations and pursue criminal charges against individuals who misuse the platform.</p>
-                      <p><strong>Platform Mission:</strong> We are building a trusted community dedicated to sustainable agriculture and food security. Your commitment to honesty and integrity helps us achieve this mission.</p>
+                      <p><strong>{t("register.legalComplianceLabel")}</strong> {t("register.legalComplianceText")}</p>
+                      <p><strong>{t("register.missionLabel")}</strong> {t("register.missionText")}</p>
                     </div>
                   </div>
                 </div>
@@ -589,13 +592,13 @@ const handleSubmit = async (completeRegistration = false) => {
 
               <div className="form-actions">
                 <button className="btn-secondary" onClick={handleBack}>
-                  Back to Home
+                  {t("register.backToHome")}
                 </button>
                 <button className="btn-primary" onClick={handleNext}>
-                  Continue to {formData.userType === "consumer" ? "Registration" : 
-                              formData.userType === "farmer" ? "Farmer Questionnaire" : 
-                              formData.userType === "institution" ? "Institution Questionnaire" : 
-                              "Next Step"}
+                  {formData.userType === "consumer" ? t("register.continueRegistration") : 
+                              formData.userType === "farmer" ? t("register.continueFarmer") : 
+                              formData.userType === "institution" ? t("register.continueInstitution") : 
+                              t("register.continueNext")}
                 </button>
               </div>
             </div>
@@ -607,43 +610,43 @@ const handleSubmit = async (completeRegistration = false) => {
           {/* Phase 3: Document Upload */}
           {currentStep === 3 && (
             <div className="form-phase">
-              <h2>Document Verification</h2>
+              <h2>{t("register.documentVerification")}</h2>
               
               <p className="phase-description">
                 {formData.userType === "farmer" 
-                  ? "Upload the required documents to complete your farmer registration and get full access to all features."
+                  ? t("register.uploadTheRequiredDocumentsToComplete")
                   : formData.userType === "institution"
-                  ? "Upload the required documents to complete your institution registration."
-                  : "Upload documents for verification (optional for consumers)."}
+                  ? t("register.uploadTheRequiredDocumentsToComplete2")
+                  : t("register.uploadDocumentsForVerificationOptionalFor")}
               </p>
 
               {/* Verification Timeline */}
               <div className="verification-timeline">
                 <div className="timeline-item">
                   <div className="timeline-icon">
-                    <div className="icon-document">DOC</div>
+                    <div className="icon-document">{t("register.doc")}</div>
                   </div>
                   <div className="timeline-content">
-                    <h4>Document Submission</h4>
-                    <p>Upload all required documents below</p>
+                    <h4>{t("register.documentSubmission")}</h4>
+                    <p>{t("register.uploadAllRequiredDocumentsBelow")}</p>
                   </div>
                 </div>
                 <div className="timeline-item">
                   <div className="timeline-icon">
-                    <div className="icon-review">REV</div>
+                    <div className="icon-review">{t("register.rev")}</div>
                   </div>
                   <div className="timeline-content">
-                    <h4>Under Review (24 Hours)</h4>
-                    <p>Our team will verify your documents within 24 hours</p>
+                    <h4>{t("register.underReview24Hours")}</h4>
+                    <p>{t("register.ourTeamWillVerifyYourDocuments")}</p>
                   </div>
                 </div>
                 <div className="timeline-item">
                   <div className="timeline-icon">
-                    <div className="icon-verified">VER</div>
+                    <div className="icon-verified">{t("register.ver")}</div>
                   </div>
                   <div className="timeline-content">
-                    <h4>Account Fully Verified</h4>
-                    <p>Complete access to all platform features</p>
+                    <h4>{t("register.accountFullyVerified")}</h4>
+                    <p>{t("register.completeAccessToAllPlatformFeatures")}</p>
                   </div>
                 </div>
               </div>
@@ -651,8 +654,8 @@ const handleSubmit = async (completeRegistration = false) => {
               <div className="document-grid">
                 {/* Personal ID - Required for all */}
                 <div className="document-group">
-                  <label>Personal ID {formData.userType !== "consumer" ? "*" : ""}</label>
-                  <p className="document-hint">Government issued ID (Passport, Driver's License, etc.)</p>
+                  <label>{t("register.personalId")} {formData.userType !== "consumer" ? "*" : ""}</label>
+                  <p className="document-hint">{t("register.governmentIssuedIdPassportDriverLicense")}</p>
                   <input
                     type="file"
                     name="personalId"
@@ -672,8 +675,8 @@ const handleSubmit = async (completeRegistration = false) => {
                 {formData.userType === "farmer" && (
                   <>
                     <div className="document-group">
-                      <label>Proof of Registration *</label>
-                      <p className="document-hint">Business registration document</p>
+                      <label>{t("register.proofOfRegistration")}</label>
+                      <p className="document-hint">{t("register.businessRegistrationDocument")}</p>
                       <input
                         type="file"
                         name="proofOfRegistration"
@@ -690,8 +693,8 @@ const handleSubmit = async (completeRegistration = false) => {
                     </div>
 
                     <div className="document-group">
-                      <label>Business Certificate *</label>
-                      <p className="document-hint">Official business certification</p>
+                      <label>{t("register.businessCertificate")}</label>
+                      <p className="document-hint">{t("register.officialBusinessCertification")}</p>
                       <input
                         type="file"
                         name="businessCertificate"
@@ -708,8 +711,8 @@ const handleSubmit = async (completeRegistration = false) => {
                     </div>
 
                     <div className="document-group">
-                      <label>Last Month Bank Statement *</label>
-                      <p className="document-hint">Business bank statement</p>
+                      <label>{t("register.lastMonthBankStatement")}</label>
+                      <p className="document-hint">{t("register.businessBankStatement")}</p>
                       <input
                         type="file"
                         name="bankStatement"
@@ -729,8 +732,8 @@ const handleSubmit = async (completeRegistration = false) => {
 
                 {formData.userType === "institution" && (
                   <div className="document-group full-width">
-                    <label>Institution Certificate/Degree *</label>
-                    <p className="document-hint">Upload your academic institution proof</p>
+                    <label>{t("register.institutionCertificateDegree")}</label>
+                    <p className="document-hint">{t("register.uploadYourAcademicInstitutionProof")}</p>
                     <input
                       type="file"
                       name="educatorCertificate"
@@ -753,8 +756,8 @@ const handleSubmit = async (completeRegistration = false) => {
                 {/* For consumers, document upload is optional */}
                 {formData.userType === "consumer" && (
                   <div className="document-group">
-                    <label>Additional Verification (Optional)</label>
-                    <p className="document-hint">Any additional documents for verification</p>
+                    <label>{t("register.additionalVerificationOptional")}</label>
+                    <p className="document-hint">{t("register.anyAdditionalDocumentsForVerification")}</p>
                     <input
                       type="file"
                       name="proofOfRegistration"
@@ -767,7 +770,7 @@ const handleSubmit = async (completeRegistration = false) => {
 
               <div className="form-actions">
                 <button className="btn-secondary" onClick={handleBack}>
-                  Back
+                  {t("common.back")}
                 </button>
                 <div className="completion-options">
                  {formData.userType === "consumer" ? (
@@ -776,7 +779,7 @@ const handleSubmit = async (completeRegistration = false) => {
     onClick={() => handleSubmit(true)}
     disabled={isSubmitting}
   >
-    {isSubmitting ? "Registering..." : "Complete Registration"}
+    {isSubmitting ? t("register.registering") : t("register.completeRegistration")}
   </button>
 ) : (
   <button
@@ -784,19 +787,19 @@ const handleSubmit = async (completeRegistration = false) => {
     onClick={() => handleSubmit(false)}
     disabled={isSubmitting}
   >
-    {isSubmitting ? "Submitting..." : "Submit for Verification"}
+    {isSubmitting ? t("register.submitting") : t("register.submitForVerification")}
   </button>
 )}
                 </div>
               </div>
 
               <div className="registration-note">
-                <p><strong>Note:</strong> 
+                <p><strong>{t("register.note")}</strong> 
                   {formData.userType === "farmer" 
-                    ? " Your documents will be reviewed within 24 hours. Once verified, your account will have full access to all platform features. Registering as pending gives limited access until verification is complete."
+                    ? t("register.yourDocumentsWillBeReviewedWithin")
                     : formData.userType === "institution"
-                    ? " Your institution documents will be verified within 24 hours. Full access to educational and research features will be granted upon verification."
-                    : " Document verification is optional for consumers. Your account will be active immediately."}
+                    ? t("register.yourInstitutionDocumentsWillBeVerified")
+                    : t("register.documentVerificationIsOptionalForConsumers")}
                 </p>
               </div>
             </div>

@@ -8,6 +8,7 @@
 
 import { GRID, TTL } from "./config";
 import { directFallbackAllowed, serverConfigured, serverJson } from "./serverApi";
+import { t } from "../i18n";
 
 const STORAGE_KEY = "aaf_fv:grid:v2";
 let inflight = null;
@@ -104,7 +105,7 @@ export async function fetchNationalGrid() {
   inflight = loadRawGrid(points)
     .then((json) => {
       const list = Array.isArray(json) ? json : json.list;
-      if (list.length !== points.length) throw new Error("Weather service returned an incomplete grid");
+      if (list.length !== points.length) throw new Error(t("weatherGrid.weatherServiceReturnedAnIncompleteGrid"));
       const grid = buildGrid(list);
       memory = { grid, expires: Date.now() + TTL.grid };
       try {

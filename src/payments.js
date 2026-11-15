@@ -13,6 +13,7 @@ import { auth } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 
 import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
+import { t } from "./i18n";
 
 /** The backend's own words if it gave any, otherwise something plain. */
 function messageFrom(data, fallback) {
@@ -21,10 +22,10 @@ function messageFrom(data, fallback) {
 
 /** Call the backend as the signed-in user (anonymous visitors count: they have an identity too). */
 async function authedFetch(path, options = {}) {
-  if (!API_BASE_URL) throw new Error("Payments are being set up. Please try again soon."); // no backend configured yet
+  if (!API_BASE_URL) throw new Error(t("payments.paymentsAreBeingSetUpPlease")); // no backend configured yet
   await auth.authStateReady(); // on a fresh page load the session is restored asynchronously
   const user = auth.currentUser;
-  if (!user) throw new Error("Please sign in first.");
+  if (!user) throw new Error(t("payments.pleaseSignInFirst"));
   const token = await user.getIdToken();
 
   let response;
@@ -38,7 +39,7 @@ async function authedFetch(path, options = {}) {
       },
     });
   } catch {
-    throw new Error("Could not reach the payment service. Check your connection and try again.");
+    throw new Error(t("payments.couldNotReachThePaymentService"));
   }
 
   let data = null;
@@ -58,7 +59,7 @@ async function startPayment(body, telemetry) {
   });
 
   if (!response.ok || !data || !data.link) {
-    throw new Error(messageFrom(data, "Could not start payment."));
+    throw new Error(messageFrom(data, t("payments.couldNotStart")));
   }
 
   logTelemetryEvent(TELEMETRY_EVENTS.PAYMENT_INITIATED, telemetry);
@@ -71,7 +72,7 @@ async function startPayment(body, telemetry) {
  */
 export async function startCheckout({ listingId, quantity, product, sellerId }) {
   if (!auth.currentUser) {
-    toast.error("Please sign in before buying.");
+    toast.error(t("payments.pleaseSignInBeforeBuying"));
     return;
   }
   try {

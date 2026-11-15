@@ -3,6 +3,7 @@ import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 import InsightsFrame from "./InsightsFrame";
 import { demandBoard, formatQuantities, priceBoard } from "./insights";
+import { t } from "./i18n";
 
 // Collections read live. A feed that fails to load shows "-" instead of a
 // misleading zero.
@@ -45,17 +46,17 @@ export default function DataDashboard() {
 
   return (
     <InsightsFrame
-      eyebrow="Open to every sector"
-      title="Data Dashboard"
-      subtitle="What is happening on AfriAgriFed right now, counted straight from the platform."
+      eyebrow={t("data.openToEverySector")}
+      title={t("data.dataDashboard")}
+      subtitle={t("data.whatIsHappeningOnAfriagrifedRight")}
       activePath="/data"
     >
       <section className="stat-grid">
         <div className="stat-card highlight">
-          <span className="stat-label">Registered users</span>
+          <span className="stat-label">{t("data.registeredUsers")}</span>
           <span className="stat-value">{summary?.users ?? "-"}</span>
           <span className="stat-foot">
-            {summary?.updatedAt?.toDate ? `As of ${summary.updatedAt.toDate().toLocaleDateString()}` : "Updated when an admin opens the Admin Dashboard"}
+            {summary?.updatedAt?.toDate ? `As of ${summary.updatedAt.toDate().toLocaleDateString()}` : t("data.updatedWhenAnAdminOpensThe")}
           </span>
         </div>
         <Stat label="Marketplace listings" value={count("marketPrices")} />
@@ -67,81 +68,80 @@ export default function DataDashboard() {
 
       <div className="insight-split">
         <section className="aaf-card insight-panel">
-          <h2>Marketplace price board</h2>
-          <p>What producers are asking right now, per product and unit.</p>
+          <h2>{t("data.marketplacePriceBoard")}</h2>
+          <p>{t("data.whatProducersAreAskingRightNow")}</p>
           {feeds.marketPrices === undefined ? (
-            <p className="insight-empty">Loading...</p>
+            <p className="insight-empty">{t("common.loading")}</p>
           ) : prices.length === 0 ? (
-            <p className="insight-empty">No priced listings yet. They appear here as producers post to the marketplace.</p>
+            <p className="insight-empty">{t("data.noPricedListingsYetTheyAppear")}</p>
           ) : (
             <div className="insight-table-wrap">
               <table className="insight-table aaf-stack-table">
                 <thead>
                   <tr>
-                    <th>Product</th>
-                    <th>Unit</th>
-                    <th className="num">Listings</th>
-                    <th className="num">Lowest</th>
-                    <th className="num">Average</th>
-                    <th className="num">Highest</th>
+                    <th>{t("data.product")}</th>
+                    <th>{t("data.unit")}</th>
+                    <th className="num">{t("data.listings")}</th>
+                    <th className="num">{t("data.lowest")}</th>
+                    <th className="num">{t("data.average")}</th>
+                    <th className="num">{t("data.highest")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {prices.slice(0, 12).map((row) => (
                     <tr key={`${row.product}|${row.unit}`}>
-                      <td data-label="Product">{row.product}</td>
-                      <td data-label="Unit">{row.unit}</td>
-                      <td data-label="Listings" className="num">{row.listings}</td>
-                      <td data-label="Lowest" className="num">{money(row.min)}</td>
-                      <td data-label="Average" className="num">{money(row.avg)}</td>
-                      <td data-label="Highest" className="num">{money(row.max)}</td>
+                      <td data-label={t("data.product")}>{row.product}</td>
+                      <td data-label={t("data.unit")}>{row.unit}</td>
+                      <td data-label={t("data.listings")} className="num">{row.listings}</td>
+                      <td data-label={t("data.lowest")} className="num">{money(row.min)}</td>
+                      <td data-label={t("data.average")} className="num">{money(row.avg)}</td>
+                      <td data-label={t("data.highest")} className="num">{money(row.max)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-          <p className="insight-foot">Asking prices from listings, not completed sales. Prices in different units are never mixed.</p>
+          <p className="insight-foot">{t("data.askingPricesFromListingsNotCompleted")}</p>
         </section>
 
         <section className="aaf-card insight-panel">
-          <h2>What buyers are asking for</h2>
-          <p>Open requests on the Demand Board, by product.</p>
+          <h2>{t("data.whatBuyersAreAskingFor")}</h2>
+          <p>{t("data.openRequestsOnTheDemandBoard")}</p>
           {feeds.demandRequests === undefined ? (
-            <p className="insight-empty">Loading...</p>
+            <p className="insight-empty">{t("common.loading")}</p>
           ) : demand.topProducts.length === 0 ? (
-            <p className="insight-empty">No open requests right now.</p>
+            <p className="insight-empty">{t("data.noOpenRequestsRightNow")}</p>
           ) : (
             <div className="insight-table-wrap">
               <table className="insight-table aaf-stack-table">
                 <thead>
                   <tr>
-                    <th>Product</th>
-                    <th className="num">Requests</th>
-                    <th>Quantity wanted</th>
+                    <th>{t("data.product")}</th>
+                    <th className="num">{t("data.requests")}</th>
+                    <th>{t("data.quantityWanted")}</th>
                   </tr>
                 </thead>
                 <tbody>
                   {demand.topProducts.slice(0, 12).map((row) => (
                     <tr key={row.product}>
-                      <td data-label="Product">{row.product}</td>
-                      <td data-label="Requests" className="num">{row.requests}</td>
-                      <td data-label="Quantity wanted">{formatQuantities(row.quantities)}</td>
+                      <td data-label={t("data.product")}>{row.product}</td>
+                      <td data-label={t("data.requests")} className="num">{row.requests}</td>
+                      <td data-label={t("data.quantityWanted")}>{formatQuantities(row.quantities)}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           )}
-          <p className="insight-foot">Quantities are what buyers asked for, not what has been pledged or delivered.</p>
+          <p className="insight-foot">{t("data.quantitiesAreWhatBuyersAskedFor")}</p>
         </section>
       </div>
 
       <section className="aaf-card insight-panel">
-        <h2>How to read this</h2>
+        <h2>{t("data.howToReadThis")}</h2>
         <p>
-          Counts update live as people use the app. Completed sales and delivery data are not shown here yet; they will
-          be added once enough orders have gone through checkout to publish without identifying anyone.
+          {t("data.countsUpdateLiveAsPeopleUse")}
         </p>
       </section>
     </InsightsFrame>

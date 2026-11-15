@@ -10,6 +10,7 @@ import { friendlyAuthError } from "./authErrors";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
+import { t, tRich, LanguageSwitcher } from "./i18n";
 
 export default function SignIn() {
 const navigate = useNavigate()
@@ -45,10 +46,10 @@ const navigate = useNavigate()
   const newErrors = {};
 
   if (!formData.loginId)
-    newErrors.loginId = "Email is required";
+    newErrors.loginId = t("signIn.emailIsRequired");
 
   if (!formData.password)
-    newErrors.password = "Password is required";
+    newErrors.password = t("signIn.passwordIsRequired");
 
   if (Object.keys(newErrors).length) {
     setErrors(newErrors);
@@ -94,7 +95,7 @@ const navigate = useNavigate()
       if (approved) {
         navigate("/farmerdashboard");
       } else {
-        toast.error("Your farmer account is still awaiting admin approval.");
+        toast.error(t("signIn.yourFarmerAccountIsStillAwaiting"));
         await auth.signOut();
         navigate("/signin");
       }
@@ -109,7 +110,7 @@ const navigate = useNavigate()
       if (approved) {
         navigate("/institutiondashboard");
       } else {
-        toast.error("Your institution account is still awaiting admin approval.");
+        toast.error(t("signIn.yourInstitutionAccountIsStillAwaiting"));
         await auth.signOut();
         navigate("/signin");
       }
@@ -120,7 +121,7 @@ const navigate = useNavigate()
   } catch (err) {
     console.error(err);
 
-    toast.error(friendlyAuthError(err, "Login failed. Please try again."));
+    toast.error(friendlyAuthError(err, t("signIn.loginFailed")));
 
   } finally {
     setIsSubmitting(false);
@@ -132,11 +133,12 @@ const navigate = useNavigate()
     <div className="signin-page">
       <nav className="navbar">
         <div className="nav-links desktop-nav">
+          <LanguageSwitcher tone="dark" />
           <button className="nav-btn" onClick={handleHomeClick}>
-            Home
+            {t("signIn.home")}
           </button>
           <button className="nav-btn primary">
-            Contact Us
+            {t("signIn.contactUs")}
           </button>
         </div>
       </nav>
@@ -148,11 +150,11 @@ const navigate = useNavigate()
             <span className="signin-brand">AfriAgriFed</span>
           </div>
 
-          <h1 className="signin-title">Sign In</h1>
+          <h1 className="signin-title">{t("common.signIn")}</h1>
 
           <form onSubmit={handleSubmit} className="signin-form">
             <div className="form-group">
-              <label>Email *</label>
+              <label>{t("signIn.email")}</label>
               <input
                 type="email"
                 name="loginId"
@@ -164,7 +166,7 @@ const navigate = useNavigate()
             </div>
 
             <div className="form-group">
-              <label>Password *</label>
+              <label>{t("signIn.password")}</label>
               <input
                 type="password"
                 name="password"
@@ -176,22 +178,21 @@ const navigate = useNavigate()
             </div>
 
             <Link to="/forgot-password" className="signin-forgot-link">
-              Forgot password?
+              {t("signIn.forgotPassword")}
             </Link>
 
             <button className="btn-primary" disabled={isSubmitting}>
-              {isSubmitting ? "Signing In..." : "Sign In"}
+              {isSubmitting ? t("signIn.signingIn") : t("signIn.signIn")}
             </button>
           </form>
 
           <p className="signin-footnote">
-            Need an account? <Link to="/register">Register</Link>
+            {tRich("signIn.needAccount", { register: <Link to="/register">{t("common.register")}</Link> })}
             {process.env.NODE_ENV !== "production" && (
               <>
-                {" "}or use <Link to="/quick-access">Quick Access</Link> (development only)
+                {" "}{tRich("signIn.quickAccessDev", { link: <Link to="/quick-access">{t("quickAccess.quickAccess")}</Link> })}
               </>
             )}
-            .
           </p>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import React from "react";
-import { render } from "@testing-library/react";
-import { t, setLanguage, getLanguage, subscribe, hasKey, formatNumber, formatDate, STORAGE_KEY } from "./core";
+import { render, screen } from "@testing-library/react";
+import { t, tv, setLanguage, getLanguage, subscribe, hasKey, formatNumber, formatDate, STORAGE_KEY } from "./core";
 import { tRich } from "./rich";
 import { LANGUAGES } from "./languages";
 import { CATALOGS } from "./locales";
@@ -122,16 +122,40 @@ describe("choosing a language", () => {
   });
 });
 
+describe("tv(): showing a stored value in the visitor's language", () => {
+  beforeAll(() => {
+    CATALOGS.en["opt:Crop farming"] = "Crop farming";
+    CATALOGS.xx["opt:Crop farming"] = "Gewasboerdery";
+  });
+  afterAll(() => {
+    delete CATALOGS.en["opt:Crop farming"];
+  });
+
+  it("translates the label and leaves the value alone", () => {
+    const stored = "Crop farming";
+    setLanguage("xx");
+    expect(tv(stored)).toBe("Gewasboerdery");
+    expect(stored).toBe("Crop farming"); // what is saved to the database
+  });
+
+  it("shows a value that has no translation exactly as it is", () => {
+    setLanguage("xx");
+    expect(tv("Aquaculture farming")).toBe("Aquaculture farming");
+    expect(tv(undefined)).toBe("");
+    expect(tv(5)).toBe("5");
+  });
+});
+
 describe("tRich()", () => {
   it("puts elements where the placeholders are, in the language's own word order", () => {
     const terms = <a href="/terms">Terms</a>;
     const privacy = <a href="/privacy">Privacy</a>;
-    const { container, rerender } = render(<p>{tRich("test.link", { terms, privacy })}</p>);
-    expect(container.textContent).toBe("I agree to the Terms and the Privacy.");
-    expect(container.querySelectorAll("a")).toHaveLength(2);
+    const { rerender } = render(<p data-testid="line">{tRich("test.link", { terms, privacy })}</p>);
+    expect(screen.getByTestId("line").textContent).toBe("I agree to the Terms and the Privacy.");
+    expect(screen.getAllByRole("link", { hidden: true })).toHaveLength(2);
     setLanguage("xx");
-    rerender(<p>{tRich("test.link", { terms, privacy })}</p>);
-    expect(container.textContent).toBe("Ek stem in met die Terms en die Privacy.");
+    rerender(<p data-testid="line">{tRich("test.link", { terms, privacy })}</p>);
+    expect(screen.getByTestId("line").textContent).toBe("Ek stem in met die Terms en die Privacy.");
   });
 });
 
