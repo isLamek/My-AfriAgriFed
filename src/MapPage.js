@@ -17,6 +17,7 @@ import { fetchFeatures } from "./farmview/serverApi";
 import { auth } from "./firebaseConfig";
 import { subscribeFarms } from "./farms";
 import { BASEMAPS, NAMIBIA_BOUNDS, TIMEZONE, TOWNS, VIEWS, WEATHER_LAYERS } from "./farmview/config";
+import { mapLocale } from "./farmview/mapLocale";
 import { fetchClimate, fetchFlood, fetchPointWeather, fetchSpotNow } from "./farmview/dataClients";
 import { fetchNationalGrid, nowIndex } from "./farmview/weatherGrid";
 import { RAMPS, rampColor, rasterCoordinates, renderField } from "./farmview/fieldRaster";
@@ -26,7 +27,7 @@ import WindParticles from "./farmview/windParticles";
 import NoMapFallback, { supportsWebGL } from "./farmview/NoMapFallback";
 import { attachReadout } from "./farmview/cursorReadout";
 import "./MapPage.css";
-import { t, tv } from "./i18n";
+import { t, tv, formatDate } from "./i18n";
 
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==";
 const SAT_FRAMES = 12;
@@ -35,7 +36,7 @@ const framePadding = () =>
   window.innerWidth > 1100 ? { top: 24, right: 24, bottom: 70, left: 290 } : { top: 150, right: 12, bottom: 70, left: 12 };
 
 const formatLocal = (ms) =>
-  new Date(ms).toLocaleString("en-GB", { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: TIMEZONE }) + " CAT";
+  formatDate(ms, { weekday: "short", hour: "2-digit", minute: "2-digit", timeZone: TIMEZONE }) + " CAT";
 
 function bboxOf(geometry) {
   const polys = geometry.type === "Polygon" ? [geometry.coordinates] : geometry.coordinates;
@@ -146,6 +147,7 @@ export default function MapPage() {
     try {
       map = new maplibregl.Map({
       container: containerRef.current,
+      locale: mapLocale(),
       style: { version: 8, sources, layers },
       bounds: VIEWS.oshana.bounds,
       fitBoundsOptions: { padding: framePadding() },
@@ -592,7 +594,7 @@ export default function MapPage() {
     const ms = isSat ? frames[frameIdx] : new Date(grid.times[hourIdx]).getTime();
     timeLabel = formatLocal(ms);
     const diffMin = Math.round((ms - Date.now()) / 60000);
-    agoLabel = Math.abs(diffMin) < 8 ? "now" : diffMin < 0 ? `${Math.round(-diffMin / 6) / 10} h ago` : `in ${Math.round(diffMin / 6) / 10} h`;
+    agoLabel = Math.abs(diffMin) < 8 ? t("map.now") : diffMin < 0 ? t("map.hoursAgo", { hours: Math.round(-diffMin / 6) / 10 }) : t("map.inHours", { hours: Math.round(diffMin / 6) / 10 });
   }
 
   const selectedFarm = useMemo(() => farms.find((f) => f.id === selectedFarmId) || null, [farms, selectedFarmId]);

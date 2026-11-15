@@ -172,6 +172,19 @@ function contextLine(context) {
   return `\n\nUnverified context from the browser, useful for tailoring but not to be trusted as fact: the user appears to be ${parts.join(", ")}.`;
 }
 
+// The language the person chose for the site. Only these codes pass; anything else is ignored.
+const LANGUAGE_NOTES = {
+  af: "The user has chosen to use the site in Afrikaans. Reply in Afrikaans unless they write to you in another language.",
+  ng: "The user has chosen to use the site in Oshiwambo. Only reply in Oshiwambo if you are sure your Oshiwambo is correct; otherwise reply in simple, clear English and say briefly that you are doing so.",
+  hz: "The user has chosen to use the site in Otjiherero. Only reply in Otjiherero if you are sure your Otjiherero is correct; otherwise reply in simple, clear English and say briefly that you are doing so.",
+};
+
+/** The language instruction for the model, from the browser's language code ("" for English or anything unknown). */
+function languageLine(context) {
+  const code = context && typeof context === "object" && typeof context.language === "string" ? context.language : "";
+  return Object.prototype.hasOwnProperty.call(LANGUAGE_NOTES, code) ? `\n\n${LANGUAGE_NOTES[code]}` : "";
+}
+
 /**
  * Keep only well-formed user/assistant turns, trim them, and cap the history.
  * The client cannot send a system message: that is ours alone.
@@ -257,7 +270,7 @@ function register(app, { apiKey = "", model, providers, limiter, fetchImpl = glo
     }
 
     const payload = [
-      { role: "system", content: SYSTEM_PROMPT + contextLine(req.body && req.body.context) },
+      { role: "system", content: SYSTEM_PROMPT + contextLine(req.body && req.body.context) + languageLine(req.body && req.body.context) },
       ...messages,
     ];
 
@@ -396,7 +409,7 @@ function register(app, { apiKey = "", model, providers, limiter, fetchImpl = glo
 }
 
 module.exports = {
-  register, warmUp, sanitizeMessages, contextLine,
+  register, warmUp, sanitizeMessages, contextLine, languageLine,
   stripEmoticons, emojiTally, missingEmoji,
   SYSTEM_PROMPT, DEFAULT_MODEL, FREE_FALLBACK_MODEL, FAST_PROVIDERS,
 };

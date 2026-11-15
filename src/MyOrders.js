@@ -10,7 +10,7 @@ import NotificationBell from "./NotificationBell";
 import { normaliseStatus, STATUS_LABELS } from "./orderStatus";
 import { quantityText } from "./purchase";
 import "./MyOrders.css";
-import { t, tv } from "./i18n";
+import { t, tv, formatDate } from "./i18n";
 
 export default function MyOrders() {
   const navigate = useNavigate();
@@ -100,7 +100,7 @@ export default function MyOrders() {
                   <td data-label={t("orders.status")}>
                     <span className={`order-status ${normaliseStatus(order.status)}`}>{tv(STATUS_LABELS[normaliseStatus(order.status)])}</span>
                   </td>
-                  <td data-label={t("orders.date")}>{order.createdAt?.toDate ? order.createdAt.toDate().toLocaleDateString() : "—"}</td>
+                  <td data-label={t("orders.date")}>{order.createdAt?.toDate ? formatDate(order.createdAt.toDate()) : "—"}</td>
                   <td data-label={t("orders.reference")} className="order-ref">{order.transactionId}</td>
                   <td>
                     <button className="order-track" onClick={() => navigate("/track-orders")}>{t("orders.track")}</button>

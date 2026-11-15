@@ -14,7 +14,7 @@ import { auth, db } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import InsightsFrame from "./InsightsFrame";
 import "./Research.css";
-import { t } from "./i18n";
+import { t, tv } from "./i18n";
 
 export default function Research() {
   const [articles, setArticles] = useState([]);
@@ -172,7 +172,7 @@ export default function Research() {
           {articles[0] ? (
             <div className="research-lead-content">
               <div className="article-meta">
-                <span>{articles[0].category || t("research.research")}</span>
+                <span>{articles[0].category ? tv(articles[0].category) : t("research.research")}</span>
                 <span>{articles[0].sourceName || articles[0].authorEmail}</span>
               </div>
               <h2>{articles[0].title}</h2>
@@ -207,7 +207,7 @@ export default function Research() {
 
               <div>
                 <div className="article-meta">
-                  <span>{article.category || t("research.research")}</span>
+                  <span>{article.category ? tv(article.category) : t("research.research")}</span>
                   <span>{article.sourceName || article.authorEmail}</span>
                 </div>
                 <h3>{article.title}</h3>

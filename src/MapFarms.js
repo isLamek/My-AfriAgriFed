@@ -189,7 +189,7 @@ export function FarmDetails({ farm, onDeleted, fires }) {
       <h3>{farm.name}</h3>
       <p className="fv-muted">
         {farm.region ? t("mapDetails.regionName", { name: regionLabel(farm.region) }) : "Namibia"}
-        {farm.areaHa != null ? ` · ${farm.areaHa} ha` : ""}
+        {farm.areaHa != null ? ` · ${t("farms.hectares", { value: farm.areaHa })}` : ""}
         {cropNames.length ? ` · ${cropNames.join(", ")}` : ""}
       </p>
       {farm.notes && <p className="fv-muted">{farm.notes}</p>}

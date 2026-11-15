@@ -17,7 +17,7 @@ import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import InsightsFrame from "./InsightsFrame";
 import "./TrainingPrograms.css";
-import { t, tIn } from "./i18n";
+import { t, tv, tIn } from "./i18n";
 
 const emptyProgram = {
   title: "",
@@ -133,9 +133,9 @@ export default function TrainingPrograms() {
                 <label>
                   {t("training.mode")}
                   <select name="mode" value={formData.mode} onChange={handleChange}>
-                    <option>{t("training.inPerson")}</option>
-                    <option>{t("training.online")}</option>
-                    <option>{t("training.hybrid")}</option>
+                    <option value="In-person">{t("training.inPerson")}</option>
+                    <option value="Online">{t("training.online")}</option>
+                    <option value="Hybrid">{t("training.hybrid")}</option>
                   </select>
                 </label>
 
@@ -174,7 +174,7 @@ export default function TrainingPrograms() {
             programs.map((program) => (
               <article className="training-card" key={program.id}>
                 <div className="training-meta">
-                  <span>{program.mode}</span>
+                  <span>{tv(program.mode)}</span>
                   <span>{program.startDate}</span>
                 </div>
                 <h3>{program.title}</h3>

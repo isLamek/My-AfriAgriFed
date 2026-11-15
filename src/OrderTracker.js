@@ -21,11 +21,11 @@ import {
   waitingOn,
 } from "./orderStatus";
 import "./OrderTracker.css";
-import { t, tv } from "./i18n";
+import { t, tv, formatDate } from "./i18n";
 
 const formatWhen = (ms) =>
   ms
-    ? new Date(ms).toLocaleString(undefined, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
+    ? formatDate(ms, { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })
     : "";
 
 const createdMs = (order) => (order.createdAt?.toDate ? order.createdAt.toDate().getTime() : 0);
@@ -56,7 +56,7 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
             {" · "}
             {quantityText(order) ? `${quantityText(order)} · ` : ""}
             {order.currency || "NAD"} {order.amount}
-            {createdMs(order) ? ` · ${new Date(createdMs(order)).toLocaleDateString()}` : ""}
+            {createdMs(order) ? ` · ${formatDate(createdMs(order))}` : ""}
           </p>
         </div>
         <div className="ot-head-side">
@@ -122,7 +122,7 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
                 <li key={`${h.status}-${h.at}-${i}`}>
                   <strong>{tv(STATUS_LABELS[normaliseStatus(h.status)])}</strong>
                   <span>{formatWhen(h.at)}</span>
-                  {h.note && <em>“{h.note}”</em>}
+                  {h.note && <em>“{tv(h.note)}”</em>}
                 </li>
               ))}
             </ul>

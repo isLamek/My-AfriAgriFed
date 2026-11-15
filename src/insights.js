@@ -1,6 +1,8 @@
 // Numbers for the Data and Statistics dashboards, computed from the same
 // documents the rest of the app uses. Pure functions so they can be tested.
 
+import { tv, formatNumber } from "./i18n";
+
 const num = (v) => {
   const n = typeof v === "number" ? v : parseFloat(v);
   return Number.isFinite(n) ? n : null;
@@ -65,7 +67,7 @@ export function demandBoard(demands) {
 
 export const formatQuantities = (quantities) =>
   Object.entries(quantities || {})
-    .map(([unit, qty]) => `${Number(qty).toLocaleString()} ${unit}`)
+    .map(([unit, qty]) => `${formatNumber(Number(qty))} ${tv(unit)}`)
     .join(" + ");
 
 const dayKey = (date) => {

@@ -2,7 +2,7 @@
 // they can be tested. The server enforces the same limits when it prices an
 // order (server/checkout.js); this only drives what the buyer sees.
 
-import { t, tv } from "./i18n";
+import { t, tv, formatNumber } from "./i18n";
 
 export const MAX_QUANTITY = 1000;
 export const LOW_STOCK_AT = 5;
@@ -37,7 +37,7 @@ export function stockLabel(listing) {
 // Whole amounts as N$50, amounts with cents as N$226.50 (never N$226.5).
 export const formatNad = (n) => {
   const cents = Number.isInteger(Number(n)) ? 0 : 2;
-  return `N$${Number(n).toLocaleString(undefined, { minimumFractionDigits: cents, maximumFractionDigits: 2 })}`;
+  return `N$${formatNumber(Number(n), { minimumFractionDigits: cents, maximumFractionDigits: 2 })}`;
 };
 
 /** "3 kg" / "3" for an order line. */

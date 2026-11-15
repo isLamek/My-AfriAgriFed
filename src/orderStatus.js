@@ -11,6 +11,8 @@
 //
 // Pure functions only - no Firebase - so they are easy to test.
 
+import { t } from "./i18n";
+
 export const ORDER_STEPS = [
   { id: "paid", label: "Paid", detail: "Payment received" },
   { id: "confirmed", label: "Confirmed", detail: "Seller accepted the order" },
@@ -122,13 +124,13 @@ export function needsAttention(order) {
 export function waitingOn(order) {
   switch (normaliseStatus(order?.status)) {
     case "paid":
-      return "Waiting for the seller to confirm";
+      return t("orderStatus.waitConfirm");
     case "confirmed":
-      return "Waiting for the seller to dispatch";
+      return t("orderStatus.waitDispatch");
     case "dispatched":
-      return "Waiting for the seller to start delivery, or the buyer to confirm receipt";
+      return t("orderStatus.waitStart");
     case "in_transit":
-      return "Waiting for the buyer to confirm delivery";
+      return t("orderStatus.waitDelivery");
     default:
       return "";
   }

@@ -6,9 +6,10 @@ import { chatWith } from "./chat";
 import { maskContactInfo } from "./contactGuard";
 import { exampleProducePhoto, fallBackToExample } from "./produceImages";
 import { formatRelativeTime } from "./timeFormat";
-import { t } from "./i18n";
+import { t, tv, formatNumber } from "./i18n";
+import { displayPlace } from "./marketLocation";
 
-const money = (n) => `N$${Number(n || 0).toLocaleString("en-NA", { maximumFractionDigits: 2 })}`;
+const money = (n) => `N$${formatNumber(Number(n || 0), { maximumFractionDigits: 2 })}`;
 
 /**
  * A listing or a Demand Board request shown in the Community Feed. It looks
@@ -48,15 +49,19 @@ export default function FeedMarketCard({ item, onOpenMarketplace }) {
           <h4>{title}</h4>
           <p className="feed-market-line">
             {sale
-              ? `${money(d.price)} / ${d.unit || "kg"}${d.quantity != null ? ` · ${d.quantity} available` : ""}`
-              : `${d.quantityNeeded} ${d.unit} needed${d.deadline ? ` by ${d.deadline}` : ""}`}
+              ? `${money(d.price)} / ${tv(d.unit || "kg")}${d.quantity != null ? ` · ${t("purchase.available", { count: d.quantity })}` : ""}`
+              : d.deadline
+              ? t("marketMap.neededBy", { quantity: d.quantityNeeded, unit: tv(d.unit), date: d.deadline })
+              : t("marketMap.needed", { quantity: d.quantityNeeded, unit: tv(d.unit) })}
           </p>
           {!sale && d.notes && <p className="feed-market-notes">{maskContactInfo(d.notes).slice(0, 160)}</p>}
           <p className="feed-market-who">
-            {sale ? t("marketCard.soldBy") : t("marketCard.requestedBy")} {mine ? "you" : ownerName}
+            {sale
+              ? mine ? t("marketCard.soldByYou") : t("marketCard.soldByName", { name: ownerName })
+              : mine ? t("marketCard.requestedByYou") : t("marketCard.requestedByName", { name: ownerName })}
             {d.location?.label && (
               <span>
-                <MapPin size={12} /> {d.location.label}
+                <MapPin size={12} /> {displayPlace(d.location.label)}
               </span>
             )}
           </p>

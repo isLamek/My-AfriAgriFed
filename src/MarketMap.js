@@ -11,6 +11,7 @@ import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import { chatWith } from "./chat";
 import { BASEMAPS, NAMIBIA_BOUNDS, VIEWS } from "./farmview/config";
+import { mapLocale } from "./farmview/mapLocale";
 import { supportsWebGL } from "./farmview/NoMapFallback";
 import { displayPlace, validLocation } from "./marketLocation";
 import { maskContactInfo } from "./contactGuard";
@@ -70,7 +71,9 @@ function PinCard({ group, onClose }) {
                 </span>
               )}
               {item.kind === "wanted" && d.notes && <span className="mm-notes">{maskContactInfo(d.notes).slice(0, 140)}</span>}
-              <span className="mm-owner">{item.kind === "sale" ? t("marketMap.soldBy") : t("marketMap.requestedBy")} {mine ? "you" : item.ownerName || t("marketMap.member")}</span>
+              <span className="mm-owner">{item.kind === "sale"
+                ? mine ? t("marketMap.soldByYou") : t("marketMap.soldByName", { name: item.ownerName || t("marketMap.member") })
+                : mine ? t("marketMap.requestedByYou") : t("marketMap.requestedByName", { name: item.ownerName || t("marketMap.member") })}</span>
               <div className="mm-actions">
                 {item.kind === "sale" ? (
                   <button type="button" className="aaf-btn aaf-btn-primary aaf-btn-sm" onClick={() => navigate("/dashboard", { state: { page: "prices" } })}>
@@ -140,6 +143,7 @@ export default function MarketMap() {
     try {
       map = new maplibregl.Map({
         container: containerRef.current,
+        locale: mapLocale(),
         style: {
           version: 8,
           sources: { streets: { type: "raster", tiles: BASEMAPS.streets.tiles, tileSize: 256, maxzoom: BASEMAPS.streets.maxzoom, attribution: BASEMAPS.streets.attribution } },

@@ -217,7 +217,7 @@ export default function DemandBoard() {
             </label>
             <div className="demand-form-notes">
               <LocationPicker
-                label="Deliver to (optional, puts a pin on the Market Map)"
+                label={t("demand.deliverTo")}
                 value={formData.location}
                 onChange={(location) => setFormData((prev) => ({ ...prev, location }))}
               />

@@ -19,18 +19,24 @@ import {
 } from "./publicProfile";
 import seedMark from "./images/seed-mark.png";
 import "./Profile.css";
-import { t, tv, joinAnd } from "./i18n";
+import { t, tv, joinAnd, formatDateTime, hasKey } from "./i18n";
 
+const humanise = (key) => key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
+
+// Saved answers are stored under English field names (mainCrops, nationality...);
+// the label comes from the language files, or a spaced-out version of the name.
 function formatLabel(key) {
-  return key.replace(/([A-Z])/g, " $1").replace(/^./, (c) => c.toUpperCase());
+  return hasKey("en", `field.${key}`) ? t(`field.${key}`) : humanise(key);
 }
+
+const genderLabel = (value) => (["male", "female", "other"].includes(value) ? t(`profile.${value}`) : humanise(String(value)));
 
 function formatValue(value) {
   if (value === null || value === undefined || value === "") return t("profile.notProvided");
-  if (typeof value?.toDate === "function") return value.toDate().toLocaleString();
-  if (Array.isArray(value)) return value.length ? value.join(", ") : t("profile.notProvided");
+  if (typeof value?.toDate === "function") return formatDateTime(value.toDate());
+  if (Array.isArray(value)) return value.length ? value.map((v) => tv(v)).join(", ") : t("profile.notProvided");
   if (typeof value === "object") return null;
-  return String(value);
+  return tv(value); // answers such as "Local markets" are stored in English; the list is in the catalog
 }
 
 function InfoGrid({ data }) {
@@ -484,7 +490,7 @@ export default function Profile() {
               <div className="profile-field"><span>{t("profile.name")}</span><strong>{[info.firstName, info.lastName].filter(Boolean).join(" ") || t("profile.notProvided")}</strong></div>
               <div className="profile-field"><span>{t("profile.mail")}</span><strong>{user?.email}</strong></div>
               <div className="profile-field"><span>{t("profile.nationality")}</span><strong>{info.nationality || t("profile.notProvided")}</strong></div>
-              <div className="profile-field"><span>{t("profile.gender")}</span><strong>{info.gender ? formatLabel(info.gender) : t("profile.notProvided")}</strong></div>
+              <div className="profile-field"><span>{t("profile.gender")}</span><strong>{info.gender ? genderLabel(info.gender) : t("profile.notProvided")}</strong></div>
             </div>
           </section>
 

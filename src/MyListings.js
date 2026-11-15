@@ -27,7 +27,8 @@ import "./MyListings.css";
 import "./MyOrders.css";
 import LocationPicker from "./LocationPicker";
 import { shrinkPhoto } from "./produceImages";
-import { t } from "./i18n";
+import { t, tv, formatDate } from "./i18n";
+import { STATUS_LABELS, normaliseStatus } from "./orderStatus";
 
 const API_URL = API_BASE_URL;
 const emptyListing = { product: "", price: "", unit: "kg", quantity: "", location: null };
@@ -403,11 +404,11 @@ export default function MyListings() {
               <div>
                 <h4>{listing.product}</h4>
                 <p className="listing-price">
-                  N${listing.price} <span>/ {listing.unit || "kg"}</span>
+                  N${listing.price} <span>/ {tv(listing.unit || "kg")}</span>
                 </p>
                 {listing.quantity != null && (
                   <p className={`listing-qty ${listing.quantity <= 0 ? "sold-out" : ""}`}>
-                    {listing.quantity <= 0 ? t("listings.soldOutEditTheQuantityTo") : `${listing.quantity} available`}
+                    {listing.quantity <= 0 ? t("listings.soldOutEditTheQuantityTo") : t("purchase.available", { count: listing.quantity })}
                   </p>
                 )}
               </div>
@@ -447,9 +448,9 @@ export default function MyListings() {
                     {sale.currency || "NAD"} {sale.amount}
                   </td>
                   <td>
-                    <span className={`order-status ${sale.status}`}>{sale.status}</span>
+                    <span className={`order-status ${sale.status}`}>{tv(STATUS_LABELS[normaliseStatus(sale.status)])}</span>
                   </td>
-                  <td>{sale.createdAt?.toDate ? sale.createdAt.toDate().toLocaleDateString() : "—"}</td>
+                  <td>{sale.createdAt?.toDate ? formatDate(sale.createdAt.toDate()) : "—"}</td>
                 </tr>
               ))}
             </tbody>

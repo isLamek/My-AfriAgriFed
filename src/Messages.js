@@ -107,7 +107,7 @@ function Thread({ conversation, me, onBack }) {
         {(messages || []).map((m) => (
           <div key={m.id} className={`msg-bubble ${m.senderId === me.uid ? "mine" : ""}`}>
             <p>{maskContactInfo(m.text)}</p>
-            <time>{formatRelativeTime(toMillis(m.createdAt)) || "sending..."}</time>
+            <time>{formatRelativeTime(toMillis(m.createdAt)) || t("messages.sending")}</time>
           </div>
         ))}
         <div ref={endRef} />
@@ -193,7 +193,7 @@ export default function Messages() {
                       <time>{formatRelativeTime(toMillis(c.lastMessageAt || c.createdAt))}</time>
                     </span>
                     <span className="msg-row-topic">
-                      {TOPIC_LABEL[c.topic?.kind] || t("messages.about")}: {c.topic?.title}
+                      {tv(TOPIC_LABEL[c.topic?.kind]) || t("messages.about")}: {c.topic?.title}
                     </span>
                     <span className="msg-row-last">
                       {unread && <span className="msg-dot" aria-label={t("messages.unread")} />}

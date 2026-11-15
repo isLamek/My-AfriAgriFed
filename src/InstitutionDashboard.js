@@ -21,7 +21,7 @@ import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import toast from "react-hot-toast";
 import "./InstitutionDashboard.css";
-import { t } from "./i18n";
+import { t, tv, tIn } from "./i18n";
 
 const emptyArticle = {
   title: "",
@@ -82,7 +82,7 @@ export default function InstitutionDashboard() {
   const startResponse = (problem) => {
     setRespondingTo(problem);
     setFormData({
-      title: `Recommendation: ${problem.title}`,
+      title: tIn("en", "institution.recommendation", { title: problem.title }), // stored text: English
       summary: "",
       category: "Field Trial",
       sourceName: "",
@@ -177,7 +177,7 @@ export default function InstitutionDashboard() {
       event.target.reset();
     } catch (error) {
       console.error(error);
-      toast.error("Could not publish research article: " + error.message);
+      toast.error(t("institution.couldNotPublish", { error: error.message }));
     } finally {
       setPublishing(false);
     }
@@ -215,7 +215,7 @@ export default function InstitutionDashboard() {
               <div className="farmer-problem-card" key={problem.id}>
                 <strong>{problem.title}</strong>
                 <p>{problem.description}</p>
-                <span className="problem-farmer">From {problem.farmerName}</span>
+                <span className="problem-farmer">{t("institution.fromName", { name: problem.farmerName })}</span>
                 <button onClick={() => startResponse(problem)}>{t("institution.respondWithResearch")}</button>
               </div>
             ))}
@@ -225,7 +225,7 @@ export default function InstitutionDashboard() {
 
       <main className="institution-layout">
         <section className="research-publisher aaf-card">
-          <h2>{respondingTo ? `Respond to: ${respondingTo.title}` : t("institution.uploadResearch")}</h2>
+          <h2>{respondingTo ? t("institution.respondTo", { title: respondingTo.title }) : t("institution.uploadResearch")}</h2>
           {respondingTo && (
             <button type="button" className="cancel-response-btn" onClick={() => {
               setRespondingTo(null);
@@ -265,11 +265,11 @@ export default function InstitutionDashboard() {
                   value={formData.category}
                   onChange={handleChange}
                 >
-                  <option>{t("institution.research")}</option>
-                  <option>{t("institution.fieldTrial")}</option>
-                  <option>{t("institution.marketInsight")}</option>
-                  <option>{t("institution.climate")}</option>
-                  <option>{t("institution.training")}</option>
+                  <option value="Research">{t("institution.research")}</option>
+                  <option value="Field Trial">{t("institution.fieldTrial")}</option>
+                  <option value="Market Insight">{t("institution.marketInsight")}</option>
+                  <option value="Climate">{t("institution.climate")}</option>
+                  <option value="Training">{t("institution.training")}</option>
                 </select>
               </label>
 
@@ -338,7 +338,7 @@ export default function InstitutionDashboard() {
 
                 <div className="research-card-content">
                   <div className="article-meta">
-                    <span>{article.category || t("institution.research")}</span>
+                    <span>{article.category ? tv(article.category) : t("institution.research")}</span>
                     <span>{article.sourceName || article.authorEmail}</span>
                   </div>
 

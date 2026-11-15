@@ -11,7 +11,7 @@ import { useLocation } from "react-router-dom";
 import { MessageCircle, X, Send, RotateCcw } from "lucide-react";
 import { API_BASE_URL, backendConfigured } from "./apiBase";
 import "./AIChat.css";
-import { t } from "./i18n";
+import { t, getLanguage } from "./i18n";
 
 // Any component can open the chat: window.dispatchEvent(new Event(OPEN_CHAT_EVENT)).
 // The home page's bot bubble uses this.
@@ -20,18 +20,11 @@ export const OPEN_CHAT_EVENT = "aaf:open-chat";
 const STORAGE_KEY = "aaf.chat.history";
 const MAX_INPUT = 2000;
 
-const GREETING =
-  "Hello, I am the AAF Assistant. \u{1F642} I can explain how AfriAgriFed works - listings, the Demand Board, " +
-  "orders, payments, verification - and answer practical farming questions for Namibian conditions. " +
-  "What do you need? \u{1F33F}";
+// Read when shown (not when this file loads) so they follow the chosen language.
+const greeting = () => t("aiChat.greeting");
 
 // Deliberately the questions people actually arrive with.
-const SUGGESTIONS = [
-  "How do I sell my produce here?",
-  "I need 200 kg of onions every month",
-  "What does AfriAgriFed charge?",
-  "Which crops suit my region?",
-];
+const suggestions = () => [t("aiChat.suggestSell"), t("aiChat.suggestOnions"), t("aiChat.suggestCharge"), t("aiChat.suggestCrops")];
 
 /** Conversation is kept for the tab only: a shared computer should not keep it. */
 function loadHistory() {
@@ -215,14 +208,14 @@ export default function AIChat({ userType }) {
           signal: controller.signal,
           body: JSON.stringify({
             messages: history,
-            context: { userType, page: window.location.pathname },
+            context: { userType, page: window.location.pathname, language: getLanguage() },
           }),
         });
 
         if (!res.ok || !res.body) {
           const body = await res.json().catch(() => ({}));
           if (res.status === 503) setUnavailable(true);
-          throw new Error(body.message || "The assistant is temporarily unavailable.");
+          throw new Error(body.message || t("aiChat.unavailable"));
         }
 
         const reader = res.body.getReader();
@@ -341,10 +334,10 @@ export default function AIChat({ userType }) {
             {messages.length === 0 && (
               <>
                 <div className="aaf-chat-msg assistant">
-                  <p>{GREETING}</p>
+                  <p>{greeting()}</p>
                 </div>
                 <div className="aaf-chat-suggestions">
-                  {SUGGESTIONS.map((s) => (
+                  {suggestions().map((s) => (
                     <button key={s} type="button" onClick={() => send(s)} disabled={streaming || revealing || unavailable}>
                       {s}
                     </button>

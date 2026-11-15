@@ -187,7 +187,7 @@ const navigate = useNavigate()
           </form>
 
           <p className="signin-footnote">
-            {tRich("signIn.needAccount", { register: <Link to="/register">{t("common.register")}</Link> })}
+            {tRich("signIn.needAccount", { register: <Link to="/register">{t("home.register")}</Link> })}
             {process.env.NODE_ENV !== "production" && (
               <>
                 {" "}{tRich("signIn.quickAccessDev", { link: <Link to="/quick-access">{t("quickAccess.quickAccess")}</Link> })}

@@ -3,13 +3,13 @@ import { collection, doc, getDoc, onSnapshot } from "firebase/firestore";
 import { db } from "./firebaseConfig";
 import InsightsFrame from "./InsightsFrame";
 import { demandBoard, formatQuantities, priceBoard } from "./insights";
-import { t } from "./i18n";
+import { t, tv, formatNumber, formatDate } from "./i18n";
 
 // Collections read live. A feed that fails to load shows "-" instead of a
 // misleading zero.
 const FEEDS = ["marketPrices", "demandRequests", "institutionResearchArticles", "trainingPrograms", "promotions"];
 
-const money = (n) => `N$ ${Number(n).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+const money = (n) => `N$ ${formatNumber(Number(n), { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
 
 export default function DataDashboard() {
   const [summary, setSummary] = useState(null);
@@ -56,14 +56,14 @@ export default function DataDashboard() {
           <span className="stat-label">{t("data.registeredUsers")}</span>
           <span className="stat-value">{summary?.users ?? "-"}</span>
           <span className="stat-foot">
-            {summary?.updatedAt?.toDate ? `As of ${summary.updatedAt.toDate().toLocaleDateString()}` : t("data.updatedWhenAnAdminOpensThe")}
+            {summary?.updatedAt?.toDate ? t("data.asOf", { date: formatDate(summary.updatedAt.toDate()) }) : t("data.updatedWhenAnAdminOpensThe")}
           </span>
         </div>
-        <Stat label="Marketplace listings" value={count("marketPrices")} />
-        <Stat label="Open demand requests" value={feeds.demandRequests ? demand.open : count("demandRequests")} foot={feeds.demandRequests ? `${demand.fulfilled} fulfilled` : undefined} />
-        <Stat label="Research articles" value={count("institutionResearchArticles")} />
-        <Stat label="Training programs" value={count("trainingPrograms")} />
-        <Stat label="Active promotions" value={activePromos} />
+        <Stat label={t("data.marketplaceListings")} value={count("marketPrices")} />
+        <Stat label={t("data.openDemand")} value={feeds.demandRequests ? demand.open : count("demandRequests")} foot={feeds.demandRequests ? t("data.fulfilledCount", { count: demand.fulfilled }) : undefined} />
+        <Stat label={t("data.researchArticles")} value={count("institutionResearchArticles")} />
+        <Stat label={t("data.trainingPrograms")} value={count("trainingPrograms")} />
+        <Stat label={t("data.activePromotions")} value={activePromos} />
       </section>
 
       <div className="insight-split">
@@ -91,7 +91,7 @@ export default function DataDashboard() {
                   {prices.slice(0, 12).map((row) => (
                     <tr key={`${row.product}|${row.unit}`}>
                       <td data-label={t("data.product")}>{row.product}</td>
-                      <td data-label={t("data.unit")}>{row.unit}</td>
+                      <td data-label={t("data.unit")}>{tv(row.unit)}</td>
                       <td data-label={t("data.listings")} className="num">{row.listings}</td>
                       <td data-label={t("data.lowest")} className="num">{money(row.min)}</td>
                       <td data-label={t("data.average")} className="num">{money(row.avg)}</td>
