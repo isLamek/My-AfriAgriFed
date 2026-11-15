@@ -12,7 +12,7 @@ export default function SiteFooter({ tone = "light" }) {
         <div>
           <strong>{BUSINESS.legalName}</strong>
           <p>
-            {BUSINESS.town}, {BUSINESS.country}
+            {BUSINESS.town}, {t("common.namibia")}
             {BUSINESS.registrationNumber ? ` · ${t("footer.regNo", { number: BUSINESS.registrationNumber })}` : ""}
           </p>
           <p>

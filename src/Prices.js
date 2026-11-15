@@ -8,42 +8,42 @@ import poultryImg from "./images/How to Raise Laying Hens - DIY Chicken Feed - E
 import cattleImg from "./images/dash-cattle.jpg";
 import vegetablesImg from "./images/farm3.jpg";
 import grainsImg from "./images/dash-grains.jpg";
-import { t, tv } from "./i18n";
+import { t, tv, formatNumber } from "./i18n";
 
 const producePrices = [
   {
     name: "Tomatoes",
-    averagePrice: "N$18.50",
+    averagePrice: 18.50,
     unit: "per kg",
     image: tomatoesImg,
   },
   {
     name: "Maize",
-    averagePrice: "N$7.20",
+    averagePrice: 7.20,
     unit: "per kg",
     image: maizeImg,
   },
   {
     name: "Eggs",
-    averagePrice: "N$62.00",
+    averagePrice: 62.00,
     unit: "per tray",
     image: poultryImg,
   },
   {
     name: "Beef",
-    averagePrice: "N$92.00",
+    averagePrice: 92.00,
     unit: "per kg",
     image: cattleImg,
   },
   {
     name: "Leafy Vegetables",
-    averagePrice: "N$14.00",
+    averagePrice: 14.00,
     unit: "per bunch",
     image: vegetablesImg,
   },
   {
     name: "Pearl Millet",
-    averagePrice: "N$9.80",
+    averagePrice: 9.80,
     unit: "per kg",
     image: grainsImg,
   },
@@ -74,7 +74,7 @@ export default function Prices() {
             <img src={item.image} alt={tv(item.name)} />
             <div className="produce-content">
               <h2>{tv(item.name)}</h2>
-              <p className="price-value">{item.averagePrice}</p>
+              <p className="price-value">N${formatNumber(item.averagePrice, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
               <p>{tv(item.unit)}</p>
             </div>
           </article>

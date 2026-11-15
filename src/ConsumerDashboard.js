@@ -43,6 +43,7 @@ import CommunitySpaces from "./CommunitySpaces";
 import ListingCard from "./ListingCard";
 import { chatWith } from "./chat";
 import { checkForContactInfo, maskContactInfo } from "./contactGuard";
+import TranslatableText from "./translate/TranslatableText";
 
 import AppShell from "./AppShell";
 import {
@@ -650,14 +651,14 @@ export default function ConsumerDashboard({ role = "consumer" }) {
     )}
   </div>
 
-  {post.content && <p>{maskContactInfo(post.content)}</p>}
+  {post.content && <TranslatableText text={maskContactInfo(post.content)} />}
 
   {/* DISPLAY IMAGE */}
 
   {post.imageUrl && (
     <img
       src={post.imageUrl}
-      alt={t("feed.post")}
+      alt={t("feed.postImage")}
       className="post-image"
       loading="lazy"
     />
@@ -689,7 +690,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
          <MemberAvatar uid={comment.userId} name={comment.userName || comment.userId} size={28} className="comment-avatar" />
          <div className="comment-body">
            <strong>{comment.userName || t("feed.member")}</strong>
-           <p>{maskContactInfo(comment.text)}</p>
+           <TranslatableText text={maskContactInfo(comment.text)} />
            <div className="comment-actions">
              <button onClick={() => setOpenReplyKey(openReplyKey === replyKey ? null : replyKey)}>
                {t("feed.reply")}
@@ -708,7 +709,7 @@ export default function ConsumerDashboard({ role = "consumer" }) {
                    <MemberAvatar uid={reply.userId} name={reply.userName || reply.userId} size={28} className="comment-avatar" />
                    <div className="comment-body">
                      <strong>{reply.userName || t("feed.member")}</strong>
-                     <p>{maskContactInfo(reply.text)}</p>
+                     <TranslatableText text={maskContactInfo(reply.text)} />
                      {reply.userId === auth.currentUser?.uid && (
                        <div className="comment-actions">
                          <button onClick={() => deleteReply(post.id, comment.id, reply.id)} className="comment-delete">

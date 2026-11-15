@@ -20,6 +20,7 @@ import NotificationBell from "./NotificationBell";
 import CommunitySpaces from "./CommunitySpaces";
 import { useNavigate } from "react-router-dom";
 import { checkForContactInfo, maskContactInfo } from "./contactGuard";
+import TranslatableText from "./translate/TranslatableText";
 import { chatWith } from "./chat";
 import {
   DEMAND_UNITS,
@@ -385,7 +386,7 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
         )}
       </div>
 
-      {demand.notes && <p className="demand-notes">{maskContactInfo(demand.notes)}</p>}
+      {demand.notes && <TranslatableText className="demand-notes" text={maskContactInfo(demand.notes)} />}
 
       <div className="demand-progress">
         <div className="demand-progress-bar" role="progressbar" aria-valuenow={summary.percent} aria-valuemin={0} aria-valuemax={100}>
@@ -468,7 +469,7 @@ function DemandCard({ demand, isOpenThread, onToggleThread, onMarkFulfilled, cur
               messages.map((msg) => (
                 <div key={msg.id} className={`demand-message ${msg.authorId === currentUid ? "own" : ""}`}>
                   <span className="demand-message-author">{msg.authorName}</span>
-                  <p>{maskContactInfo(msg.text)}</p>
+                  <TranslatableText text={maskContactInfo(msg.text)} />
                 </div>
               ))
             )}

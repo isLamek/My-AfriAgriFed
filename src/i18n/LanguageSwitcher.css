@@ -110,3 +110,48 @@
     right: 10px;
   }
 }
+
+/* ---- inside the public pages' top bar (Home, Sign in, Register ...) ----
+   Longer words (Afrikaans, Oshiwambo) must not push the buttons off a phone screen. */
+.nav-links {
+  align-items: center;
+}
+
+.nav-links .nav-btn {
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  /* the "this translation is new" note moves to the picker's tooltip; it is too wide for the bar */
+  .nav-links .lang-beta {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .nav-links {
+    gap: 6px;
+  }
+
+  .nav-links .nav-btn {
+    padding: 8px 10px;
+    font-size: 13px;
+    letter-spacing: 0;
+  }
+
+  .nav-links .lang-switch {
+    min-height: 36px;
+    padding: 0 8px;
+    gap: 5px;
+  }
+
+  .nav-links .lang-switch select {
+    max-width: 74px;
+    padding-right: 14px;
+    text-overflow: ellipsis;
+  }
+
+  .nav-links .lang-caret {
+    right: 6px;
+  }
+}

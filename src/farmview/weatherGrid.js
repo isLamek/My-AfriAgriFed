@@ -88,7 +88,7 @@ async function loadRawGrid(points) {
     timezone: "GMT",
   });
   const res = await fetch(`https://api.open-meteo.com/v1/forecast?${params}`);
-  if (!res.ok) throw new Error(`Weather service returned ${res.status}`);
+  if (!res.ok) throw new Error(t("serverApi.weatherReturned", { status: res.status }));
   return res.json();
 }
 

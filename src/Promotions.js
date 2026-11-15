@@ -17,7 +17,7 @@ import { RATE_PER_WORKING_DAY, countWorkingDays } from "./promoPricing";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import toast from "react-hot-toast";
 import InsightsFrame from "./InsightsFrame";
-import { t, tIn } from "./i18n";
+import { t, tIn, formatNumber } from "./i18n";
 
 const emptyPromo = { productName: "", description: "", startDate: "", endDate: "" };
 
@@ -170,7 +170,7 @@ export default function Promotions() {
           <section className="aaf-card">
             <h2 style={{ margin: "0 0 4px", fontSize: "1.05rem" }}>{t("promotions.promoteProduct")}</h2>
             <p className="insight-foot" style={{ margin: "0 0 12px" }}>
-              {t("promotions.ratePerDay", { rate: RATE_PER_WORKING_DAY })}
+              {t("promotions.ratePerDay", { price: `N$${formatNumber(RATE_PER_WORKING_DAY)}` })}
             </p>
             <form className="promo-form" onSubmit={postPromotion}>
               <label>
@@ -197,11 +197,11 @@ export default function Promotions() {
               </label>
               {workingDays > 0 && (
                 <p className="promo-cost">
-                  {t("promotions.costSummary", { count: workingDays, cost })}
+                  {t("promotions.costSummary", { count: workingDays, total: `N$${formatNumber(cost)}` })}
                 </p>
               )}
               <button className="aaf-btn aaf-btn-primary" disabled={posting}>
-                {posting ? t("promotions.posting") : t("promotions.payAndPost", { cost: cost || 0 })}
+                {posting ? t("promotions.posting") : t("promotions.payAndPost", { total: `N$${formatNumber(cost || 0)}` })}
               </button>
             </form>
           </section>

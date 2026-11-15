@@ -26,7 +26,7 @@ function readCatalog(file) {
   return entries;
 }
 
-const group = (key) => key.split(".")[0];
+const group = (key) => (key.startsWith("opt:") ? "opt" : key.split(".")[0]);
 
 function writeCatalog(file, entries, { header, enSource } = {}) {
   const seen = new Set();

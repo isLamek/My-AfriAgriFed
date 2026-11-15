@@ -1,4 +1,5 @@
 import { SERVER_PHONE_PATTERN, checkForContactInfo, findContactInfo, maskContactInfo } from "./contactGuard";
+import { setLanguage } from "./i18n";
 
 const blocked = (text) => checkForContactInfo(text).ok === false;
 
@@ -13,6 +14,9 @@ describe("phone numbers", () => {
     "(061) 123 456",
     "my number is 081.123.4567 ok",
     "zero eight one one two three four five six seven",
+    // spelled out in Afrikaans (the site is shown in Afrikaans, so people will try it)
+    "nul agt een een twee drie vier vyf ses sewe",
+    "my nommer is nul agt een, een twee drie, vier vyf ses",
   ])("blocks %s", (text) => expect(blocked(text)).toBe(true));
 
   it.each([
@@ -84,4 +88,27 @@ describe("the server's simpler rule agrees on the common cases", () => {
   it.each(["1200 kg", "2026-10-15", "N$ 1,500.00", "Order 12345678", "Deliver by 2026-10-07 10:00", "Pickup 12/10/2026 14:30"])("server also allows %s", (t) =>
     expect(server.test(t)).toBe(false)
   );
+});
+
+describe("in Afrikaans", () => {
+  beforeAll(() => setLanguage("af"));
+  afterAll(() => setLanguage("en"));
+
+  it("blocks bank details written in Afrikaans", () => {
+    expect(blocked("my rekeningnommer is 62123456789")).toBe(true);
+    expect(blocked("stuur na my bankbesonderhede")).toBe(true);
+    expect(blocked("betaal op my e-beursie")).toBe(true);
+  });
+
+  it("explains in Afrikaans", () => {
+    const result = checkForContactInfo("bel my op 0811234567");
+    expect(result.ok).toBe(false);
+    expect(result.message).toContain("telefoonnommers");
+    expect(result.message).toContain("AfriAgriFed");
+  });
+
+  it("still lets ordinary Afrikaans through", () => {
+    expect(blocked("Ek het 300 kg uie nodig teen Vrydag")).toBe(false);
+    expect(blocked("Die prys is N$18 per kg, een of twee sakke is ook goed")).toBe(false);
+  });
 });

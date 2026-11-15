@@ -45,6 +45,7 @@ export function locationFromGps(lat, lng) {
 
 /** A saved place name in the reader's language ("Near Oshakati" is stored in English). */
 export function displayPlace(label) {
+  if (label === "Namibia") return t("common.namibia");
   const m = /^Near (.+)$/.exec(String(label || ""));
   return m ? t("location.near", { name: m[1] }) : String(label || "");
 }

@@ -1,0 +1,38 @@
+.aaf-translate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  margin: 2px 0 6px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.aaf-translate button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: var(--aaf-canopy-light, #1f7a4d);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.aaf-translate button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+  text-decoration: none;
+}
+
+.aaf-translate-note {
+  color: var(--aaf-text-muted, #5e6b64);
+}
+
+.aaf-translate-error {
+  color: #b42318;
+}

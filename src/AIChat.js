@@ -12,6 +12,7 @@ import { MessageCircle, X, Send, RotateCcw } from "lucide-react";
 import { API_BASE_URL, backendConfigured } from "./apiBase";
 import "./AIChat.css";
 import { t, getLanguage } from "./i18n";
+import { serverMessage } from "./serverMessages";
 
 // Any component can open the chat: window.dispatchEvent(new Event(OPEN_CHAT_EVENT)).
 // The home page's bot bubble uses this.
@@ -215,7 +216,7 @@ export default function AIChat({ userType }) {
         if (!res.ok || !res.body) {
           const body = await res.json().catch(() => ({}));
           if (res.status === 503) setUnavailable(true);
-          throw new Error(body.message || t("aiChat.unavailable"));
+          throw new Error(serverMessage(body, t("aiChat.unavailable")));
         }
 
         const reader = res.body.getReader();
@@ -240,7 +241,7 @@ export default function AIChat({ userType }) {
 
             try {
               const parsed = JSON.parse(data);
-              if (parsed.error) throw new Error(parsed.error);
+              if (parsed.error) throw new Error(serverMessage({ error: parsed.code ? `chat_${parsed.code}` : "", message: parsed.error }, parsed.error));
               if (parsed.delta) {
                 answer += parsed.delta;
                 // Hand it to the typewriter; it decides what is on screen.

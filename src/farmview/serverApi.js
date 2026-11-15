@@ -4,6 +4,9 @@
 // the map keeps working; set REACT_APP_WEATHER_DIRECT_FALLBACK=false to forbid
 // that once you are on a commercial plan.
 
+import { t } from "../i18n";
+import { serverMessage } from "../serverMessages";
+
 const BASE = (process.env.REACT_APP_API_URL || "").trim().replace(/\/+$/, "");
 const DOWN_FOR_MS = 60 * 1000;
 let downUntil = 0; // after a network failure, stop trying the server for a minute
@@ -22,8 +25,8 @@ export const directFallbackAllowed = () => process.env.REACT_APP_WEATHER_DIRECT_
 
 /** GET `path` (for example "/api/fires") from the backend and return its JSON. */
 export async function serverJson(path, { timeoutMs = 20000 } = {}) {
-  if (!BASE) throw new ServerApiError("No backend configured", { code: "not_configured" });
-  if (Date.now() < downUntil) throw new ServerApiError("Backend unreachable", { code: "unreachable" });
+  if (!BASE) throw new ServerApiError(t("serverApi.notConfigured"), { code: "not_configured" });
+  if (Date.now() < downUntil) throw new ServerApiError(t("serverApi.unreachable"), { code: "unreachable" });
 
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
@@ -32,7 +35,7 @@ export async function serverJson(path, { timeoutMs = 20000 } = {}) {
     res = await fetch(`${BASE}${path}`, { signal: controller.signal });
   } catch (error) {
     downUntil = Date.now() + DOWN_FOR_MS;
-    throw new ServerApiError(`Backend unreachable (${error.message})`, { code: "unreachable" });
+    throw new ServerApiError(t("serverApi.unreachableWhy", { reason: error.message }), { code: "unreachable" });
   } finally {
     clearTimeout(timer);
   }
@@ -44,9 +47,9 @@ export async function serverJson(path, { timeoutMs = 20000 } = {}) {
     // an HTML error page from a proxy, for example
   }
   if (!res.ok) {
-    throw new ServerApiError(body?.message || `Backend returned ${res.status}`, { status: res.status, code: body?.error || "error" });
+    throw new ServerApiError(serverMessage(body, t("serverApi.returned", { status: res.status })), { status: res.status, code: body?.error || "error" });
   }
-  if (body === null) throw new ServerApiError("Backend sent an unreadable response", { code: "bad_response" });
+  if (body === null) throw new ServerApiError(t("serverApi.unreadable"), { code: "bad_response" });
   return body;
 }
 

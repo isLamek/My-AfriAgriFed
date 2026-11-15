@@ -18,7 +18,7 @@ export default function LanguageSwitcher({ tone = "light", compact = false, clas
 
   return (
     <div className={`lang-switch-wrap ${className}`} data-i18n-ignore>
-      <label className={`lang-switch ${tone} ${compact ? "compact" : ""}`} title={t("language.label")}>
+      <label className={`lang-switch ${tone} ${compact ? "compact" : ""}`} title={current.status === "beta" ? `${t("language.label")}: ${t("language.betaNote")}` : t("language.label")}>
         <Globe size={16} aria-hidden="true" />
         <span className="aaf-visually-hidden">{t("language.label")}</span>
         <select value={lang} onChange={(e) => setLanguage(e.target.value)}>

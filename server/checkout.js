@@ -23,10 +23,11 @@ const PROMOTION_RATE_PER_DAY = 30; // N$ per working day (concept note)
 const MAX_QUANTITY = 1000; // units in one order
 
 class HttpError extends Error {
-  constructor(status, code, message) {
+  constructor(status, code, message, params) {
     super(message);
     this.status = status;
     this.code = code;
+    if (params) this.params = params; // values the text needs, so the app can say it in the reader's language
   }
 }
 
@@ -78,7 +79,7 @@ function register(app, deps) {
       await handler(req, res, next);
     } catch (error) {
       if (error instanceof HttpError) {
-        return res.status(error.status).json({ error: error.code, message: error.message });
+        return res.status(error.status).json({ error: error.code, message: error.message, ...(error.params ? { params: error.params } : {}) });
       }
       log.error("[payments]", error);
       res.status(500).json({ error: "server_error", message: "Something went wrong on our side. Please try again." });
@@ -139,7 +140,7 @@ function register(app, deps) {
     if (!isId(body.listingId)) throw new HttpError(400, "bad_request", "Choose a listing to buy.");
     const quantity = body.quantity === undefined ? 1 : body.quantity;
     if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
-      throw new HttpError(400, "bad_quantity", `Choose a whole number of units from 1 to ${MAX_QUANTITY}.`);
+      throw new HttpError(400, "bad_quantity", `Choose a whole number of units from 1 to ${MAX_QUANTITY}.`, { max: MAX_QUANTITY });
     }
     const listing = await store.get(`marketPrices/${body.listingId}`);
     if (!listing) throw new HttpError(404, "listing_not_found", "That listing is no longer available.");
@@ -148,7 +149,7 @@ function register(app, deps) {
     if (typeof listing.quantity === "number") {
       if (listing.quantity <= 0) throw new HttpError(409, "sold_out", "This listing is sold out.");
       if (quantity > listing.quantity) {
-        throw new HttpError(409, "not_enough_stock", `Only ${listing.quantity} ${listing.quantity === 1 ? "is" : "are"} available.`);
+        throw new HttpError(409, "not_enough_stock", `Only ${listing.quantity} ${listing.quantity === 1 ? "is" : "are"} available.`, { count: listing.quantity });
       }
     }
     if (!listing.sellerId) throw new HttpError(409, "listing_unavailable", "This listing cannot be bought right now.");
@@ -157,7 +158,7 @@ function register(app, deps) {
     // The payout account comes from the seller's own record, never from the browser.
     const seller = await store.get(`users/${listing.sellerId}`);
     const subaccount = seller && seller.flutterwaveSubaccountId;
-    if (!subaccount) throw new HttpError(409, "seller_not_ready", `${listing.sellerName || "This seller"} hasn't set up payouts yet. Please contact them directly.`);
+    if (!subaccount) throw new HttpError(409, "seller_not_ready", `${listing.sellerName || "This seller"} hasn't set up payouts yet. Please contact them directly.`, listing.sellerName ? { name: String(listing.sellerName).slice(0, 120) } : undefined);
 
     return {
       amount: round2(price * quantity),

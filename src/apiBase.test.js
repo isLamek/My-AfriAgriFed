@@ -24,7 +24,7 @@ describe("API_BASE_URL", () => {
     const api = load({ nodeEnv: "production" });
     expect(api.API_BASE_URL).toBe("");
     expect(api.backendConfigured()).toBe(false);
-    expect(api.NO_BACKEND_MESSAGE).toMatch(/being set up/i);
+    expect(api.noBackendMessage()).toMatch(/being set up/i);
   });
 
   it("treats a blank setting the same as no setting", () => {

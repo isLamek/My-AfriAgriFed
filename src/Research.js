@@ -15,6 +15,7 @@ import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 import InsightsFrame from "./InsightsFrame";
 import "./Research.css";
 import { t, tv } from "./i18n";
+import TranslatableText from "./translate/TranslatableText";
 
 export default function Research() {
   const [articles, setArticles] = useState([]);
@@ -147,12 +148,12 @@ export default function Research() {
                         {problem.status === "answered" ? t("research.answered") : t("research.awaitingResearch")}
                       </span>
                     </div>
-                    <p>{problem.description}</p>
+                    <TranslatableText text={problem.description} />
                     {answer && (
                       <div className="problem-answer">
                         <p className="eyebrow">{t("research.recommendation")}</p>
                         <h4>{answer.title}</h4>
-                        <p>{answer.summary}</p>
+                        <TranslatableText text={answer.summary} />
                       </div>
                     )}
                   </div>
@@ -176,7 +177,7 @@ export default function Research() {
                 <span>{articles[0].sourceName || articles[0].authorEmail}</span>
               </div>
               <h2>{articles[0].title}</h2>
-              <p>{articles[0].summary}</p>
+              <TranslatableText text={articles[0].summary} />
               <div className="article-actions">
                 {articles[0].articleUrl && (
                   <a href={articles[0].articleUrl} target="_blank" rel="noreferrer">
@@ -211,7 +212,7 @@ export default function Research() {
                   <span>{article.sourceName || article.authorEmail}</span>
                 </div>
                 <h3>{article.title}</h3>
-                <p>{article.summary}</p>
+                <TranslatableText text={article.summary} />
 
                 <div className="article-actions">
                   {article.articleUrl && (

@@ -60,10 +60,16 @@ describe("starting a payment", () => {
   });
 
   it("shows the server's message and stays put when the server refuses", async () => {
-    global.fetch.mockResolvedValue(reply(409, { error: "seller_not_ready", message: "Sam hasn't set up payouts yet." }));
+    global.fetch.mockResolvedValue(reply(409, { error: "seller_not_ready", message: "Sam hasn't set up payouts yet. Please contact them directly.", params: { name: "Sam" } }));
     await payments.startCheckout({ listingId: "L1" });
-    expect(toast.error).toHaveBeenCalledWith("Sam hasn't set up payouts yet.");
+    expect(toast.error).toHaveBeenCalledWith("Sam hasn't set up payouts yet. Please contact them directly.");
     expect(window.location.href).toBe("https://site.test/dashboard");
+  });
+
+  it("shows a message from the server that the app has no wording for, as the server wrote it", async () => {
+    global.fetch.mockResolvedValue(reply(409, { error: "brand_new_problem", message: "Something specific happened." }));
+    await payments.startCheckout({ listingId: "L1" });
+    expect(toast.error).toHaveBeenCalledWith("Something specific happened.");
   });
 
   it("explains when payments are not switched on", async () => {

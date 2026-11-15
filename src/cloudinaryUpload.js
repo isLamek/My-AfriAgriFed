@@ -12,7 +12,7 @@
 // Uploads used to need the backend only, and the live site has none yet, so
 // every upload failed with "being set up". That is what option 2 fixes.
 
-import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
+import { API_BASE_URL, noBackendMessage } from "./apiBase";
 import { t } from "./i18n";
 
 const CLOUD_NAME = (process.env.REACT_APP_CLOUDINARY_CLOUD_NAME || "").trim();
@@ -131,7 +131,7 @@ function unsignedUpload(file, folder, resourceType) {
  */
 export async function uploadToCloudinary(file, folder = "posts", { kind = "image" } = {}) {
   checkFile(file, kind);
-  if (!uploadsConfigured()) throw new Error(NO_BACKEND_MESSAGE);
+  if (!uploadsConfigured()) throw new Error(noBackendMessage());
 
   const target = cleanFolder(folder);
   const resourceType = kind === "document" ? "auto" : "image";
@@ -141,7 +141,7 @@ export async function uploadToCloudinary(file, folder = "posts", { kind = "image
       return await signedUpload(file, target, resourceType);
     } catch (error) {
       if (!error.backendUnreachable || !unsignedAvailable()) {
-        throw error.backendUnreachable ? new Error(NO_BACKEND_MESSAGE) : error;
+        throw error.backendUnreachable ? new Error(noBackendMessage()) : error;
       }
       // Backend unreachable but an unsigned preset exists: use it.
     }

@@ -5,10 +5,13 @@
 // set there is NO backend yet: say so plainly instead of sending every visitor's
 // browser to localhost, which is their own computer.
 
+import { t } from "./i18n";
+
 const configured = (process.env.REACT_APP_API_URL || "").trim().replace(/\/+$/, "");
 
 export const API_BASE_URL = configured || (process.env.NODE_ENV === "production" ? "" : "http://localhost:5000");
 
 export const backendConfigured = () => API_BASE_URL !== "";
 
-export const NO_BACKEND_MESSAGE = "This feature is being set up and will be available soon. Please try again later.";
+/** What to say when the backend is not online yet, in the reader's language. */
+export const noBackendMessage = () => t("apiBase.noBackend");

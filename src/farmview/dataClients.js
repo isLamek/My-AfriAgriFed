@@ -10,6 +10,7 @@
 
 import { TIMEZONE, TTL } from "./config";
 import { directFallbackAllowed, serverConfigured, serverJson } from "./serverApi";
+import { t } from "../i18n";
 
 const memory = new Map(); // key -> { value, expires }
 const inflight = new Map(); // key -> Promise (de-duplicates identical requests)
@@ -36,7 +37,7 @@ function writeStored(key, entry) {
 
 async function plainJson(url) {
   const res = await fetch(url);
-  if (!res.ok) throw new Error(`Data request failed (${res.status})`);
+  if (!res.ok) throw new Error(t("serverApi.dataRequestFailed", { status: res.status }));
   return res.json();
 }
 

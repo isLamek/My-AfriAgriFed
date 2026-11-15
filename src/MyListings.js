@@ -20,7 +20,8 @@ import { auth, db } from "./firebaseConfig";
 import { getAdminProfile } from "./admin";
 import { buildNavSections } from "./navConfig";
 import { uploadToCloudinary } from "./cloudinairyUpload";
-import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
+import { API_BASE_URL, noBackendMessage } from "./apiBase";
+import { serverMessage } from "./serverMessages";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import "./MyListings.css";
@@ -116,7 +117,7 @@ export default function MyListings() {
     }
 
     if (!API_URL) {
-      toast.error(NO_BACKEND_MESSAGE);
+      toast.error(noBackendMessage());
       return;
     }
 
@@ -138,7 +139,7 @@ export default function MyListings() {
 
       const data = await response.json().catch(() => ({}));
 
-      if (!response.ok) throw new Error(data.message || t("listings.couldNotSetUpPayouts"));
+      if (!response.ok) throw new Error(serverMessage(data, t("listings.couldNotSetUpPayouts")));
 
       await setDoc(doc(db, "users", user.uid), { flutterwaveSubaccountId: data.subaccountId }, { merge: true });
       setSubaccountId(data.subaccountId);

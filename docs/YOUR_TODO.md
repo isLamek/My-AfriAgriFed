@@ -37,6 +37,36 @@ Never paste a key into a chat, email, screenshot or GitHub.
 
 ---
 
+## Languages (branch `i18n`, 15 November 2026): your part
+
+Afrikaans is built and works on your computer (`npm run start:local`, pick the language at the
+top). Oshiwambo and Otjiherero are not started. Read `docs/I18N.md` for how it all works.
+
+- [ ] **Look at Afrikaans yourself first**: sign in with the test accounts and click around in
+      Afrikaans. Tell Claude anything that reads oddly. When you are happy, say so and the
+      branch can be merged into `main`.
+- [ ] **Get a native Afrikaans speaker to read it** (the text is machine-assisted by Claude, not
+      yet checked by a person): give them `docs/i18n/review/af.csv` (opens in Excel or Google
+      Sheets), ask them to correct the `af` column, then send it back; Claude imports it.
+      Until then the site shows "This translation is new" under the language picker.
+- [ ] **Decide the Oshiwambo question**: Oshikwanyama, Oshindonga, or both? And find the people
+      who will translate (and later check) Oshiwambo and Otjiherero. There is no free machine
+      translation for either, so these are written by people. When you have them, tell Claude
+      and it prepares the same spreadsheet for each language.
+- [ ] **Privacy policy: add one sentence** (a lawyer should word it): when a member presses
+      "Translate" under someone's post, the text of that one post may be sent to a free online
+      translation service (MyMemory, translated.net) if the browser cannot translate it itself.
+      It is never used for private messages. To switch this off completely set
+      `REACT_APP_TRANSLATE_PROVIDER=browser` (nothing leaves the device) or `off` in `.env`.
+- [ ] **Deploy the database rules together with the site.** Notifications now carry a text key
+      so each person reads them in their own language; `firestore.rules` was extended for it.
+      Deploy with the usual command (it includes `firestore:rules`); the site and the rules go
+      live at the same time.
+- [ ] **Legal pages and the Admin area stay English** for now. If you want the Terms, Privacy and
+      Refund pages in Afrikaans, they need a qualified legal translator.
+
+---
+
 ## 0. DEPLOYED on 5 October 2026: do these two things NOW
 
 The website, the main database rules and the community-posts rules went live at

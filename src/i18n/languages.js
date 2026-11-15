@@ -20,7 +20,7 @@ const oneOrOther = (n) => (n === 1 ? "one" : "other");
 
 export const LANGUAGES = [
   { code: "en", name: "English", native: "English", locale: "en-NA", status: "source", plural: oneOrOther, mt: true },
-  // { code: "af", name: "Afrikaans", native: "Afrikaans", locale: "af-NA", status: "beta", plural: oneOrOther, mt: true },
+  { code: "af", name: "Afrikaans", native: "Afrikaans", locale: "af-NA", status: "beta", plural: oneOrOther, mt: true },
 ];
 
 // A test language, only outside production builds: every catalog text is shown

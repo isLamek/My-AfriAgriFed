@@ -605,7 +605,7 @@ export default function MapPage() {
 
   return (
     <AppShell
-      eyebrow="Namibia"
+      eyebrow={t("common.namibia")}
       title={t("weatherMap.map")}
       subtitle={t("weatherMap.liveWeatherSatelliteAndFarmingInformation")}
       navSections={navSections}

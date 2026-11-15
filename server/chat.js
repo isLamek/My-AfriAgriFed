@@ -384,7 +384,7 @@ function register(app, { apiKey = "", model, providers, limiter, fetchImpl = glo
       flush(true); // release everything held back, minus a trailing emoticon
 
       if (!wroteAnything) {
-        send({ error: "The assistant had nothing to say. Please ask again." });
+        send({ error: "The assistant had nothing to say. Please ask again.", code: "empty" });
       } else {
         // Two emoji, one of them a face, every time - whatever the model did.
         const addition = missingEmoji(sent);
@@ -397,7 +397,7 @@ function register(app, { apiKey = "", model, providers, limiter, fetchImpl = glo
       if (abort.signal.aborted) return; // visitor navigated away; nothing to report
       log.warn("[chat]", error.message);
       if (res.headersSent) {
-        res.write(`data: ${JSON.stringify({ error: "The assistant stopped unexpectedly." })}\n\n`);
+        res.write(`data: ${JSON.stringify({ error: "The assistant stopped unexpectedly.", code: "stopped" })}\n\n`);
         res.write("data: [DONE]\n\n");
         return res.end();
       }

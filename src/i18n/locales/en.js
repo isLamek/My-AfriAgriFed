@@ -13,6 +13,7 @@ module.exports = {
   "common.member": "Member", // shown when someone has no name
   "common.andLast": "{list} and {last}", // joins a list of things: a, b and c
   "common.orLast": "{list} or {last}", // joins a list of things: a, b or c
+  "common.namibia": "Namibia", // the country's name
   // ---- aiChat ----
   "aiChat.greeting": "Hello, I am the AAF Assistant. 🙂 I can explain how AfriAgriFed works - listings, the Demand Board, orders, payments, verification - and answer practical farming questions for Namibian conditions. What do you need? 🌿", // the assistant's first message
   "aiChat.suggestSell": "How do I sell my produce here?", // suggested question for the assistant
@@ -20,6 +21,8 @@ module.exports = {
   "aiChat.suggestCharge": "What does AfriAgriFed charge?", // suggested question for the assistant
   "aiChat.suggestCrops": "Which crops suit my region?", // suggested question for the assistant
   "aiChat.unavailable": "The assistant is temporarily unavailable.", // error
+  // ---- apiBase ----
+  "apiBase.noBackend": "This feature is being set up and will be available soon. Please try again later.", // shown when the site's backend is not online yet
   // ---- app ----
   "app.checkingAccount": "Checking account...", // p · App.js
   "app.checkingFarmerApproval": "Checking farmer approval...", // p · App.js
@@ -476,6 +479,7 @@ module.exports = {
   "feed.noListingsMatch": "No listings match \"{query}\".", // marketplace search with no results
   "feed.replyTo": "Reply to {name}...", // placeholder of the reply box
   "feed.thisComment": "this comment", // used in "Reply to this comment..."
+  "feed.postImage": "Post", // alt text of a picture attached to a post
   // ---- field ----
   "field.additionalServices": "Additional Services", // label of a saved answer on the profile page
   "field.agreedToTerms": "Agreed To Terms", // label of a saved answer on the profile page
@@ -493,7 +497,7 @@ module.exports = {
   "field.businessRegistration": "Business Registration", // label of a saved answer on the profile page
   "field.campusBranchName": "Campus Branch Name", // label of a saved answer on the profile page
   "field.challengesCanSolve": "Challenges Can Solve", // label of a saved answer on the profile page
-  "field.cityTown": "City Town", // label of a saved answer on the profile page
+  "field.cityTown": "City / Town", // label of a saved answer on the profile page
   "field.collaborations": "Collaborations", // label of a saved answer on the profile page
   "field.conductsResearch": "Conducts Research", // label of a saved answer on the profile page
   "field.confirmPassword": "Confirm Password", // label of a saved answer on the profile page
@@ -504,8 +508,8 @@ module.exports = {
   "field.demonstrationFarmDetails": "Demonstration Farm Details", // label of a saved answer on the profile page
   "field.desiredResearchData": "Desired Research Data", // label of a saved answer on the profile page
   "field.desiredSupport": "Desired Support", // label of a saved answer on the profile page
-  "field.districtCounty": "District County", // label of a saved answer on the profile page
-  "field.dob": "Dob", // label of a saved answer on the profile page
+  "field.districtCounty": "District / County", // label of a saved answer on the profile page
+  "field.dob": "Date of Birth", // label of a saved answer on the profile page
   "field.educatorCertificate": "Educator Certificate", // label of a saved answer on the profile page
   "field.emailAddress": "Email Address", // label of a saved answer on the profile page
   "field.expertAvailability": "Expert Availability", // label of a saved answer on the profile page
@@ -519,7 +523,7 @@ module.exports = {
   "field.foodProcessingProduct": "Food Processing Product", // label of a saved answer on the profile page
   "field.fullName": "Full Name", // label of a saved answer on the profile page
   "field.gender": "Gender", // label of a saved answer on the profile page
-  "field.gpsCoordinates": "Gps Coordinates", // label of a saved answer on the profile page
+  "field.gpsCoordinates": "GPS Coordinates", // label of a saved answer on the profile page
   "field.graduatingStudents": "Graduating Students", // label of a saved answer on the profile page
   "field.hasDemonstrationFarms": "Has Demonstration Farms", // label of a saved answer on the profile page
   "field.institutionName": "Institution Name", // label of a saved answer on the profile page
@@ -543,7 +547,7 @@ module.exports = {
   "field.peakDemandPeriods": "Peak Demand Periods", // label of a saved answer on the profile page
   "field.percentageSold": "Percentage Sold", // label of a saved answer on the profile page
   "field.personalEmail": "Personal Email", // label of a saved answer on the profile page
-  "field.personalId": "Personal Id", // label of a saved answer on the profile page
+  "field.personalId": "Personal ID", // label of a saved answer on the profile page
   "field.phoneNumber": "Phone Number", // label of a saved answer on the profile page
   "field.postalAddress": "Postal Address", // label of a saved answer on the profile page
   "field.preferredDeliveryDays": "Preferred Delivery Days", // label of a saved answer on the profile page
@@ -828,6 +832,8 @@ module.exports = {
   // ---- language ----
   "language.label": "Language", // accessible name of the language picker
   "language.betaNote": "This translation is new. If something reads wrong, please tell us.", // shown under the picker for beta languages
+  "language.name.en": "English", // the name of the language, in the reader's own language (e.g. in 'Translated from English')
+  "language.name.af": "Afrikaans", // the name of the language, in the reader's own language
   // ---- listing ----
   "listing.examplePhoto": "Example photo", // span · ListingCard.js
   "listing.yourListing": "Your listing", // span · ListingCard.js
@@ -1094,774 +1100,392 @@ module.exports = {
   // ---- notifications ----
   "notifications.notifications": "Notifications", // aria-label · NotificationBell.js
   "notifications.noNotificationsYet": "No notifications yet.", // p · NotificationBell.js
-  // ---- opt:<1 hectare ----
+  // ---- opt ----
   "opt:<1 hectare": "<1 hectare", // list item · FarmerQuestionnaire.js
-  // ---- opt:<1 year ----
   "opt:<1 year": "<1 year", // list item · ConsumerQuestionnaire.js
-  // ---- opt:>10 hectares ----
   "opt:>10 hectares": ">10 hectares", // list item · FarmerQuestionnaire.js
-  // ---- opt:1-3 months ----
   "opt:1-3 months": "1-3 months", // list item · InstitutionQuestionnaire.js
-  // ---- opt:1-3 years ----
   "opt:1-3 years": "1-3 years", // list item · FarmerQuestionnaire.js
-  // ---- opt:1-5 hectares ----
   "opt:1-5 hectares": "1-5 hectares", // list item · FarmerQuestionnaire.js
-  // ---- opt:10+ years ----
   "opt:10+ years": "10+ years", // list item · FarmerQuestionnaire.js
-  // ---- opt:3-5 years ----
   "opt:3-5 years": "3-5 years", // list item · FarmerQuestionnaire.js
-  // ---- opt:3-6 months ----
   "opt:3-6 months": "3-6 months", // list item · InstitutionQuestionnaire.js
-  // ---- opt:5-10 hectares ----
   "opt:5-10 hectares": "5-10 hectares", // list item · FarmerQuestionnaire.js
-  // ---- opt:5-10 years ----
   "opt:5-10 years": "5-10 years", // list item · FarmerQuestionnaire.js
-  // ---- opt:5+ years ----
   "opt:5+ years": "5+ years", // list item · ConsumerQuestionnaire.js
-  // ---- opt:6-12 months ----
   "opt:6-12 months": "6-12 months", // list item · InstitutionQuestionnaire.js
-  // ---- opt:A buyer posts a need ----
   "opt:A buyer posts a need": "A buyer posts a need", // step 1 title on the Demand Board
-  // ---- opt:About ----
   "opt:About": "About", // tab on the profile
-  // ---- opt:Access to loans ----
   "opt:Access to loans": "Access to loans", // list item · FarmerQuestionnaire.js
-  // ---- opt:Accommodation ----
   "opt:Accommodation": "Accommodation", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Additional Information ----
   "opt:Additional Information": "Additional Information", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Admin ----
   "opt:Admin": "Admin", // prop admin · publicProfile.js
-  // ---- opt:Advisory services ----
   "opt:Advisory services": "Advisory services", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Afternoon ----
   "opt:Afternoon": "Afternoon", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Agree and deliver ----
   "opt:Agree and deliver": "Agree and deliver", // step 3 title
-  // ---- opt:Agri-processing ----
   "opt:Agri-processing": "Agri-processing", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agribusiness & marketing ----
   "opt:Agribusiness & marketing": "Agribusiness & marketing", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agribusiness challenges ----
   "opt:Agribusiness challenges": "Agribusiness challenges", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agribusiness Management ----
   "opt:Agribusiness Management": "Agribusiness Management", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agribusiness mentorship ----
   "opt:Agribusiness mentorship": "Agribusiness mentorship", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agribusiness performance ----
   "opt:Agribusiness performance": "Agribusiness performance", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agribusiness SMEs ----
   "opt:Agribusiness SMEs": "Agribusiness SMEs", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agricultural biotechnology ----
   "opt:Agricultural biotechnology": "Agricultural biotechnology", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agricultural Engineering ----
   "opt:Agricultural Engineering": "Agricultural Engineering", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agricultural Extension ----
   "opt:Agricultural Extension": "Agricultural Extension", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agricultural Training Institute ----
   "opt:Agricultural Training Institute": "Agricultural Training Institute", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Agro-dealer ----
   "opt:Agro-dealer": "Agro-dealer", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Agronomy ----
   "opt:Agronomy": "Agronomy", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Animal feed ----
   "opt:Animal feed": "Animal feed", // prop label · farmInputs.js
-  // ---- opt:Animal production ----
   "opt:Animal production": "Animal production", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Approved ----
   "opt:Approved": "Approved", // account status
-  // ---- opt:April ----
   "opt:April": "April", // month name
-  // ---- opt:Aquaculture farming ----
   "opt:Aquaculture farming": "Aquaculture farming", // list item · FarmerQuestionnaire.js
-  // ---- opt:August ----
   "opt:August": "August", // month name
-  // ---- opt:Bachelor of Agricultural Economics ----
   "opt:Bachelor of Agricultural Economics": "Bachelor of Agricultural Economics", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Bachelor of Animal Science ----
   "opt:Bachelor of Animal Science": "Bachelor of Animal Science", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Bachelor of Crop Science ----
   "opt:Bachelor of Crop Science": "Bachelor of Crop Science", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Bachelor of Science in Agriculture ----
   "opt:Bachelor of Science in Agriculture": "Bachelor of Science in Agriculture", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Bambara groundnut ----
   "opt:Bambara groundnut": "Bambara groundnut", // prop name · cropRules.js
-  // ---- opt:Beans ----
   "opt:Beans": "Beans", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Beef ----
   "opt:Beef": "Beef", // prop name · Prices.js
-  // ---- opt:Better pricing ----
   "opt:Better pricing": "Better pricing", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Bi-weekly ----
   "opt:Bi-weekly": "Bi-weekly", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Boxes ----
   "opt:Boxes": "Boxes", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Bulk request ----
   "opt:Bulk request": "Bulk request", // what a conversation is about
-  // ---- opt:Bulk sacks ----
   "opt:Bulk sacks": "Bulk sacks", // list item · ConsumerQuestionnaire.js
-  // ---- opt:bunch ----
   "opt:bunch": "bunch", // unit
-  // ---- opt:Business Details ----
   "opt:Business Details": "Business Details", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Buy ----
   "opt:Buy": "Buy", // prop job · CommunitySpaces.js
-  // ---- opt:Buyer ----
   "opt:Buyer": "Buyer", // prop consumer · publicProfile.js
-  // ---- opt:Buyer received the goods ----
   "opt:Buyer received the goods": "Buyer received the goods", // prop detail · orderStatus.js
-  // ---- opt:Buyers post a bulk quantity they need ----
   "opt:Buyers post a bulk quantity they need. Producers pledge to supply it.": "Buyers post a bulk quantity they need. Producers pledge to supply it.", // prop blurb · CommunitySpaces.js
-  // ---- opt:Cabbage ----
   "opt:Cabbage": "Cabbage", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Cancelled ----
   "opt:Cancelled": "Cancelled", // prop cancelled · orderStatus.js
-  // ---- opt:Carrots ----
   "opt:Carrots": "Carrots", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Cattle ----
   "opt:Cattle": "Cattle", // prop label · publicProfile.js
-  // ---- opt:Challenges & Support ----
   "opt:Challenges & Support": "Challenges & Support", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Chickens ----
   "opt:Chickens": "Chickens", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Climate ----
   "opt:Climate": "Climate", // kind of research article; the stored value stays English
-  // ---- opt:Climate change adaptation ----
   "opt:Climate change adaptation": "Climate change adaptation", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Climate change/unpredictable weather ----
   "opt:Climate change/unpredictable weather": "Climate change/unpredictable weather", // list item · FarmerQuestionnaire.js
-  // ---- opt:Climate-smart agriculture ----
   "opt:Climate-smart agriculture": "Climate-smart agriculture", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Clouds (infrared) ----
   "opt:Clouds (infrared)": "Clouds (infrared)", // prop label · config.js
-  // ---- opt:Cold chain required ----
   "opt:Cold chain required": "Cold chain required", // list item · ConsumerQuestionnaire.js
-  // ---- opt:College ----
   "opt:College": "College", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Communal ----
   "opt:Communal": "Communal", // list item · FarmerQuestionnaire.js
-  // ---- opt:Community Feed ----
   "opt:Community Feed": "Community Feed", // prop label · CommunitySpaces.js
-  // ---- opt:Company/Commercial farm ----
   "opt:Company/Commercial farm": "Company/Commercial farm", // list item · FarmerQuestionnaire.js
-  // ---- opt:Confirm delivery ----
   "opt:Confirm delivery": "Confirm delivery", // prop delivered · orderStatus.js
-  // ---- opt:Confirm order ----
   "opt:Confirm order": "Confirm order", // prop confirmed · orderStatus.js
-  // ---- opt:Confirmed ----
   "opt:Confirmed": "Confirmed", // prop label · orderStatus.js
-  // ---- opt:Conservation agriculture ----
   "opt:Conservation agriculture": "Conservation agriculture", // list item · FarmerQuestionnaire.js
-  // ---- opt:Consumer ----
   "opt:Consumer": "Consumer", // role badge on a post; the stored value stays English
-  // ---- opt:Consumer trends ----
   "opt:Consumer trends": "Consumer trends", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Contract farming options ----
   "opt:Contract farming options": "Contract farming options", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Cooperative member ----
   "opt:Cooperative member": "Cooperative member", // list item · FarmerQuestionnaire.js
-  // ---- opt:Cooperatives ----
   "opt:Cooperatives": "Cooperatives", // list item · FarmerQuestionnaire.js
-  // ---- opt:Cowpeas (nawa) ----
   "opt:Cowpeas (nawa)": "Cowpeas (nawa)", // prop name · cropRules.js
-  // ---- opt:crate ----
   "opt:crate": "crate", // unit
-  // ---- opt:Crates ----
   "opt:Crates": "Crates", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Crop farming ----
   "opt:Crop farming": "Crop farming", // list item · FarmerQuestionnaire.js
-  // ---- opt:Crop production ----
   "opt:Crop production": "Crop production", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Daily ----
   "opt:Daily": "Daily", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Data Dashboard ----
   "opt:Data Dashboard": "Data Dashboard", // prop data · PageAccessGate.js
-  // ---- opt:December ----
   "opt:December": "December", // month name
-  // ---- opt:Delivered ----
   "opt:Delivered": "Delivered", // prop label · orderStatus.js
-  // ---- opt:Demand Board ----
   "opt:Demand Board": "Demand Board", // prop label · CommunitySpaces.js
-  // ---- opt:Demand requests posted ----
   "opt:Demand requests posted": "Demand requests posted", // prop label · StatisticsDashboard.js
-  // ---- opt:Digital tools ----
   "opt:Digital tools": "Digital tools", // list item · FarmerQuestionnaire.js
-  // ---- opt:Digital training (online) ----
   "opt:Digital training (online)": "Digital training (online)", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Diploma in Agriculture ----
   "opt:Diploma in Agriculture": "Diploma in Agriculture", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Direct to consumers ----
   "opt:Direct to consumers": "Direct to consumers", // list item · FarmerQuestionnaire.js
-  // ---- opt:Dispatched ----
   "opt:Dispatched": "Dispatched", // prop label · orderStatus.js
-  // ---- opt:Documents ----
   "opt:Documents": "Documents", // tab on the profile
-  // ---- opt:Donors and research networks ----
   "opt:Donors and research networks": "Donors and research networks", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Dry storage ----
   "opt:Dry storage": "Dry storage", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Each farmer pledges the amount they can supply ----
   "opt:Each farmer pledges the amount they can supply. Several farmers can team up to cover one request.": "Each farmer pledges the amount they can supply. Several farmers can team up to cover one request.", // step 2 text
-  // ---- opt:Economics & policy ----
   "opt:Economics & policy": "Economics & policy", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Eggs ----
   "opt:Eggs": "Eggs", // prop name · Prices.js
-  // ---- opt:Environmental conservation ----
   "opt:Environmental conservation": "Environmental conservation", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Equipment / fuel ----
   "opt:Equipment / fuel": "Equipment / fuel", // prop label · farmInputs.js
-  // ---- opt:Evening ----
   "opt:Evening": "Evening", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Expertise & Resources ----
   "opt:Expertise & Resources": "Expertise & Resources", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Export buyer ----
   "opt:Export buyer": "Export buyer", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Export buyers ----
   "opt:Export buyers": "Export buyers", // list item · FarmerQuestionnaire.js
-  // ---- opt:Extension offices ----
   "opt:Extension offices": "Extension offices", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Extension support programs ----
   "opt:Extension support programs": "Extension support programs", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Family table ----
   "opt:Family table": "Family table", // prop label · publicProfile.js
-  // ---- opt:Family-run ----
   "opt:Family-run": "Family-run", // list item · FarmerQuestionnaire.js
-  // ---- opt:Farm access ----
   "opt:Farm access": "Farm access", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Farm Location & Size ----
   "opt:Farm Location & Size": "Farm Location & Size", // list item · FarmerQuestionnaire.js
-  // ---- opt:Farmer ----
   "opt:Farmer": "Farmer", // role badge on a post; the stored value stays English
-  // ---- opt:Farmer interviews ----
   "opt:Farmer interviews": "Farmer interviews", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Farmer organizations ----
   "opt:Farmer organizations": "Farmer organizations", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Farmer production data ----
   "opt:Farmer production data": "Farmer production data", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Farmer training ----
   "opt:Farmer training": "Farmer training", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Farmers ----
   "opt:Farmers": "Farmers", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Farming Methods & Challenges ----
   "opt:Farming Methods & Challenges": "Farming Methods & Challenges", // list item · FarmerQuestionnaire.js
-  // ---- opt:February ----
   "opt:February": "February", // month name
-  // ---- opt:Fertiliser / manure ----
   "opt:Fertiliser / manure": "Fertiliser / manure", // prop label · farmInputs.js
-  // ---- opt:Field demonstrations ----
   "opt:Field demonstrations": "Field demonstrations", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Field supervision ----
   "opt:Field supervision": "Field supervision", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Field Trial ----
   "opt:Field Trial": "Field Trial", // kind of research article; the stored value stays English
-  // ---- opt:Fish ----
   "opt:Fish": "Fish", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Fisheries & Aquaculture ----
   "opt:Fisheries & Aquaculture": "Fisheries & Aquaculture", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Fixes nitrogen; fits well in rotation with mahangu ----
   "opt:Fixes nitrogen; fits well in rotation with mahangu.": "Fixes nitrogen; fits well in rotation with mahangu.", // prop note · cropRules.js
-  // ---- opt:Food processing ----
   "opt:Food processing": "Food processing", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Food science & processing ----
   "opt:Food science & processing": "Food science & processing", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Forecast air temperature 2 m above ground: an area picture, not corrected for hills and valleys ----
   "opt:Forecast air temperature 2 m above ground: an area picture, not corrected for hills and valleys. Rest the pointer on (or tap) a spot for its exact, altitude-corrected forecast.": "Forecast air temperature 2 m above ground: an area picture, not corrected for hills and valleys. Rest the pointer on (or tap) a spot for its exact, altitude-corrected forecast.", // prop note · config.js
-  // ---- opt:Forecast rainfall in the hour before the selected time: an area picture from points about 100 km apart, so local showers can be missed ----
   "opt:Forecast rainfall in the hour before the selected time: an area picture from points about 100 km apart, so local showers can be missed. Rest the pointer on (or tap) a spot for its exact forecast.": "Forecast rainfall in the hour before the selected time: an area picture from points about 100 km apart, so local showers can be missed. Rest the pointer on (or tap) a spot for its exact forecast.", // prop note · config.js
-  // ---- opt:Forestry & Environmental Science ----
   "opt:Forestry & Environmental Science": "Forestry & Environmental Science", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Fragile produce handling ----
   "opt:Fragile produce handling": "Fragile produce handling", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Friday ----
   "opt:Friday": "Friday", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Fruits ----
   "opt:Fruits": "Fruits", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Fulfilled ----
   "opt:Fulfilled": "Fulfilled", // filter tab on the Demand Board
-  // ---- opt:Goods are ready and handed off ----
   "opt:Goods are ready and handed off": "Goods are ready and handed off", // prop detail · orderStatus.js
-  // ---- opt:Government ministries ----
   "opt:Government ministries": "Government ministries", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Government programs ----
   "opt:Government programs": "Government programs", // list item · FarmerQuestionnaire.js
-  // ---- opt:Grain ----
   "opt:Grain": "Grain", // prop label · publicProfile.js
-  // ---- opt:Green fields ----
   "opt:Green fields": "Green fields", // prop label · publicProfile.js
-  // ---- opt:Grocery store ----
   "opt:Grocery store": "Grocery store", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Groundnuts ----
   "opt:Groundnuts": "Groundnuts", // prop name · cropRules.js
-  // ---- opt:Guaranteed supply ----
   "opt:Guaranteed supply": "Guaranteed supply", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Hardy traditional legume that copes with poor soils ----
   "opt:Hardy traditional legume that copes with poor soils.": "Hardy traditional legume that copes with poor soils.", // prop note · cropRules.js
-  // ---- opt:Herbicide ----
   "opt:Herbicide": "Herbicide", // prop label · farmInputs.js
-  // ---- opt:Herbs ----
   "opt:Herbs": "Herbs", // list item · ConsumerQuestionnaire.js
-  // ---- opt:High cost of inputs ----
   "opt:High cost of inputs": "High cost of inputs", // list item · FarmerQuestionnaire.js
-  // ---- opt:High prices ----
   "opt:High prices": "High prices", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Higher yield but riskier in the dry north without irrigation ----
   "opt:Higher yield but riskier in the dry north without irrigation.": "Higher yield but riskier in the dry north without irrigation.", // prop note · cropRules.js
-  // ---- opt:Hired transport ----
   "opt:Hired transport": "Hired transport", // list item · FarmerQuestionnaire.js
-  // ---- opt:Honey ----
   "opt:Honey": "Honey", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Horticulture ----
   "opt:Horticulture": "Horticulture", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Hybrid ----
   "opt:Hybrid": "Hybrid", // how a training programme is run; the stored value stays English
-  // ---- opt:In transit ----
   "opt:In transit": "In transit", // prop label · orderStatus.js
-  // ---- opt:In-person ----
   "opt:In-person": "In-person", // how a training programme is run; the stored value stays English
-  // ---- opt:Inconsistent supply ----
   "opt:Inconsistent supply": "Inconsistent supply", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Individual Buyer ----
   "opt:Individual Buyer": "Individual Buyer", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Innovation development ----
   "opt:Innovation development": "Innovation development", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Inputs & Resources ----
   "opt:Inputs & Resources": "Inputs & Resources", // list item · FarmerQuestionnaire.js
-  // ---- opt:Institution ----
   "opt:Institution": "Institution", // prop institution · publicProfile.js
-  // ---- opt:Institutional Information ----
   "opt:Institutional Information": "Institutional Information", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Insurance ----
   "opt:Insurance": "Insurance", // list item · FarmerQuestionnaire.js
-  // ---- opt:Internship and apprenticeship placements ----
   "opt:Internship and apprenticeship placements": "Internship and apprenticeship placements", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Internships & Training ----
   "opt:Internships & Training": "Internships & Training", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Irrigation & water management ----
   "opt:Irrigation & water management": "Irrigation & water management", // list item · InstitutionQuestionnaire.js
-  // ---- opt:January ----
   "opt:January": "January", // month name
-  // ---- opt:July ----
   "opt:July": "July", // month name
-  // ---- opt:June ----
   "opt:June": "June", // month name
-  // ---- opt:kg ----
   "opt:kg": "kg", // unit
-  // ---- opt:Lab analysis (soil, feed, water, plant samples) ----
   "opt:Lab analysis (soil, feed, water, plant samples)": "Lab analysis (soil, feed, water, plant samples)", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Labour ----
   "opt:Labour": "Labour", // prop label · farmInputs.js
-  // ---- opt:Lack of financing ----
   "opt:Lack of financing": "Lack of financing", // list item · FarmerQuestionnaire.js
-  // ---- opt:Lack of machinery ----
   "opt:Lack of machinery": "Lack of machinery", // list item · FarmerQuestionnaire.js
-  // ---- opt:Lack of training/knowledge ----
   "opt:Lack of training/knowledge": "Lack of training/knowledge", // list item · FarmerQuestionnaire.js
-  // ---- opt:Lack of trusted farmers ----
   "opt:Lack of trusted farmers": "Lack of trusted farmers", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Large (501kg-5tons) ----
   "opt:Large (501kg-5tons)": "Large (501kg-5tons)", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Leafy Vegetables ----
   "opt:Leafy Vegetables": "Leafy Vegetables", // prop name · Prices.js
-  // ---- opt:Leased ----
   "opt:Leased": "Leased", // list item · FarmerQuestionnaire.js
-  // ---- opt:Lettuce ----
   "opt:Lettuce": "Lettuce", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Lightning ----
   "opt:Lightning": "Lightning", // prop label · config.js
-  // ---- opt:Limited farmer skills ----
   "opt:Limited farmer skills": "Limited farmer skills", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Limited product variety ----
   "opt:Limited product variety": "Limited product variety", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Limited storage facilities ----
   "opt:Limited storage facilities": "Limited storage facilities", // list item · FarmerQuestionnaire.js
-  // ---- opt:Listing ----
   "opt:Listing": "Listing", // what a conversation is about
-  // ---- opt:litre ----
   "opt:litre": "litre", // unit
-  // ---- opt:Livestock ----
   "opt:Livestock": "Livestock", // list item · FarmerQuestionnaire.js
-  // ---- opt:Livestock farming ----
   "opt:Livestock farming": "Livestock farming", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Local Agro-dealers ----
   "opt:Local Agro-dealers": "Local Agro-dealers", // list item · FarmerQuestionnaire.js
-  // ---- opt:Local markets ----
   "opt:Local markets": "Local markets", // list item · FarmerQuestionnaire.js
-  // ---- opt:Location Information ----
   "opt:Location Information": "Location Information", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Logistics support ----
   "opt:Logistics support": "Logistics support", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Low yields ----
   "opt:Low yields": "Low yields", // list item · FarmerQuestionnaire.js
-  // ---- opt:Mahangu (pearl millet) ----
   "opt:Mahangu (pearl millet)": "Mahangu (pearl millet)", // prop name · cropRules.js
-  // ---- opt:Maize ----
   "opt:Maize": "Maize", // prop name · Prices.js
-  // ---- opt:March ----
   "opt:March": "March", // month name
-  // ---- opt:Marginal ----
   "opt:Marginal": "Marginal", // return · cropRules.js
-  // ---- opt:Mark as dispatched ----
   "opt:Mark as dispatched": "Mark as dispatched", // prop dispatched · orderStatus.js
-  // ---- opt:Mark as in transit ----
   "opt:Mark as in transit": "Mark as in transit", // prop in_transit · orderStatus.js
-  // ---- opt:Market ----
   "opt:Market": "Market", // prop label · publicProfile.js
-  // ---- opt:Market data ----
   "opt:Market data": "Market data", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Market Insight ----
   "opt:Market Insight": "Market Insight", // kind of research article; the stored value stays English
-  // ---- opt:Market linkages ----
   "opt:Market linkages": "Market linkages", // list item · FarmerQuestionnaire.js
-  // ---- opt:Market stall ----
   "opt:Market stall": "Market stall", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Marketplace ----
   "opt:Marketplace": "Marketplace", // prop label · CommunitySpaces.js
-  // ---- opt:Marketplace listings added ----
   "opt:Marketplace listings added": "Marketplace listings added", // prop label · StatisticsDashboard.js
-  // ---- opt:May ----
   "opt:May": "May", // month name
-  // ---- opt:Mechanization & farm machinery ----
   "opt:Mechanization & farm machinery": "Mechanization & farm machinery", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Mechanized ----
   "opt:Mechanized": "Mechanized", // list item · FarmerQuestionnaire.js
-  // ---- opt:Medium (51-500kg/units) ----
   "opt:Medium (51-500kg/units)": "Medium (51-500kg/units)", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Mentorship ----
   "opt:Mentorship": "Mentorship", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Middlemen ----
   "opt:Middlemen": "Middlemen", // list item · FarmerQuestionnaire.js
-  // ---- opt:Milk ----
   "opt:Milk": "Milk", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Millet ----
   "opt:Millet": "Millet", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Mixed farming ----
   "opt:Mixed farming": "Mixed farming", // list item · FarmerQuestionnaire.js
-  // ---- opt:Mixed methods ----
   "opt:Mixed methods": "Mixed methods", // list item · FarmerQuestionnaire.js
-  // ---- opt:Monday ----
   "opt:Monday": "Monday", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Monthly ----
   "opt:Monthly": "Monthly", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Morning ----
   "opt:Morning": "Morning", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Most drought-tolerant staple; the backbone of Oshana farming ----
   "opt:Most drought-tolerant staple; the backbone of Oshana farming.": "Most drought-tolerant staple; the backbone of Oshana farming.", // prop note · cropRules.js
-  // ---- opt:My requests ----
   "opt:My requests": "My requests", // filter tab on the Demand Board
-  // ---- opt:Namibian land ----
   "opt:Namibian land": "Namibian land", // prop label · publicProfile.js
-  // ---- opt:Needs lighter, well-drained soil and steadier rain ----
   "opt:Needs lighter, well-drained soil and steadier rain.": "Needs lighter, well-drained soil and steadier rain.", // prop note · cropRules.js
-  // ---- opt:NGO / Institution ----
   "opt:NGO / Institution": "NGO / Institution", // list item · ConsumerQuestionnaire.js
-  // ---- opt:NGOs ----
   "opt:NGOs": "NGOs", // list item · InstitutionQuestionnaire.js
-  // ---- opt:No data ----
   "opt:No data": "No data", // return · cropRules.js
-  // ---- opt:No preference ----
   "opt:No preference": "No preference", // list item · ConsumerQuestionnaire.js
-  // ---- opt:No weather layer ----
   "opt:No weather layer": "No weather layer", // prop label · config.js
-  // ---- opt:None ----
   "opt:None": "None", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Not approved ----
   "opt:Not approved": "Not approved", // account status
-  // ---- opt:Not needed ----
   "opt:Not needed": "Not needed", // account status
-  // ---- opt:Not recommended ----
   "opt:Not recommended": "Not recommended", // return · cropRules.js
-  // ---- opt:Not started ----
   "opt:Not started": "Not started", // account status
-  // ---- opt:November ----
   "opt:November": "November", // month name
-  // ---- opt:Observed ----
   "opt:Observed. Bright = cold, high cloud tops; works day and night.": "Observed. Bright = cold, high cloud tops; works day and night.", // prop note · config.js
   "opt:Observed. Highlights thick, high clouds with strong updrafts (thunderstorm risk).": "Observed. Highlights thick, high clouds with strong updrafts (thunderstorm risk).", // prop note · config.js
   "opt:Observed. Optical flashes seen from space in the last 5 minutes.": "Observed. Optical flashes seen from space in the last 5 minutes.", // prop note · config.js
   "opt:Observed. What the land and clouds look like from space (daytime).": "Observed. What the land and clouds look like from space (daytime).", // prop note · config.js
-  // ---- opt:October ----
   "opt:October": "October", // month name
-  // ---- opt:On foot/animal-powered ----
   "opt:On foot/animal-powered": "On foot/animal-powered", // list item · FarmerQuestionnaire.js
-  // ---- opt:On the way to the buyer ----
   "opt:On the way to the buyer": "On the way to the buyer", // prop detail · orderStatus.js
-  // ---- opt:On-demand / irregular ----
   "opt:On-demand / irregular": "On-demand / irregular", // list item · ConsumerQuestionnaire.js
-  // ---- opt:On-farm training demonstrations ----
   "opt:On-farm training demonstrations": "On-farm training demonstrations", // list item · InstitutionQuestionnaire.js
-  // ---- opt:On-farm trials ----
   "opt:On-farm trials": "On-farm trials", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Onions ----
   "opt:Onions": "Onions", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Online ----
   "opt:Online": "Online", // how a training programme is run; the stored value stays English
-  // ---- opt:Open ----
   "opt:Open": "Open", // filter tab on the Demand Board
-  // ---- opt:Order ----
   "opt:Order": "Order", // what a conversation is about
-  // ---- opt:Organic ----
   "opt:Organic": "Organic", // list item · FarmerQuestionnaire.js
-  // ---- opt:Organisation ----
   "opt:Organisation": "Organisation", // prop organization · publicProfile.js
-  // ---- opt:Organization ----
   "opt:Organization": "Organization", // role badge on a post; the stored value stays English
-  // ---- opt:Other ----
   "opt:Other": "Other", // fallback || · farmInputs.js
-  // ---- opt:Others ----
   "opt:Others": "Others", // list item · FarmerQuestionnaire.js
-  // ---- opt:Own production (seed saving, etc ----
   "opt:Own production (seed saving, etc.)": "Own production (seed saving, etc.)", // list item · FarmerQuestionnaire.js
-  // ---- opt:Own vehicle ----
   "opt:Own vehicle": "Own vehicle", // list item · FarmerQuestionnaire.js
-  // ---- opt:Owned ----
   "opt:Owned": "Owned", // list item · FarmerQuestionnaire.js
-  // ---- opt:Packaged units ----
   "opt:Packaged units": "Packaged units", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Packaging & Handling ----
   "opt:Packaging & Handling": "Packaging & Handling", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Paid ----
   "opt:Paid": "Paid", // prop label · orderStatus.js
-  // ---- opt:Payment processing ----
   "opt:Payment processing": "Payment processing", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Payment received ----
   "opt:Payment received": "Payment received", // prop detail · orderStatus.js
-  // ---- opt:Pearl Millet ----
   "opt:Pearl Millet": "Pearl Millet", // prop name · Prices.js
-  // ---- opt:Peas ----
   "opt:Peas": "Peas", // list item · ConsumerQuestionnaire.js
-  // ---- opt:per bunch ----
   "opt:per bunch": "per bunch", // prop unit · Prices.js
-  // ---- opt:per kg ----
   "opt:per kg": "per kg", // prop unit · Prices.js
-  // ---- opt:per tray ----
   "opt:per tray": "per tray", // prop unit · Prices.js
-  // ---- opt:Personal & Business Information ----
   "opt:Personal & Business Information": "Personal & Business Information", // list item · FarmerQuestionnaire.js
-  // ---- opt:Pest & disease management ----
   "opt:Pest & disease management": "Pest & disease management", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Pest and disease prevalence ----
   "opt:Pest and disease prevalence": "Pest and disease prevalence", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Pesticide ----
   "opt:Pesticide": "Pesticide", // prop label · farmInputs.js
-  // ---- opt:Pests & diseases ----
   "opt:Pests & diseases": "Pests & diseases", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Pests and diseases ----
   "opt:Pests and diseases": "Pests and diseases", // list item · FarmerQuestionnaire.js
-  // ---- opt:Policy advice ----
   "opt:Policy advice": "Policy advice", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Poor market access ----
   "opt:Poor market access": "Poor market access", // list item · FarmerQuestionnaire.js
-  // ---- opt:Poor quality products ----
   "opt:Poor quality products": "Poor quality products", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Poor roads/transports ----
   "opt:Poor roads/transports": "Poor roads/transports", // list item · FarmerQuestionnaire.js
-  // ---- opt:Pork ----
   "opt:Pork": "Pork", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Post-harvest handling ----
   "opt:Post-harvest handling": "Post-harvest handling", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Post-harvest losses ----
   "opt:Post-harvest losses": "Post-harvest losses", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Potatoes ----
   "opt:Potatoes": "Potatoes", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Private sector ----
   "opt:Private sector": "Private sector", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Problem diagnosis (soil, plant, livestock) ----
   "opt:Problem diagnosis (soil, plant, livestock)": "Problem diagnosis (soil, plant, livestock)", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Processing companies ----
   "opt:Processing companies": "Processing companies", // list item · FarmerQuestionnaire.js
-  // ---- opt:Processor / Manufacturer ----
   "opt:Processor / Manufacturer": "Processor / Manufacturer", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Producers pledge ----
   "opt:Producers pledge": "Producers pledge", // step 2 title
-  // ---- opt:Product Interests ----
   "opt:Product Interests": "Product Interests", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Product quality verification ----
   "opt:Product quality verification": "Product quality verification", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Programs & Qualifications ----
   "opt:Programs & Qualifications": "Programs & Qualifications", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Promotions created ----
   "opt:Promotions created": "Promotions created", // prop label · StatisticsDashboard.js
-  // ---- opt:Public transport ----
   "opt:Public transport": "Public transport", // list item · FarmerQuestionnaire.js
-  // ---- opt:Quality certification ----
   "opt:Quality certification": "Quality certification", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Quantity Requirements ----
   "opt:Quantity Requirements": "Quantity Requirements", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Rain ----
   "opt:Rain": "Rain", // prop label · config.js
-  // ---- opt:Ready-to-sell listings from producers ----
   "opt:Ready-to-sell listings from producers. Pick one and pay.": "Ready-to-sell listings from producers. Pick one and pay.", // prop blurb · CommunitySpaces.js
-  // ---- opt:Real-time availability updates ----
   "opt:Real-time availability updates": "Real-time availability updates", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Rented ----
   "opt:Rented": "Rented", // list item · FarmerQuestionnaire.js
-  // ---- opt:Request ----
   "opt:Request": "Request", // prop job · CommunitySpaces.js
-  // ---- opt:Research ----
   "opt:Research": "Research", // prop label · publicProfile.js
-  // ---- opt:Research articles published ----
   "opt:Research articles published": "Research articles published", // prop label · StatisticsDashboard.js
-  // ---- opt:Research Capacity ----
   "opt:Research Capacity": "Research Capacity", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Research collaboration ----
   "opt:Research collaboration": "Research collaboration", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Research Institute ----
   "opt:Research Institute": "Research Institute", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Research labs ----
   "opt:Research labs": "Research labs", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Research-based recommendations ----
   "opt:Research-based recommendations": "Research-based recommendations", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Restaurant / Food Service ----
   "opt:Restaurant / Food Service": "Restaurant / Food Service", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Restaurant/Catering ----
   "opt:Restaurant/Catering": "Restaurant/Catering", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Retailer ----
   "opt:Retailer": "Retailer", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Rice ----
   "opt:Rice": "Rice", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Safety equipment ----
   "opt:Safety equipment": "Safety equipment", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Sales & Marketing ----
   "opt:Sales & Marketing": "Sales & Marketing", // list item · FarmerQuestionnaire.js
-  // ---- opt:Sample collection ----
   "opt:Sample collection": "Sample collection", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Satellite ----
   "opt:Satellite": "Satellite", // prop label · config.js
-  // ---- opt:Saturday ----
   "opt:Saturday": "Saturday", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Seasonal ----
   "opt:Seasonal": "Seasonal", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Security ----
   "opt:Security": "Security", // tab on the profile
-  // ---- opt:Seed ----
   "opt:Seed": "Seed", // prop label · farmInputs.js
-  // ---- opt:Seed companies ----
   "opt:Seed companies": "Seed companies", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Seller accepted the order ----
   "opt:Seller accepted the order": "Seller accepted the order", // prop detail · orderStatus.js
-  // ---- opt:Sent, waiting for review ----
   "opt:Sent, waiting for review": "Sent, waiting for review", // account status
-  // ---- opt:September ----
   "opt:September": "September", // month name
-  // ---- opt:Share news, photos, tips and questions ----
   "opt:Share news, photos, tips and questions. Open conversation, no deals.": "Share news, photos, tips and questions. Open conversation, no deals.", // prop blurb · CommunitySpaces.js
-  // ---- opt:Short farmer workshops ----
   "opt:Short farmer workshops": "Short farmer workshops", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Small (1-50kg/units) ----
   "opt:Small (1-50kg/units)": "Small (1-50kg/units)", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Smart farming ----
   "opt:Smart farming": "Smart farming", // prop label · publicProfile.js
-  // ---- opt:Soil and climate data ----
   "opt:Soil and climate data": "Soil and climate data", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Soil fertility and soil science ----
   "opt:Soil fertility and soil science": "Soil fertility and soil science", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Soil infertility ----
   "opt:Soil infertility": "Soil infertility", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Soil Science ----
   "opt:Soil Science": "Soil Science", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Sole proprietor ----
   "opt:Sole proprietor": "Sole proprietor", // list item · FarmerQuestionnaire.js
-  // ---- opt:Solutions & Contribution ----
   "opt:Solutions & Contribution": "Solutions & Contribution", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Sorghum ----
   "opt:Sorghum": "Sorghum", // prop name · cropRules.js
-  // ---- opt:Spices ----
   "opt:Spices": "Spices", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Spinach ----
   "opt:Spinach": "Spinach", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Statistics Dashboard ----
   "opt:Statistics Dashboard": "Statistics Dashboard", // prop statistics · PageAccessGate.js
-  // ---- opt:Stipend ----
   "opt:Stipend": "Stipend", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Storage/processing facilities ----
   "opt:Storage/processing facilities": "Storage/processing facilities", // list item · FarmerQuestionnaire.js
-  // ---- opt:Storm clouds ----
   "opt:Storm clouds": "Storm clouds", // prop label · config.js
-  // ---- opt:Streets ----
   "opt:Streets": "Streets", // prop label · config.js
-  // ---- opt:Subsidized inputs ----
   "opt:Subsidized inputs": "Subsidized inputs", // list item · FarmerQuestionnaire.js
-  // ---- opt:Suitable ----
   "opt:Suitable": "Suitable", // return · cropRules.js
-  // ---- opt:Sunday ----
   "opt:Sunday": "Sunday", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Supply & Timing ----
   "opt:Supply & Timing": "Supply & Timing", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Talk ----
   "opt:Talk": "Talk", // prop job · CommunitySpaces.js
-  // ---- opt:Technology & Support ----
   "opt:Technology & Support": "Technology & Support", // list item · FarmerQuestionnaire.js
-  // ---- opt:Technology testing ----
   "opt:Technology testing": "Technology testing", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Temperature ----
   "opt:Temperature": "Temperature", // prop label · config.js
-  // ---- opt:Thursday ----
   "opt:Thursday": "Thursday", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Tolerates heat and dry spells; good where mahangu is risky for birds ----
   "opt:Tolerates heat and dry spells; good where mahangu is risky for birds.": "Tolerates heat and dry spells; good where mahangu is risky for birds.", // prop note · cropRules.js
-  // ---- opt:Tomatoes ----
   "opt:Tomatoes": "Tomatoes", // prop name · Prices.js
-  // ---- opt:ton ----
   "opt:ton": "ton", // unit
-  // ---- opt:Traditional ----
   "opt:Traditional": "Traditional", // list item · FarmerQuestionnaire.js
-  // ---- opt:Training ----
   "opt:Training": "Training", // list item · FarmerQuestionnaire.js
-  // ---- opt:Training & Outreach ----
   "opt:Training & Outreach": "Training & Outreach", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Training programs ----
   "opt:Training programs": "Training programs", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Training programs posted ----
   "opt:Training programs posted": "Training programs posted", // prop label · StatisticsDashboard.js
-  // ---- opt:Transport limitations ----
   "opt:Transport limitations": "Transport limitations", // list item · ConsumerQuestionnaire.js
-  // ---- opt:tray ----
   "opt:tray": "tray", // unit
-  // ---- opt:True colour ----
   "opt:True colour": "True colour", // prop label · config.js
-  // ---- opt:Tuesday ----
   "opt:Tuesday": "Tuesday", // list item · ConsumerQuestionnaire.js
-  // ---- opt:TVET/Polytechnic ----
   "opt:TVET/Polytechnic": "TVET/Polytechnic", // list item · InstitutionQuestionnaire.js
-  // ---- opt:unit ----
   "opt:unit": "unit", // unit
-  // ---- opt:University ----
   "opt:University": "University", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Use the discussion to settle price, delivery and timing ----
   "opt:Use the discussion to settle price, delivery and timing. The buyer marks it fulfilled.": "Use the discussion to settle price, delivery and timing. The buyer marks it fulfilled.", // step 3 text
-  // ---- opt:Verified ----
   "opt:Verified": "Verified", // account status
-  // ---- opt:Very large (5+ tons) ----
   "opt:Very large (5+ tons)": "Very large (5+ tons)", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Veterinary / medicine ----
   "opt:Veterinary / medicine": "Veterinary / medicine", // prop label · farmInputs.js
-  // ---- opt:Veterinary Science ----
   "opt:Veterinary Science": "Veterinary Science", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Waiting for review ----
   "opt:Waiting for review": "Waiting for review", // account status
-  // ---- opt:Warm-season crop; suits sandy soils and short rains ----
   "opt:Warm-season crop; suits sandy soils and short rains.": "Warm-season crop; suits sandy soils and short rains.", // prop note · cropRules.js
-  // ---- opt:Water / irrigation ----
   "opt:Water / irrigation": "Water / irrigation", // prop label · farmInputs.js
-  // ---- opt:Water scarcity ----
   "opt:Water scarcity": "Water scarcity", // list item · FarmerQuestionnaire.js
-  // ---- opt:Watermelon / melons ----
   "opt:Watermelon / melons": "Watermelon / melons", // prop name · cropRules.js
-  // ---- opt:Wednesday ----
   "opt:Wednesday": "Wednesday", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Weekly ----
   "opt:Weekly": "Weekly", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Well suited ----
   "opt:Well suited": "Well suited", // return · cropRules.js
-  // ---- opt:What, how much, and by when ----
   "opt:What, how much, and by when. A school, a shop, a restaurant, or anyone buying in bulk.": "What, how much, and by when. A school, a shop, a restaurant, or anyone buying in bulk.", // step 1 text
-  // ---- opt:Wheat ----
   "opt:Wheat": "Wheat", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Wholesaler ----
   "opt:Wholesaler": "Wholesaler", // list item · ConsumerQuestionnaire.js
-  // ---- opt:Women groups ----
   "opt:Women groups": "Women groups", // list item · InstitutionQuestionnaire.js
-  // ---- opt:Youth ----
   "opt:Youth": "Youth", // list item · InstitutionQuestionnaire.js
   // ---- orders ----
   "orders.purchaseHistory": "Purchase history", // eyebrow · MyOrders.js
@@ -2022,10 +1646,10 @@ module.exports = {
   "promotions.active": "Active", // either/or · Promotions.js
   "promotions.expired": "Expired", // either/or · Promotions.js
   "promotions.couldNotCreate": "Could not create promotion: {error}", // error toast
-  "promotions.ratePerDay": "N${rate} per working day (weekends excluded).", // price under the promotion form
-  "promotions.costSummary_one": "{count} working day · N${cost} total", // price summary of a promotion
-  "promotions.costSummary_other": "{count} working days · N${cost} total", // price summary of a promotion
-  "promotions.payAndPost": "Pay N${cost} & post promotion", // submit button
+  "promotions.ratePerDay": "{price} per working day (weekends excluded).", // price under the promotion form
+  "promotions.costSummary_one": "{count} working day · {total} total", // price summary of a promotion
+  "promotions.costSummary_other": "{count} working days · {total} total", // price summary of a promotion
+  "promotions.payAndPost": "Pay {total} & post promotion", // submit button
   "promotions.dateRange": "{start} to {end}", // start and end dates of a promotion
   "promotions.by": "By {name}", // who posted a promotion
   "promotions.paymentDescription_one": "Promotion: {product} ({count} working day)", // text on the payment record (kept in English)
@@ -2188,6 +1812,42 @@ module.exports = {
   "research.couldNotSubmit": "Could not submit problem: {error}", // error alert
   // ---- satellite ----
   "satellite.satelliteLayerHasNoTimeInformation": "Satellite layer has no time information", // error message · satellite.js
+  // ---- server ----
+  "server.sign_in_required": "Please sign in first.", // the server asks the person to sign in
+  "server.payment_provider_unavailable": "The payment provider could not be reached. Please try again.", // server error
+  "server.bad_quantity": "Choose a whole number of units from 1 to {max}.", // server error
+  "server.listing_not_found": "That listing is no longer available.", // server error
+  "server.listing_unpriced": "This listing has no valid price.", // server error
+  "server.sold_out": "This listing is sold out.", // server error
+  "server.not_enough_stock_one": "Only {count} is available.", // server error
+  "server.not_enough_stock_other": "Only {count} are available.", // server error
+  "server.listing_unavailable": "This listing cannot be bought right now.", // server error
+  "server.own_listing": "You can't buy your own listing.", // server error
+  "server.seller_not_ready": "{name} hasn't set up payouts yet. Please contact them directly.", // server error; {name} is the seller's name
+  "server.seller_not_ready.anon": "This seller hasn't set up payouts yet. Please contact them directly.", // server error when the seller has no name
+  "server.promotion_not_found": "That promotion could not be found.", // server error
+  "server.already_paid": "That promotion has already been paid for.", // server error
+  "server.bad_dates": "The promotion's dates cover no working days.", // server error
+  "server.email_required": "An email address is needed for the receipt.", // server error
+  "server.payment_start_failed": "Could not start the payment. Please try again.", // server error
+  "server.payments_not_ready": "Payments are being set up. Please try again soon.", // server error
+  "server.banks_unavailable": "Could not load the bank list.", // server error
+  "server.subaccount_failed": "Could not set up payouts. Check the bank details and try again.", // server error
+  "server.server_error": "Something went wrong on our side. Please try again.", // server error
+  "server.chat_not_configured": "The assistant is not switched on yet.", // assistant error
+  "server.no_messages": "Send at least one message.", // assistant error
+  "server.rate_limited": "The assistant is busy. Please try again in a moment.", // assistant error
+  "server.chat_unavailable": "The assistant is temporarily unavailable.", // assistant error
+  "server.chat_empty": "The assistant had nothing to say. Please ask again.", // assistant error
+  "server.chat_stopped": "The assistant stopped unexpectedly.", // assistant error
+  // ---- serverApi ----
+  "serverApi.notConfigured": "No backend configured", // technical error shown in brackets on the weather map
+  "serverApi.unreachable": "Backend unreachable", // technical error shown in brackets on the weather map
+  "serverApi.unreachableWhy": "Backend unreachable ({reason})", // technical error shown in brackets on the weather map
+  "serverApi.returned": "Backend returned {status}", // technical error shown in brackets on the weather map
+  "serverApi.unreadable": "Backend sent an unreadable response", // technical error shown in brackets on the weather map
+  "serverApi.dataRequestFailed": "Data request failed ({status})", // technical error
+  "serverApi.weatherReturned": "Weather service returned {status}", // technical error
   // ---- shell ----
   "shell.toggleNavigation": "Toggle navigation", // aria-label · AppShell.js
   "shell.afriagrifedHome": "AfriAgriFed home", // title · AppShell.js
@@ -2292,6 +1952,15 @@ module.exports = {
   "training.couldNotPost": "Could not post training program: {error}", // error toast
   "training.hostedBy": "Hosted by {name}", // who runs a training program
   "training.feedPost": "New training program: {title} ({mode}, starts {date}). See Training Programs for details.", // automatic post in the community feed (stored in English)
+  // ---- translate ----
+  "translate.button": "Translate", // button under a post written in another language
+  "translate.working": "Translating…", // while a post is being translated
+  "translate.showOriginal": "Show original", // button: go back to what the member wrote
+  "translate.showTranslation": "Show translation", // button: see the translation again
+  "translate.note": "Translated from {from} by a machine. It can contain mistakes.", // line under a translated post; {from} is the language name
+  "translate.limit": "The free translation limit has been reached for now. Please try again later.", // error under a post
+  "translate.failed": "Could not translate this. Please try again.", // error under a post
+  "translate.unavailable": "Translation is not available on this device right now.", // error under a post
   // ---- verifyEmail ----
   "verifyEmail.mailVerifiedThankYou": "E-mail verified. Thank you!", // toast.success · VerifyEmail.js
   "verifyEmail.sendMeTheLink": "Send me the link", // button · VerifyEmail.js

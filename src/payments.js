@@ -12,12 +12,13 @@ import toast from "react-hot-toast";
 import { auth } from "./firebaseConfig";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
 
-import { API_BASE_URL, NO_BACKEND_MESSAGE } from "./apiBase";
+import { API_BASE_URL } from "./apiBase";
+import { serverMessage } from "./serverMessages";
 import { t } from "./i18n";
 
 /** The backend's own words if it gave any, otherwise something plain. */
 function messageFrom(data, fallback) {
-  return (data && data.message) || fallback;
+  return serverMessage(data, fallback);
 }
 
 /** Call the backend as the signed-in user (anonymous visitors count: they have an identity too). */
