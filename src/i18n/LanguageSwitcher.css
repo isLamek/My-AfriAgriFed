@@ -1,0 +1,112 @@
+.lang-switch-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 100%;
+}
+
+.lang-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 38px;
+  padding: 0 12px;
+  border-radius: var(--aaf-radius-sm, 4px);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: inset 0 0 0 1px rgba(2, 47, 31, 0.1);
+  color: var(--aaf-canopy, #022f1f);
+  font-family: var(--aaf-font, inherit);
+  font-size: 0.86rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.lang-switch:hover {
+  background: rgba(255, 255, 255, 0.95);
+}
+
+.lang-switch:focus-within {
+  outline: 2px solid #2ecc71;
+  outline-offset: 2px;
+}
+
+.lang-switch select {
+  appearance: none;
+  -webkit-appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  padding: 8px 20px 8px 0;
+  min-width: 0;
+  cursor: pointer;
+  outline: none;
+}
+
+.lang-switch select option {
+  color: #022f1f;
+  background: #fff;
+}
+
+.lang-caret {
+  position: absolute;
+  right: 10px;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+/* on the dark sidebar, hero photos and the home navbar */
+.lang-switch.dark {
+  background: rgba(255, 255, 255, 0.12);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+.lang-switch.dark:hover {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* icon only: the real select sits invisibly over the icon so a tap still opens it */
+.lang-switch.compact {
+  width: 40px;
+  justify-content: center;
+  padding: 0;
+}
+
+.lang-switch.compact select {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  padding: 0;
+}
+
+.lang-beta {
+  margin: 0;
+  max-width: 220px;
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--aaf-text-muted, #5e6b64);
+}
+
+.lang-beta.dark {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* the picker pinned to the top corner of public pages (sign in, register ...) */
+.lang-switch-floating {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 30;
+}
+
+@media (max-width: 640px) {
+  .lang-switch-floating {
+    top: 10px;
+    right: 10px;
+  }
+}
