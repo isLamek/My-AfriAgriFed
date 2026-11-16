@@ -1306,6 +1306,8 @@ module.exports = {
   "nav.promotions": "Promotions", // sidebar item
   "nav.messages": "Messages", // sidebar item
   "nav.messagesHint": "Private chats with buyers and sellers", // hover text of the Messages item
+  "nav.unreadMessages_one": "1 unread message", // screen-reader label of the number on Messages
+  "nav.unreadMessages_other": "{count} unread messages",
   "nav.orderTracker": "Order Tracker", // sidebar item
   "nav.myOrders": "My Orders", // sidebar item
   "nav.profile": "Profile", // sidebar item

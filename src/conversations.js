@@ -23,6 +23,7 @@ import {
 import { db } from "./firebaseConfig";
 import { notifyUser } from "./notifications";
 import { checkForContactInfo } from "./contactGuard";
+import { toMillis } from "./unread";
 import { t } from "./i18n";
 
 export const MAX_MESSAGE = 1000;
@@ -42,12 +43,7 @@ export function conversationId({ kind, topicId, counterpartId }) {
 
 export const otherParticipant = (conversation, uid) => (conversation.participants || []).find((p) => p !== uid) || null;
 
-export const toMillis = (value) => (value?.toMillis ? value.toMillis() : typeof value === "number" ? value : 0);
-
-export function isUnread(conversation, uid) {
-  if (!conversation.lastMessageAt || conversation.lastSenderId === uid) return false;
-  return toMillis(conversation.lastMessageAt) > toMillis(conversation.readAt?.[uid]);
-}
+export { isUnread, toMillis } from "./unread";
 
 export function validateMessage(text) {
   const clean = String(text || "").trim();

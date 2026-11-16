@@ -1306,6 +1306,8 @@ module.exports = {
   "nav.promotions": "Promosies", // en: Promotions
   "nav.messages": "Boodskappe", // en: Messages
   "nav.messagesHint": "Privaat gesprekke met kopers en verkopers", // en: Private chats with buyers and sellers
+  "nav.unreadMessages_one": "1 ongelese boodskap", // en: 1 unread message
+  "nav.unreadMessages_other": "{count} ongelese boodskappe", // en: {count} unread messages
   "nav.orderTracker": "Bestellingsvolger", // en: Order Tracker
   "nav.myOrders": "My bestellings", // en: My Orders
   "nav.profile": "Profiel", // en: Profile

@@ -16,6 +16,7 @@ import namibiaImg from "./images/dash-namibia.jpg";
 import { VerifyEmailBanner } from "./VerifyEmail";
 import { TestRoleBanner } from "./AdminTestRole";
 import Avatar from "./Avatar";
+import useUnreadMessages from "./useUnreadMessages";
 import { auth } from "./firebaseConfig";
 import { getAdminProfile } from "./admin";
 import { ensurePublicProfile, PROFILE_UPDATED_EVENT } from "./publicProfile";
@@ -106,6 +107,7 @@ export default function AppShell({
   children,
 }) {
   const navigate = useNavigate();
+  const unreadMessages = useUnreadMessages();
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(readStoredCollapsed);
 
@@ -170,7 +172,12 @@ export default function AppShell({
                 >
                   <span className="aaf-sidebar-icon">{item.icon}</span>
                   <span className="aaf-sidebar-label">{item.label}</span>
-                  {item.badge ? <span className="aaf-sidebar-badge" aria-label={String(item.badge)}>{item.badge}</span> : null}
+                  {(() => {
+                    const isMessages = item.path === "/messages";
+                    const count = isMessages ? unreadMessages : item.badge;
+                    if (!count) return null;
+                    return <span className="aaf-sidebar-badge" aria-label={isMessages ? t("nav.unreadMessages", { count }) : String(count)}>{count > 99 ? "99+" : count}</span>;
+                  })()}
                 </button>
               ))}
             </div>
