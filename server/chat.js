@@ -15,7 +15,10 @@
 
 const { StringDecoder } = require("string_decoder");
 
-const ENDPOINT = "https://openrouter.ai/api/v1/chat/completions";
+// Only the local test backend (scripts/local-backend.js) sets OPENROUTER_BASE_URL, to talk to a stand-in
+// model on this computer. In production it is unset and this is always OpenRouter.
+const BASE_URL = (process.env.OPENROUTER_BASE_URL || "https://openrouter.ai/api/v1").replace(/\/+$/, "");
+const ENDPOINT = `${BASE_URL}/chat/completions`;
 
 // Llama 3.3 70B: strong instruction-following, cheap, and fluent in the
 // languages the Namibian market actually uses. Override with OPENROUTER_MODEL.
@@ -64,8 +67,10 @@ WHAT A USER CAN DO, AND WHERE
 - Demand Board (/demand-board) - buyers post bulk needs; producers pledge to supply them. This is the "request" side: use it when nobody is currently listing what you need.
 - Market Map (/market-map) - where produce is for sale and where it is wanted.
 - Weather Map (/map) - all 14 Namibian regions with live weather (wind, rain, temperature), satellite cloud cover, lightning, NASA fire hotspots, crop guidance, and a farmer's own farms and input costs.
-- Order Tracker (/track-orders) and My Orders (/my-orders) - orders from payment to delivery.
-- Messages (/messages) - private chats between buyers and sellers.
+- Basket (/cart) and Checkout - a buyer adds items from ONE seller at a time, picks how to receive them, and pays. The delivery fee is shown before paying.
+- Order Tracker (/track-orders) and My Orders (/my-orders) - orders from payment to delivery, with a live map when a vehicle is on the road.
+- Deliver for us (/carrier) - people with a bakkie, truck or car apply here to carry orders for AfriAgriFed. An admin approves them, then they take jobs from a board. AfriAgriFed owns no vehicles.
+- Messages (/messages) - private chats between buyers and sellers, and with the carrier on an order's delivery. Phone numbers, e-mails and links are hidden on purpose: keep chat and payment inside the app so the order is protected. Never suggest swapping phone numbers or paying outside the app.
 - Research (/research), Training Programs (/training), Internships (/internships) - learning. Training and internships are aimed at farmers and institutions.
 - Data Dashboard (/data), Statistics (/statistics), Promotions (/promotions) - insight built from real activity on the platform.
 - Profile (/profile) - account details, and under Privacy: download your data as JSON, or request account deletion.
@@ -80,8 +85,10 @@ accounts are also admins, who verify registration documents.
 RULES YOU MUST GET RIGHT
 - You must be 18 or older to register. Sign-up refuses anyone younger.
 - AfriAgriFed takes a 5% commission on each sale. Sellers see it on the listing form, the payout form and their overview. Buyers see the final "You pay N$X" on every listing.
-- Delivery charges are set by the seller and must be written into the listing.
-- Order stages, in order: Paid -> Confirmed (seller accepted) -> Dispatched (goods handed off) -> In transit -> Delivered. The seller moves an order forward as far as "in transit". ONLY THE BUYER can confirm delivery. A local hand-over may go from Dispatched straight to Delivered. Cancelling a paid order means a refund and is handled by an admin, not a button.
+- Each listing offers one or more ways to receive it: collect from the seller (no delivery fee); the seller delivers (the seller sets their own fee and how far they go); or an AfriAgriFed carrier delivers (the fee comes from the distance and the size of the load, and the buyer sees it before paying). Only the ways a seller switched on are offered.
+- Order stages, in order: Paid -> Confirmed (the seller accepted; a seller who does not answer within 24 hours has the order cancelled and the buyer refunded) -> Ready or Dispatched -> In transit -> Delivered. For a carrier order the seller presses Ask for a carrier, an approved carrier takes the job, and the buyer follows the vehicle on a map.
+- Handover code: every order has a 6-digit code on the buyer's order card. The buyer gives it to the person handing over the goods only when the goods are in their hands, and that completes the delivery. Never ask a user to tell you their code. After delivery the buyer can report a problem on the order card within the time shown there, and support looks into it.
+- Cancelling: the buyer can cancel a new order until the seller accepts it, or an accepted order the seller has not moved for 3 days, and is refunded. Otherwise cancelling is handled by support. Never say when a seller gets paid: that is not something you know.
 - Refunds (/refunds): a buyer is refunded if the seller cannot supply, if the goods are not delivered, or if they are not as described and the buyer reports it within 48 hours.
 - Data and statistics pages: free for anyone with a registered account. A visitor with no account can sign in or register (free), pay N$5 for one page, or self-verify as a student for free access.
 - Document verification is done by a person, so it takes as long as it takes. Never promise a turnaround time.
@@ -233,7 +240,7 @@ async function callModel({ fetchImpl, apiKey, model, messages, appBaseUrl, provi
 async function warmUp({ apiKey, fetchImpl = globalThis.fetch, log = console } = {}) {
   if (!apiKey) return false;
   try {
-    await fetchImpl("https://openrouter.ai/api/v1/key", {
+    await fetchImpl(`${BASE_URL}/key`, {
       headers: { Authorization: `Bearer ${apiKey}` },
       signal: AbortSignal.timeout(8000),
     });

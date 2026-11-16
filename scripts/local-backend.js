@@ -18,6 +18,7 @@ const http = require("http");
 const net = require("net");
 
 const FAKE_FLW_PORT = 5055;
+const FAKE_AI_PORT = 5056;
 
 function emulatorUp(port) {
   return new Promise((resolve) => {
@@ -64,6 +65,39 @@ function startFakeFlutterwave() {
   return server;
 }
 
+/**
+ * A stand-in for OpenRouter, so the AAF Assistant can be tried here without a key or credit.
+ * It streams back a canned answer in the same format OpenRouter uses, and says which language it was
+ * told to use. It is NOT a language model. To try the real one, put your own OPENROUTER_API_KEY in .env
+ * and start the backend with:  npm run backend:local -- --real-ai
+ */
+function startFakeOpenRouter() {
+  const server = http.createServer((req, res) => {
+    let raw = "";
+    req.on("data", (c) => (raw += c));
+    req.on("end", () => {
+      if (req.url.endsWith("/key")) {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ data: { label: "local stand-in" } }));
+      }
+      const body = raw ? JSON.parse(raw) : {};
+      const system = (body.messages && body.messages[0] && body.messages[0].content) || "";
+      const last = [...(body.messages || [])].reverse().find((m) => m.role === "user");
+      const lang = /chosen to use the site in Afrikaans/.test(system) ? "Afrikaans" : "English";
+      const knows = /Handover code/.test(system) ? "it knows the handover code rules" : "it does NOT know the handover code rules";
+      const reply = `Stand-in answer (not a real model; language ${lang}; ${knows}). You asked: "${String((last && last.content) || "").slice(0, 80)}". \u{1F642} See Order Tracker (/track-orders). \u{1F69A}`;
+      console.log(`[stand-in model] ${(body.messages || []).length} messages, model ${body.model}`);
+      res.writeHead(200, { "Content-Type": "text/event-stream" });
+      res.write(": OPENROUTER PROCESSING\n\n");
+      for (const word of reply.split(/(?<= )/)) res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: word } }] })}\n\n`);
+      res.write("data: [DONE]\n\n");
+      res.end();
+    });
+  });
+  server.listen(FAKE_AI_PORT, "127.0.0.1");
+  return server;
+}
+
 (async () => {
   if (!(await emulatorUp(8080)) || !(await emulatorUp(9099))) {
     console.error("The Firebase emulators are not running. Start them first with: npm run emulators");
@@ -92,6 +126,12 @@ function startFakeFlutterwave() {
   process.env.SWEEP_SECRET = "local-sweep";
 
   startFakeFlutterwave();
+  // The assistant: a stand-in model, unless this run was asked to use the real one (--real-ai).
+  if (!process.argv.includes("--real-ai")) {
+    process.env.OPENROUTER_API_KEY = "local-stand-in-key";
+    process.env.OPENROUTER_BASE_URL = `http://127.0.0.1:${FAKE_AI_PORT}/v1`;
+    startFakeOpenRouter();
+  }
   console.log("\n================================================================");
   console.log(" LOCAL TEST BACKEND: emulators + FAKE payments (nobody is charged)");
   console.log(` The website on http://localhost:3001 talks to this on port ${process.env.PORT}.`);

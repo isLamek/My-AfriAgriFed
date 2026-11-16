@@ -499,3 +499,26 @@ describe("the stream never splits a character", () => {
     expect(deltas(res.text)).toMatch(/^Note: delivery is set by the seller/);
   });
 });
+
+describe("what the assistant is told about orders and delivery", () => {
+  it("knows the three ways to receive an order, the handover code and the carrier network", () => {
+    const p = chat.SYSTEM_PROMPT;
+    expect(p).toMatch(/collect from the seller/i);
+    expect(p).toMatch(/AfriAgriFed carrier delivers/);
+    expect(p).toMatch(/Handover code/);
+    expect(p).toMatch(/owns no vehicles/);
+    expect(p).toMatch(/\/carrier/);
+    expect(p).toMatch(/\/cart/);
+  });
+
+  it("no longer teaches the old rules (only the buyer confirms, delivery charge written in the listing)", () => {
+    expect(chat.SYSTEM_PROMPT).not.toMatch(/ONLY THE BUYER can confirm delivery/);
+    expect(chat.SYSTEM_PROMPT).not.toMatch(/must be written into the listing/);
+  });
+
+  it("keeps chat and payment in the app and never asks for the code", () => {
+    expect(chat.SYSTEM_PROMPT).toMatch(/Never suggest swapping phone numbers/);
+    expect(chat.SYSTEM_PROMPT).toMatch(/Never ask a user to tell you their code/);
+    expect(chat.SYSTEM_PROMPT).toMatch(/Never say when a seller gets paid/);
+  });
+});
