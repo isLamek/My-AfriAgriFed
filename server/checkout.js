@@ -14,22 +14,16 @@
 // start a payment: taking money it cannot record is the worst failure.
 
 const crypto = require("crypto");
+const { HttpError } = require("./httpError");
+const { priceBasket } = require("./basket");
+const delivery = require("./delivery");
 
 const FLW_BASE_URL = "https://api.flutterwave.com/v3";
 const CURRENCY = "NAD";
 const PAGE_KEYS = ["data", "statistics"];
 const PAGE_PRICE = 5; // N$ per page (concept note)
 const PROMOTION_RATE_PER_DAY = 30; // N$ per working day (concept note)
-const MAX_QUANTITY = 1000; // units in one order
-
-class HttpError extends Error {
-  constructor(status, code, message, params) {
-    super(message);
-    this.status = status;
-    this.code = code;
-    if (params) this.params = params; // values the text needs, so the app can say it in the reader's language
-  }
-}
+// (HttpError lives in ./httpError so the delivery routes can answer the same way.)
 
 const round2 = (n) => Math.round(n * 100) / 100;
 const isId = (s) => typeof s === "string" && /^[A-Za-z0-9_-]{1,128}$/.test(s); // a Firestore id, never a path
@@ -68,6 +62,7 @@ function register(app, deps) {
     log = console,
     random = () => Math.random().toString(36).slice(2, 8),
     nowMs = Date.now,
+    randomInt = crypto.randomInt,
   } = deps;
 
   const guard = limiter ? [limiter] : [];
@@ -135,46 +130,10 @@ function register(app, deps) {
   }
 
   // ---- what is being bought, and what it costs: decided HERE --------------------
-  async function priceOrder(user, body) {
-    if (user.anonymous) throw new HttpError(403, "sign_in_required", "Please sign in with your account to buy.");
-    if (!isId(body.listingId)) throw new HttpError(400, "bad_request", "Choose a listing to buy.");
-    const quantity = body.quantity === undefined ? 1 : body.quantity;
-    if (!Number.isInteger(quantity) || quantity < 1 || quantity > MAX_QUANTITY) {
-      throw new HttpError(400, "bad_quantity", `Choose a whole number of units from 1 to ${MAX_QUANTITY}.`, { max: MAX_QUANTITY });
-    }
-    const listing = await store.get(`marketPrices/${body.listingId}`);
-    if (!listing) throw new HttpError(404, "listing_not_found", "That listing is no longer available.");
-    const price = Number(listing.price);
-    if (!Number.isFinite(price) || price <= 0) throw new HttpError(409, "listing_unpriced", "This listing has no valid price.");
-    if (typeof listing.quantity === "number") {
-      if (listing.quantity <= 0) throw new HttpError(409, "sold_out", "This listing is sold out.");
-      if (quantity > listing.quantity) {
-        throw new HttpError(409, "not_enough_stock", `Only ${listing.quantity} ${listing.quantity === 1 ? "is" : "are"} available.`, { count: listing.quantity });
-      }
-    }
-    if (!listing.sellerId) throw new HttpError(409, "listing_unavailable", "This listing cannot be bought right now.");
-    if (listing.sellerId === user.uid) throw new HttpError(400, "own_listing", "You can't buy your own listing.");
-
-    // The payout account comes from the seller's own record, never from the browser.
-    const seller = await store.get(`users/${listing.sellerId}`);
-    const subaccount = seller && seller.flutterwaveSubaccountId;
-    if (!subaccount) throw new HttpError(409, "seller_not_ready", `${listing.sellerName || "This seller"} hasn't set up payouts yet. Please contact them directly.`, listing.sellerName ? { name: String(listing.sellerName).slice(0, 120) } : undefined);
-
-    return {
-      amount: round2(price * quantity),
-      description: `${quantity > 1 ? `${quantity} x ` : ""}${listing.product || "Marketplace order"}`,
-      subaccount,
-      record: {
-        listingId: body.listingId,
-        sellerId: listing.sellerId,
-        sellerName: listing.sellerName || "",
-        product: listing.product || "",
-        quantity,
-        unit: listing.unit || "",
-        unitPrice: round2(price), // what one unit cost when it was bought, whatever the seller changes later
-      },
-    };
-  }
+  // One or more listings from one seller, and how they reach the buyer (collect, the seller delivers,
+  // or a carrier arranged by AfriAgriFed). All of it is worked out in server/basket.js from the
+  // database: the browser only names listings, quantities and an address.
+  const priceOrder = (user, body) => priceBasket(store, user, body, { commissionRate: Number(deps.commissionRate) || 0.05, nowMs });
 
   async function pricePromotion(user, body) {
     if (!isId(body.promotionId)) throw new HttpError(400, "bad_request", "Choose a promotion to pay for.");
@@ -241,7 +200,14 @@ function register(app, deps) {
         customizations: { title: "AfriAgriFed", description: priced.description },
         meta: { kind, buyerId: user.uid },
       };
-      if (priced.subaccount) payload.subaccounts = [{ id: priced.subaccount }];
+      if (priced.subaccount) {
+        // With a delivery fee the seller's account is told exactly what it receives: the goods less our
+        // commission (plus the fee when the seller delivers). A carrier's fee stays with AfriAgriFed.
+        // CHECK in Flutterwave test mode: the flat-amount fields below are written from their split-payment docs.
+        payload.subaccounts = [priced.sellerShare === undefined
+          ? { id: priced.subaccount }
+          : { id: priced.subaccount, transaction_charge_type: "flat_subaccount", transaction_charge: priced.sellerShare }];
+      }
 
       const { data } = await flw("/payments", { method: "POST", body: payload });
       if (!data || data.status !== "success" || !data.data?.link) {
@@ -279,30 +245,12 @@ function register(app, deps) {
     let result = {};
     if (payment.kind === "order") {
       const orderId = `tx_${tx.id}`; // same transaction can never become two orders
-      const quantity = payment.quantity || 1; // payments started before quantities existed
-      const created = await store.create(`orders/${orderId}`, {
-        buyerId: payment.buyerId,
-        buyerName: payment.buyerName,
-        sellerId: payment.sellerId,
-        sellerName: payment.sellerName,
-        product: payment.product,
-        listingId: payment.listingId,
-        quantity,
-        unit: payment.unit || "",
-        unitPrice: payment.unitPrice ?? payment.amount,
-        stockApplied: false,
-        oversold: false,
-        amount: payment.amount,
-        currency: payment.currency,
-        transactionId: String(tx.id),
-        txRef: tx.tx_ref,
-        status: "paid",
-        statusHistory: [{ status: "paid", by: payment.buyerId, at: nowMs(), note: "Payment received" }],
-        createdAt: store.now(),
-        updatedAt: store.now(),
-      });
+      const orderDoc = delivery.buildOrderDoc(payment, tx, { store, nowMs });
+      const created = await store.create(`orders/${orderId}`, orderDoc);
+      const quantity = orderDoc.quantity;
       const what = `${quantity > 1 ? `${quantity} x ` : ""}${payment.product}`;
       if (created) {
+        await delivery.createOrderSecret(store, orderId, orderDoc, { randomInt, nowMs }); // the buyer's handover code
         await notify(payment.sellerId, {
           key: "notif.order.paid",
           params: { what: String(what).slice(0, 120) },
@@ -312,16 +260,17 @@ function register(app, deps) {
         });
       }
 
-      // Take the units off the listing, once. If another buyer got there first
+      // Take the units off the listing(s), once each. If another buyer got there first
       // there may be fewer left than were paid for: the order is kept (the buyer
       // has paid) and flagged so the seller can deal with it straight away.
-      const stock = await store.reserveStock({ orderPath: `orders/${orderId}`, listingPath: `marketPrices/${payment.listingId}`, quantity });
-      if (stock.applied && stock.oversold) {
+      const short = await delivery.reserveItems(store, orderId, orderDoc);
+      for (const line of short) {
+        const lineWhat = `${line.item.quantity > 1 ? `${line.item.quantity} x ` : ""}${line.item.product}`;
         await notify(payment.sellerId, {
           key: "notif.order.oversold",
-          params: { qty: String(stock.available), what: String(what).slice(0, 120) },
+          params: { qty: String(line.available), what: String(lineWhat).slice(0, 120) },
           title: "Order needs your attention",
-          body: `Only ${stock.available} of ${what} were left when this order was paid, so it cannot be filled in full. Contact the buyer, or ask for a refund.`,
+          body: `Only ${line.available} of ${lineWhat} were left when this order was paid, so it cannot be filled in full. Contact the buyer, or ask for a refund.`,
           link: "/track-orders",
         });
       }

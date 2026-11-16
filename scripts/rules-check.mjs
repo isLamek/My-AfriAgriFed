@@ -9,7 +9,7 @@
 import { initializeApp } from "firebase/app";
 import { connectAuthEmulator, getAuth, signInWithEmailAndPassword, signOut } from "firebase/auth";
 import {
-  addDoc, collection, connectFirestoreEmulator, doc, getDoc, getFirestore, serverTimestamp, setDoc, updateDoc, writeBatch,
+  addDoc, arrayUnion, collection, connectFirestoreEmulator, deleteDoc, doc, getDoc, getFirestore, query, serverTimestamp, setDoc, updateDoc, where, writeBatch, getDocs,
 } from "firebase/firestore";
 import { connectDatabaseEmulator, getDatabase, push, ref, set } from "firebase/database";
 
@@ -203,6 +203,80 @@ await expectDenied("a notification key with odd characters", () => addDoc(collec
 await expectDenied("a notification parameter that is not on the list", () => addDoc(collection(db, "notifications"), note({ key: "notif.message", params: { name: "Bea", link: "https://evil.example" } })));
 await expectDenied("a notification parameter that is far too long", () => addDoc(collection(db, "notifications"), note({ key: "notif.message", params: { name: "x".repeat(500) } })));
 await expectDenied("notification parameters that are not a map", () => addDoc(collection(db, "notifications"), note({ key: "notif.message", params: "Bea" })));
+
+console.log("\nDelivery: orders, handover codes, jobs, tracking and carriers");
+const step = (status, uid) => ({ status, statusHistory: arrayUnion({ status, by: uid, at: Date.now() }), updatedAt: serverTimestamp() });
+const readable = (path) => () => getDoc(doc(db, path)).then((s) => { if (!s.exists()) throw new Error("missing"); });
+
+await as("admin@aaf.test");
+const pendingCarrier = (await getDocs(query(collection(db, "carriers"), where("status", "==", "pending")))).docs[0];
+const buyerD = await as("buyer@aaf.test");
+await expectOk("the buyer reads their own handover code", readable("orderSecrets/tx_seed_1"));
+await expectDenied("the buyer changes their handover code", () => updateDoc(doc(db, "orderSecrets", "tx_seed_1"), { code: "000000" }));
+await expectDenied("the buyer confirms receipt straight from the browser (it goes through the server)", () => updateDoc(doc(db, "orders", "tx_seed_1"), step("delivered", buyerD.uid)));
+await expectDenied("the buyer writes a vehicle position", () => setDoc(doc(db, "orderTracking", "tx_seed_4"), { orderId: "tx_seed_4", buyerId: buyerD.uid, lat: -17.7, lng: 15.7, at: Date.now() }));
+await expectOk("the buyer follows the vehicle on their order", readable("orderTracking/tx_seed_4"));
+await expectOk("the buyer sees the drop-off details of their own order", readable("deliveryPrivate/tx_seed_4"));
+await expectDenied("the buyer creates a delivery job", () => setDoc(doc(db, "deliveryJobs", "evil"), { status: "open", buyerId: buyerD.uid }));
+
+const sellerD = await as("farmer@aaf.test");
+await expectDenied("the seller reads the buyer's handover code", readable("orderSecrets/tx_seed_1"));
+await expectOk("the seller sees their own delivery jobs", () => getDocs(query(collection(db, "deliveryJobs"), where("sellerId", "==", sellerD.uid))));
+{
+  const platform = await getDoc(doc(db, "orders", "tx_seed_4"));
+  if (platform.data().status === "dispatched") {
+    await expectDenied("a seller starts the trip on an order a CARRIER delivers", () => updateDoc(doc(db, "orders", "tx_seed_4"), step("in_transit", sellerD.uid)));
+  }
+  const own = await getDoc(doc(db, "orders", "tx_seed_3"));
+  if (own.data().status === "paid") {
+    await expectOk("the seller accepts a new order", () => updateDoc(doc(db, "orders", "tx_seed_3"), step("confirmed", sellerD.uid)));
+    await expectOk("the seller marks a collection ready", () => updateDoc(doc(db, "orders", "tx_seed_3"), step("dispatched", sellerD.uid)));
+    await expectDenied("the seller starts a trip on an order the buyer collects", () => updateDoc(doc(db, "orders", "tx_seed_3"), step("in_transit", sellerD.uid)));
+    await expectDenied("the seller marks their own order delivered", () => updateDoc(doc(db, "orders", "tx_seed_3"), step("delivered", sellerD.uid)));
+  }
+}
+await expectDenied("the seller writes a delivery job", () => updateDoc(doc(db, "deliveryJobs", "tx_seed_5"), { status: "claimed", carrierId: sellerD.uid }));
+
+const orgD = await as("org@aaf.test");
+await expectDenied("a stranger reads someone's handover code", readable("orderSecrets/tx_seed_1"));
+await expectDenied("a stranger follows someone's vehicle", readable("orderTracking/tx_seed_4"));
+await expectDenied("a stranger reads someone's drop-off address", readable("deliveryPrivate/tx_seed_4"));
+await expectDenied("someone who is not a carrier lists open jobs", () => getDocs(query(collection(db, "deliveryJobs"), where("status", "==", "open"))));
+await expectDenied("a person applies to be a carrier and approves themselves", () =>
+  setDoc(doc(db, "carriers", orgD.uid), { name: "Org", phone: "0811110000", vehicle: { type: "bakkie" }, regions: [], available: true, status: "approved", createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+);
+await deleteDoc(doc(db, "carriers", orgD.uid)).catch(() => {});
+await expectOk("a person applies to be a carrier (as pending)", () =>
+  setDoc(doc(db, "carriers", orgD.uid), { name: "Ongwediva Fresh Market", phone: "0811110000", vehicle: { type: "bakkie", description: "Company bakkie", plate: "N 1 W" }, regions: ["Oshana"], available: true, status: "pending", createdAt: serverTimestamp(), updatedAt: serverTimestamp() })
+);
+await expectDenied("an applicant still cannot take open jobs", () => getDocs(query(collection(db, "deliveryJobs"), where("status", "==", "open"))));
+await expectDenied("an applicant approves themselves afterwards", () => updateDoc(doc(db, "carriers", orgD.uid), { status: "approved", updatedAt: serverTimestamp() }));
+await expectDenied("an applicant claims a bigger vehicle than they were approved for", () =>
+  updateDoc(doc(db, "carriers", orgD.uid), { vehicle: { type: "truck", description: "Big", plate: "N 1 W" }, updatedAt: serverTimestamp() })
+);
+await expectOk("an applicant updates their phone number", () => updateDoc(doc(db, "carriers", orgD.uid), { phone: "0812223333", updatedAt: serverTimestamp() }));
+await deleteDoc(doc(db, "carriers", orgD.uid)).catch(() => {});
+
+const carrierD = await as("carrier@aaf.test");
+await expectOk("an approved carrier lists the open jobs", () => getDocs(query(collection(db, "deliveryJobs"), where("status", "==", "open"))));
+await expectOk("an approved carrier reads the job they hold", readable("deliveryJobs/tx_seed_4"));
+await expectOk("an approved carrier reads the exact address of the job they hold", readable("deliveryPrivate/tx_seed_4"));
+await expectDenied("an approved carrier reads the exact address of a job they have not taken", readable("deliveryPrivate/tx_seed_5"));
+await expectOk("an approved carrier follows the vehicle of the job they hold", readable("orderTracking/tx_seed_4"));
+await expectDenied("an approved carrier moves the order themselves (the server does it)", () => updateDoc(doc(db, "orders", "tx_seed_4"), step("in_transit", carrierD.uid)));
+await expectDenied("an approved carrier gives themselves a job", () => updateDoc(doc(db, "deliveryJobs", "tx_seed_5"), { status: "claimed", carrierId: carrierD.uid }));
+await expectDenied("a carrier reads the buyer's handover code", readable("orderSecrets/tx_seed_4"));
+await expectOk("a carrier reads their own application", readable(`carriers/${carrierD.uid}`));
+await expectDenied("a carrier reads another carrier's application", readable(`carriers/${pendingCarrier.id}`));
+
+const adminD = await as("admin@aaf.test");
+await expectOk("the admin sees carriers waiting for approval", async () => { if (!pendingCarrier) throw new Error("none"); });
+if (pendingCarrier) {
+  await expectOk("the admin approves a carrier", () => updateDoc(pendingCarrier.ref, { status: "approved", updatedAt: serverTimestamp() }));
+  await updateDoc(pendingCarrier.ref, { status: "pending", updatedAt: serverTimestamp() }); // put it back for the next run
+}
+await expectDenied("even the admin cannot write a delivery job from a browser", () => setDoc(doc(db, "deliveryJobs", "evil"), { status: "open" }));
+void adminD;
 
 await signOut(auth);
 console.log(failures === 0 ? "\nAll rule checks passed.\n" : `\n${failures} rule check(s) FAILED.\n`);

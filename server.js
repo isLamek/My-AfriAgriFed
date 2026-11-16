@@ -9,6 +9,7 @@ const { rateLimit } = require("./server/rateLimit");
 const weather = require("./server/weather");
 const fires = require("./server/fires");
 const checkout = require("./server/checkout");
+const delivery = require("./server/delivery");
 const chat = require("./server/chat");
 const { initAdmin } = require("./server/firebaseAdmin");
 
@@ -122,6 +123,22 @@ checkout.register(app, {
 
 /*
 ==================================
+DELIVERY (seller delivers, or an AfriAgriFed carrier; tracking; handover code)
+Works on the same orders as the payments above. Never moves money itself: where money
+should move it calls server/escrowHooks.js. See server/delivery.js and docs/DELIVERY.md.
+SWEEP_SECRET lets a free outside timer call POST /api/delivery/sweep as well; the server
+also runs the same timeouts itself every few minutes.
+==================================
+*/
+const deliveryService = delivery.register(app, {
+  store: firebaseAdmin && firebaseAdmin.store,
+  verifyToken: firebaseAdmin && firebaseAdmin.verifyToken,
+  sweepSecret: process.env.SWEEP_SECRET || "",
+  limiter: rateLimit({ windowMs: 60000, max: Number(process.env.DELIVERY_RATE_LIMIT_PER_MINUTE) || 120 }),
+});
+
+/*
+==================================
 WEATHER AND FIRE DATA (cached, shared by every visitor)
 The browser asks this server instead of Open-Meteo / NASA directly, so the
 commercial keys stay private and each provider is called once for everyone.
@@ -162,6 +179,7 @@ app.get("/api/features", (req, res) => {
     commercialWeather: !!OPEN_METEO_API_KEY,
     fires: !!FIRMS_MAP_KEY,
     payments: !!(FLW_SECRET_KEY && firebaseAdmin),
+    delivery: !!firebaseAdmin,
     chat: !!OPENROUTER_API_KEY,
   });
 });
@@ -176,6 +194,11 @@ app.listen(port, () => {
   if (!FIRMS_MAP_KEY) console.warn("FIRMS_MAP_KEY not set: the fire layer is switched off.");
   if (!OPENROUTER_API_KEY) console.warn("OPENROUTER_API_KEY not set: the AAF Assistant is switched off.");
   weatherService.startWarming();
+  if (deliveryService.ready) {
+    const runSweep = () => deliveryService.sweep().catch((error) => console.error("[delivery] sweep failed:", error.message));
+    setTimeout(runSweep, 30000);
+    setInterval(runSweep, 10 * 60 * 1000).unref();
+  }
   // Opens the connection to OpenRouter so the first question is not the slow one.
   chat.warmUp({ apiKey: OPENROUTER_API_KEY || "" });
 });

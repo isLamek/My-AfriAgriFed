@@ -57,6 +57,7 @@ function initAdmin(env = process.env, { log = console, requireImpl = require } =
       return {
         uid: decoded.uid,
         email: decoded.email || "",
+        emailVerified: decoded.email_verified === true,
         name: decoded.name || "",
         anonymous: decoded.firebase?.sign_in_provider === "anonymous",
       };

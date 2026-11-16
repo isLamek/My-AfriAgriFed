@@ -407,17 +407,18 @@ service cloud.firestore {
 
     // Order progress. Mirrors src/orderStatus.js - keep the two in sync.
     //   paid -> confirmed -> dispatched -> in_transit -> delivered
-    // The seller moves an order up to in_transit; only the buyer can confirm
-    // delivery (from dispatched or in_transit). Everything else (cancelling,
-    // refunds, corrections) stays admin-only.
-    function sellerMove(from, to) {
-      return (from == 'paid' && to == 'confirmed')
-        || (from == 'confirmed' && to == 'dispatched')
-        || (from == 'dispatched' && to == 'in_transit');
-    }
-
-    function buyerMove(from, to) {
-      return (from == 'dispatched' || from == 'in_transit') && to == 'delivered';
+    // The seller moves an order up to dispatched (ready); only a seller who
+    // delivers THEMSELVES (fulfilment.method 'seller', or an older order with no
+    // method) may also start the trip. For a carrier or a collection the next
+    // step belongs to someone else and goes through the server
+    // (server/delivery.js). Confirming receipt (also the buyer's), handing over
+    // with the code, cancelling, disputes, refunds and corrections never come
+    // straight from a browser: the server or an admin does them.
+    function sellerMove(order, to) {
+      return (order.status == 'paid' && to == 'confirmed')
+        || (order.status == 'confirmed' && to == 'dispatched')
+        || (order.status == 'dispatched' && to == 'in_transit'
+            && order.get('fulfilment', {}).get('method', 'seller') == 'seller');
     }
 
     // A participant may change ONLY status, statusHistory and updatedAt; the
@@ -433,10 +434,8 @@ service cloud.firestore {
         && after.statusHistory[after.statusHistory.size() - 1].status == after.status
         && after.statusHistory[after.statusHistory.size() - 1].by == request.auth.uid
         && after.updatedAt == request.time
-        && (
-          (before.sellerId == request.auth.uid && sellerMove(before.status, after.status))
-          || (before.buyerId == request.auth.uid && buyerMove(before.status, after.status))
-        );
+        && before.sellerId == request.auth.uid
+        && sellerMove(before, after.status);
     }
 
     // ---- Farmers' private farm records and input log ------------------------
@@ -590,6 +589,79 @@ service cloud.firestore {
         isSignedInAdmin()
       );
       allow update: if isSignedInAdmin() || isLegalOrderProgress();
+    }
+
+    // ---- Delivery (written by the server only; see server/delivery.js and docs/DELIVERY.md) --------------
+    function isApprovedCarrier() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/carriers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/carriers/$(request.auth.uid)).data.status == 'approved';
+    }
+
+    function takesPartIn(d) {
+      return signedIn() && (d.get('buyerId', '') == request.auth.uid || d.get('sellerId', '') == request.auth.uid || d.get('carrierId', '') == request.auth.uid);
+    }
+
+    // The buyer's six-digit handover code: only the buyer can read it, nobody can write it.
+    match /orderSecrets/{id} {
+      allow read: if signedIn() && resource.data.buyerId == request.auth.uid;
+      allow write: if false;
+    }
+
+    // A delivery job as carriers see it: rough places only (about 1 km), no phone numbers.
+    // Approved carriers read open jobs and their own; the seller and buyer read theirs.
+    match /deliveryJobs/{id} {
+      allow read: if takesPartIn(resource.data)
+        || (resource.data.status == 'open' && isApprovedCarrier())
+        || isSignedInAdmin();
+      allow write: if false;
+    }
+
+    // The exact addresses and phone numbers, only for the people on the job.
+    match /deliveryPrivate/{id} {
+      allow read: if takesPartIn(resource.data) || isSignedInAdmin();
+      allow write: if false;
+    }
+
+    // Where the vehicle is right now, while an order is on the road.
+    match /orderTracking/{id} {
+      allow read: if takesPartIn(resource.data) || isSignedInAdmin();
+      allow write: if false;
+    }
+
+    // Problems the buyer reported, for the support team.
+    match /disputes/{id} {
+      allow read: if takesPartIn(resource.data) || isSignedInAdmin();
+      allow write: if false;
+    }
+
+    // People who carry orders for AfriAgriFed. Anyone signed in can apply (as "pending");
+    // only an admin can approve. A carrier edits their own details but never their status.
+    function validCarrier(d) {
+      return d.name is string && d.name.size() > 0 && d.name.size() <= 80
+        && d.phone is string && d.phone.size() >= 7 && d.phone.size() <= 20
+        && d.vehicle is map
+        && d.vehicle.type in ['small', 'bakkie', 'truck']
+        && d.vehicle.get('description', '') is string && d.vehicle.get('description', '').size() <= 80
+        && d.vehicle.get('plate', '') is string && d.vehicle.get('plate', '').size() <= 20
+        && d.get('regions', []) is list && d.get('regions', []).size() <= 14
+        && d.get('available', true) is bool;
+    }
+
+    match /carriers/{uid} {
+      allow get: if signedIn() && (request.auth.uid == uid || isSignedInAdmin());
+      allow list: if isSignedInAdmin();
+      allow create: if signedIn() && request.auth.uid == uid
+        && request.resource.data.keys().hasOnly(['name', 'phone', 'vehicle', 'regions', 'available', 'status', 'createdAt', 'updatedAt'])
+        && request.resource.data.status == 'pending'
+        && validCarrier(request.resource.data)
+        && request.resource.data.createdAt == request.time;
+      allow update: if isSignedInAdmin()
+        || (signedIn() && request.auth.uid == uid
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone', 'vehicle', 'regions', 'available', 'updatedAt'])
+            && request.resource.data.vehicle.type == resource.data.vehicle.type // a bigger vehicle needs a fresh approval
+            && validCarrier(request.resource.data));
+      allow delete: if signedIn() && request.auth.uid == uid || isSignedInAdmin();
     }
   }
 }

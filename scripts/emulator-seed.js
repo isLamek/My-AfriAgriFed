@@ -47,6 +47,8 @@ const ACCOUNTS = [
   { key: "buyer", email: "buyer@aaf.test", name: "Bea Buyer", userType: "consumer", approved: false },
   { key: "org", email: "org@aaf.test", name: "Ongwediva Fresh Market", userType: "consumer", organization: "Retailer" },
   { key: "institution", email: "institution@aaf.test", name: "UNAM Ogongo Campus", userType: "institution", approved: true },
+  { key: "carrier", email: "carrier@aaf.test", name: "Kaleb Haimbili", userType: "consumer" }, // an approved carrier (see carriers/ below)
+  { key: "carrier2", email: "carrier2@aaf.test", name: "Penda Transport", userType: "consumer" }, // a carrier waiting for approval
 ];
 
 const now = Date.now();
@@ -116,8 +118,8 @@ async function main() {
 
   // ---- marketplace -----------------------------------------------------------------
   const listings = [
-    { id: "lst_mahangu", seller: "farmer", product: "Mahangu (pearl millet)", price: 18, unit: "kg", quantity: 400, location: { lat: -17.788, lng: 15.699, label: "Oshakati", region: "Oshana" } },
-    { id: "lst_cowpeas", seller: "farmer", product: "Cowpeas (omakunde)", price: 32, unit: "kg", quantity: 4, location: { lat: -17.79, lng: 15.72, label: "Near Oshakati", region: "Oshana" } },
+    { id: "lst_mahangu", seller: "farmer", product: "Mahangu (pearl millet)", price: 18, unit: "kg", quantity: 400, location: { lat: -17.788, lng: 15.699, label: "Oshakati", region: "Oshana" }, delivery: { collect: true, platform: true, own: { enabled: true, baseFee: 25, perKm: 6, maxKm: 60 } } },
+    { id: "lst_cowpeas", seller: "farmer", product: "Cowpeas (omakunde)", price: 32, unit: "kg", quantity: 4, location: { lat: -17.79, lng: 15.72, label: "Near Oshakati", region: "Oshana" }, delivery: { collect: true, platform: false, own: { enabled: true, baseFee: 15, perKm: 4, maxKm: 30 } } },
     { id: "lst_spinach", seller: "farmer2", product: "Fresh spinach", price: 15, unit: "bunch", quantity: 0 },
     { id: "lst_goat", seller: "farmer2", product: "Boer goat (live)", price: 1800, unit: "unit", quantity: 6, location: { lat: -22.57, lng: 17.083, label: "Windhoek", region: "Khomas" } },
   ];
@@ -133,6 +135,7 @@ async function main() {
       sellerName: seller.name,
       sellerSubaccountId: l.seller === "farmer" ? "RS_TEST_SEED" : null,
       location: l.location || null,
+      ...(l.delivery ? { delivery: l.delivery } : {}),
       createdAt: ago(60 * 24 * 2),
     });
   }
@@ -230,6 +233,68 @@ async function main() {
     createdAt: ago(60 * 24),
   });
 
+  // ---- carriers: one approved (can take jobs), one waiting for the admin ------------------------------
+  set(`carriers/${uid.carrier}`, { name: "Kaleb Haimbili", phone: "+264811110000", vehicle: { type: "bakkie", description: "White Toyota Hilux", plate: "N 4521 W" }, regions: ["Oshana", "Ohangwena"], available: true, status: "approved", createdAt: ago(60 * 24 * 3), updatedAt: ago(60 * 24 * 3) });
+  set(`carriers/${uid.carrier2}`, { name: "Penda Transport", phone: "+264812220000", vehicle: { type: "truck", description: "Isuzu 3-ton", plate: "N 889 W" }, regions: ["Oshana"], available: true, status: "pending", createdAt: ago(60 * 24), updatedAt: ago(60 * 24) });
+
+  // ---- orders in different states, for trying the whole delivery flow ----------------------------------
+  // Handover code for every seeded order (the buyer sees it on the order card): 123456
+  const drop = { lat: -17.785, lng: 15.767, label: "Near Ongwediva", landmark: "Blue gate behind the Engen garage, Ongwediva", contactName: "Bea Buyer", contactPhone: "+264811234567" };
+  const pickup = { lat: -17.788, lng: 15.699, label: "Oshakati", region: "Oshana" };
+  const mahangu = { listingId: "lst_mahangu", product: "Mahangu (pearl millet)", quantity: 10, unit: "kg", unitPrice: 18 };
+
+  // 2: a carrier order the seller has accepted and not yet asked a carrier for; 3: a collection nobody has accepted yet
+  set("orders/tx_seed_2", {
+    buyerId: uid.buyer, buyerName: "Bea Buyer", sellerId: uid.farmer, sellerName: "Ndapewa Shikongo",
+    product: "Mahangu (pearl millet)", listingId: "lst_mahangu", quantity: 50, unit: "kg", unitPrice: 18,
+    items: [{ ...mahangu, quantity: 50 }], itemsTotal: 900, deliveryFee: 68,
+    fulfilment: { method: "platform", deliveryFee: 68, km: 11.2, etaMinutes: 43, vehicle: "bakkie", pickup, address: drop, window: "morning", note: "Please phone at the gate" },
+    stockApplied: true, oversold: false, amount: 968, currency: "NAD", transactionId: "seed2", txRef: "aaf-seed-2", status: "confirmed",
+    statusHistory: [
+      { status: "paid", by: uid.buyer, at: now - 5 * 3600000, note: "Payment received" },
+      { status: "confirmed", by: uid.farmer, at: now - 4 * 3600000 },
+    ],
+    createdAt: ago(300), updatedAt: ago(240),
+  });
+  set("orders/tx_seed_3", {
+    buyerId: uid.buyer, buyerName: "Bea Buyer", sellerId: uid.farmer, sellerName: "Ndapewa Shikongo",
+    product: "Cowpeas (omakunde)", listingId: "lst_cowpeas", quantity: 2, unit: "kg", unitPrice: 32,
+    items: [{ listingId: "lst_cowpeas", product: "Cowpeas (omakunde)", quantity: 2, unit: "kg", unitPrice: 32 }], itemsTotal: 64, deliveryFee: 0,
+    fulfilment: { method: "collect", deliveryFee: 0, pickup },
+    stockApplied: true, oversold: false, amount: 64, currency: "NAD", transactionId: "seed3", txRef: "aaf-seed-3", status: "paid",
+    statusHistory: [{ status: "paid", by: uid.buyer, at: now - 20 * 60000, note: "Payment received" }],
+    createdAt: ago(20), updatedAt: ago(20),
+  });
+
+  // 4: a carrier (Kaleb) has the job and the seller has marked it ready: he can collect it now.
+  // 5: a carrier job anyone approved can take from the board.
+  const platformOrder = (n, status, extra = {}) => ({
+    buyerId: uid.buyer, buyerName: "Bea Buyer", sellerId: uid.farmer, sellerName: "Ndapewa Shikongo",
+    product: "Mahangu (pearl millet)", listingId: "lst_mahangu", quantity: 30, unit: "kg", unitPrice: 18,
+    items: [{ ...mahangu, quantity: 30 }], itemsTotal: 540, deliveryFee: 62,
+    fulfilment: { method: "platform", deliveryFee: 62, km: 9.1, etaMinutes: 40, vehicle: "bakkie", pickup, address: drop, ...(extra.fulfilment || {}) },
+    stockApplied: true, oversold: false, amount: 602, currency: "NAD", transactionId: `seed${n}`, txRef: `aaf-seed-${n}`, status,
+    statusHistory: [
+      { status: "paid", by: uid.buyer, at: now - 6 * 3600000, note: "Payment received" },
+      { status: "confirmed", by: uid.farmer, at: now - 5 * 3600000 },
+      ...(status === "dispatched" ? [{ status: "dispatched", by: uid.farmer, at: now - 3600000 }] : []),
+    ],
+    createdAt: ago(360), updatedAt: ago(60),
+  });
+  const jobFor = (id, order, carrier) => ({
+    orderId: id, sellerId: uid.farmer, buyerId: uid.buyer, status: carrier ? "claimed" : "open", vehicle: "bakkie", km: 9.1, fee: 62, carrierPay: 52.7, weightKg: 30,
+    what: "Mahangu (pearl millet)", pickup: { lat: -17.79, lng: 15.7, label: "Oshakati", region: "Oshana" }, dropoff: { lat: -17.78, lng: 15.77, label: "Near Ongwediva" },
+    window: "anytime", readyAt: now - 3600000, carrierId: carrier ? uid.carrier : null, carrierName: carrier ? "Kaleb Haimbili" : "", createdAt: now - 4 * 3600000,
+  });
+  set("orders/tx_seed_4", platformOrder(4, "dispatched", { fulfilment: { carrier: { uid: uid.carrier, name: "Kaleb Haimbili", vehicle: { type: "bakkie", description: "White Toyota Hilux", plate: "N 4521 W" } } } }));
+  set("deliveryJobs/tx_seed_4", jobFor("tx_seed_4", null, true));
+  set("deliveryPrivate/tx_seed_4", { sellerId: uid.farmer, buyerId: uid.buyer, carrierId: uid.carrier, pickup: { ...pickup, phone: "+264810001111", note: "Brown gate, ask for Ndapewa" }, dropoff: drop, note: "" });
+  set("orders/tx_seed_5", platformOrder(5, "confirmed"));
+  set("deliveryJobs/tx_seed_5", jobFor("tx_seed_5", null, false));
+  set("deliveryPrivate/tx_seed_5", { sellerId: uid.farmer, buyerId: uid.buyer, carrierId: null, pickup: { ...pickup, phone: "+264810001111", note: "" }, dropoff: drop, note: "" });
+  set("orderTracking/tx_seed_4", { orderId: "tx_seed_4", buyerId: uid.buyer, sellerId: uid.farmer, carrierId: uid.carrier, lat: -17.79, lng: 15.72, speedKmh: 55, at: now });
+  for (const id of ["tx_seed_1", "tx_seed_2", "tx_seed_3", "tx_seed_4", "tx_seed_5"]) set(`orderSecrets/${id}`, { buyerId: uid.buyer, code: "123456", tries: 0, createdAt: now });
+
   // ---- an order already in progress ---------------------------------------------------------
   set("orders/tx_seed_1", {
     buyerId: uid.buyer,
@@ -241,9 +306,13 @@ async function main() {
     quantity: 10,
     unit: "kg",
     unitPrice: 18,
+    items: [mahangu],
+    itemsTotal: 180,
+    deliveryFee: 53,
+    fulfilment: { method: "seller", deliveryFee: 53, km: 4.5, etaMinutes: 35, pickup, address: drop },
     stockApplied: true,
     oversold: false,
-    amount: 180,
+    amount: 233,
     currency: "NAD",
     transactionId: "seed1",
     txRef: "aaf-seed-1",

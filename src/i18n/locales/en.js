@@ -1487,6 +1487,10 @@ module.exports = {
   "opt:Wholesaler": "Wholesaler", // list item · ConsumerQuestionnaire.js
   "opt:Women groups": "Women groups", // list item · InstitutionQuestionnaire.js
   "opt:Youth": "Youth", // list item · InstitutionQuestionnaire.js
+  "opt:Ready for collection": "Ready for collection", // order step / button when the buyer collects · orderStatus.js
+  "opt:Ready for the carrier": "Ready for the carrier", // order step / button when a carrier delivers · orderStatus.js
+  "opt:With the carrier": "With the carrier", // order step while a carrier has the goods · orderStatus.js
+  "opt:Problem reported": "Problem reported", // order status after the buyer reports a problem · orderStatus.js
   // ---- orders ----
   "orders.purchaseHistory": "Purchase history", // eyebrow · MyOrders.js
   "orders.myOrders": "My Orders", // title · MyOrders.js
@@ -1505,6 +1509,10 @@ module.exports = {
   "orderStatus.waitDispatch": "Waiting for the seller to dispatch", // line on an order card
   "orderStatus.waitStart": "Waiting for the seller to start delivery, or the buyer to confirm receipt", // line on an order card
   "orderStatus.waitDelivery": "Waiting for the buyer to confirm delivery", // line on an order card
+  "orderStatus.waitReadyForCarrier": "Waiting for the seller to get the order ready for the carrier", // line on an order card
+  "orderStatus.waitCollection": "Ready: waiting for the buyer to collect it", // line on an order card
+  "orderStatus.waitCarrierPickup": "Waiting for a carrier to collect the goods from the seller", // line on an order card
+  "orderStatus.waitDispute": "A problem was reported. The AfriAgriFed team is looking into it.", // line on an order card
   // ---- pageAccess ----
   "pageAccess.enterAnEmailSoWeCan": "Enter an email so we can send your receipt.", // toast.error · PageAccessGate.js
   "pageAccess.choosePhotoOfYourStudentCard": "Choose a photo of your student card first.", // toast.error · PageAccessGate.js
