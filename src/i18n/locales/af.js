@@ -471,6 +471,8 @@ module.exports = {
   "delivery.cancel.decline": "Weier die bestelling", // en: Decline the order
   "delivery.cancel.keep": "Hou dit", // en: Keep it
   "delivery.cancel.done": "Die bestelling is gekanselleer en die terugbetaling is begin.", // en: The order was cancelled and the refund has been started.
+  "delivery.confirm.ask": "Bevestig net as jy jou bestelling in jou hande het. Bevestig dat jy dit ontvang het?", // en: Only confirm if you have your order in your hands. Confirm that you received it?
+  "delivery.cancel.stalledHelp": "Die verkoper het hierdie bestelling aanvaar maar dit meer as 3 dae lank nie verder gevat nie, so jy kan dit kanselleer en al jou geld terugkry.", // en: The seller accepted this order but has not moved it for more than 3 days, so you can cancel it and get all your money back.
   // ---- demand ----
   "demand.requestPostedProducersCanNowPledge": "Aanvraag geplaas. Produsente kan nou beloof om te lewer.", // en: Request posted. Producers can now pledge.
   "demand.markedAsFulfilled": "Gemerk as vervul.", // en: Marked as fulfilled.
@@ -1387,6 +1389,10 @@ module.exports = {
   "notif.order.resolvedRelease.body": "Ondersteuning het oor {product} besluit: die verkoper word betaal.", // en: Support decided on {product}: the seller is paid.
   "notif.order.resolvedRefund.title": "Probleem opgelos", // en: Problem resolved
   "notif.order.resolvedRefund.body": "Ondersteuning het oor {product} besluit: die koper word terugbetaal.", // en: Support decided on {product}: the buyer is refunded.
+  "notif.delivery.requestReminder.title": "Vra vir 'n vervoerder", // en: Ask for a carrier
+  "notif.delivery.requestReminder.body": "{product} wag dat jy vir 'n vervoerder vra.", // en: {product} is waiting for you to ask for a carrier.
+  "notif.order.readyReminder.title": "Bestelling wag vir jou", // en: Order waiting for you
+  "notif.order.readyReminder.body": "{product} is aanvaar. Merk dit gereed wanneer dit gereed is.", // en: {product} is accepted. Mark it ready when it is.
   // ---- notifications ----
   "notifications.notifications": "Kennisgewings", // en: Notifications
   "notifications.noNotificationsYet": "Nog geen kennisgewings nie.", // en: No notifications yet.

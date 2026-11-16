@@ -96,17 +96,19 @@ function applyStock({ order, listing, quantity, flag, writeOrder, writeListing }
   // an order with one item, and every order from before baskets existed, uses plain "stockApplied".
   const applied = flag || "stockApplied";
   const over = flag ? `oversold_${flag.split("_").pop()}` : "oversold";
+  const takenKey = flag ? `stockTaken_${flag.split("_").pop()}` : "stockTaken"; // how many units were really taken off the listing
   if (order[applied]) return { applied: false };
 
   const stock = listing && typeof listing.quantity === "number" ? listing.quantity : null;
   if (stock === null) {
-    writeOrder({ [applied]: true });
+    writeOrder({ [applied]: true, [takenKey]: 0 });
     return { applied: true, oversold: false, remaining: null };
   }
   const oversold = stock < quantity;
   const remaining = Math.max(0, stock - quantity);
   writeListing({ quantity: remaining });
-  writeOrder({ [applied]: true, [over]: oversold });
+  // If the order was cancelled later, only what was really taken goes back on sale.
+  writeOrder({ [applied]: true, [over]: oversold, [takenKey]: Math.min(stock, quantity) });
   return { applied: true, oversold, remaining, available: stock };
 }
 

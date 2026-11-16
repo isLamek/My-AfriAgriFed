@@ -471,6 +471,8 @@ module.exports = {
   "delivery.cancel.decline": "Decline the order", // button
   "delivery.cancel.keep": "Keep it", // button
   "delivery.cancel.done": "The order was cancelled and the refund has been started.", // toast
+  "delivery.confirm.ask": "Only confirm if you have your order in your hands. Confirm that you received it?", // confirmation question
+  "delivery.cancel.stalledHelp": "The seller accepted this order but has not moved it for more than 3 days, so you can cancel it and get all your money back.",
   // ---- demand ----
   "demand.requestPostedProducersCanNowPledge": "Request posted. Producers can now pledge.", // toast.success · DemandBoard.js
   "demand.markedAsFulfilled": "Marked as fulfilled.", // toast.success · DemandBoard.js
@@ -1387,6 +1389,10 @@ module.exports = {
   "notif.order.resolvedRelease.body": "Support decided on {product}: the seller is paid.", // notification text
   "notif.order.resolvedRefund.title": "Problem resolved", // notification title
   "notif.order.resolvedRefund.body": "Support decided on {product}: the buyer is refunded.", // notification text
+  "notif.delivery.requestReminder.title": "Ask for a carrier", // notification title
+  "notif.delivery.requestReminder.body": "{product} is waiting for you to ask for a carrier.", // notification text
+  "notif.order.readyReminder.title": "Order waiting for you", // notification title
+  "notif.order.readyReminder.body": "{product} is accepted. Mark it ready when it is.", // notification text
   // ---- notifications ----
   "notifications.notifications": "Notifications", // aria-label · NotificationBell.js
   "notifications.noNotificationsYet": "No notifications yet.", // p · NotificationBell.js

@@ -20,6 +20,8 @@ const METHODS = ["collect", "seller", "platform"];
 const LIMITS = {
   sellerConfirmHours: 24, // the seller must accept a paid order, or it is cancelled and refunded
   carrierClaimHours: 6, // an open job nobody claimed in this time goes to the support team
+  remindHours: 6, // an accepted order the seller has done nothing with (or not asked a carrier for) gets one reminder
+  stalledHours: 72, // an accepted order that has not moved this long: the buyer may cancel it and be refunded
   releaseVerifiedHours: 24, // payout may be released this long after a code-verified handover...
   releaseUnverifiedHours: 72, // ...or this long after a handover without the code (buyer can still object)
   codeTries: 5, // wrong handover codes allowed before the order is locked for support

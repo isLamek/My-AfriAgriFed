@@ -252,6 +252,10 @@ export function HandoverBox({ orderId, canSkip, collect }) {
 
 function SellerSharing({ order }) {
   const [on, setOn] = useState(order.status === "in_transit");
+  // the moment the trip starts, start sharing: the buyer should not have to wait for the seller to remember
+  useEffect(() => {
+    if (order.status === "in_transit") setOn(true);
+  }, [order.status]);
   const share = useShareLocation(order.id, on && order.status === "in_transit");
   const arrived = !!order.fulfilment?.arrivedAt;
   return (
@@ -328,7 +332,7 @@ function CancelForm({ order, seller, onClose }) {
   return (
     <div className="dl-panel warn">
       <h4>{seller ? t("delivery.cancel.declineTitle") : t("delivery.cancel.title")}</h4>
-      <p className="dl-help">{seller ? t("delivery.cancel.declineHelp") : t("delivery.cancel.help")}</p>
+      <p className="dl-help">{seller ? t("delivery.cancel.declineHelp") : order.status === "paid" ? t("delivery.cancel.help") : t("delivery.cancel.stalledHelp")}</p>
       <label className="dl-field">
         <span>{seller ? t("delivery.cancel.reasonRequired") : t("delivery.cancel.reasonOptional")}</span>
         <input type="text" maxLength={200} value={reason} onChange={(e) => setReason(e.target.value)} />
@@ -356,6 +360,7 @@ export default function OrderDelivery({ order, uid, side }) {
   const deliveredWindow = status === "delivered" && typeof order.releaseAt === "number" && order.releaseAt > Date.now() && !order.releasedAt;
 
   const confirm = async () => {
+    if (!window.confirm(t("delivery.confirm.ask"))) return;
     setBusy(true);
     await run(() => confirmReceipt(order.id), { ok: t("delivery.confirm.done") });
     setBusy(false);

@@ -83,6 +83,14 @@ describe("what each person can ask the server to do", () => {
     expect(serverActions(order("in_transit", withMethod("platform")), "buyer1", now).sort()).toEqual(["confirm", "dispute"]);
   });
 
+  it("lets the buyer cancel an accepted order the seller has not moved for three days", () => {
+    const at = now - 73 * 3600000;
+    expect(serverActions(order("confirmed", { statusHistory: [{ status: "confirmed", at }] }), "buyer1", now)).toEqual(["cancel"]);
+    expect(serverActions(order("dispatched", { statusHistory: [{ status: "dispatched", at }] }), "buyer1", now).sort()).toEqual(["cancel", "confirm", "dispute"]);
+    expect(serverActions(order("confirmed", { statusHistory: [{ status: "confirmed", at: now - 71 * 3600000 }] }), "buyer1", now)).toEqual([]);
+    expect(serverActions(order("in_transit", { statusHistory: [{ status: "in_transit", at }] }), "buyer1", now).includes("cancel")).toBe(false);
+  });
+
   it("keeps 'report a problem' open after delivery only while the objection window is", () => {
     expect(serverActions(order("delivered", { releaseAt: now + 1000 }), "buyer1", now)).toEqual(["dispute"]);
     expect(serverActions(order("delivered", { releaseAt: now - 1 }), "buyer1", now)).toEqual([]);

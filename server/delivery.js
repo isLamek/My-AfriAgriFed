@@ -205,12 +205,18 @@ function register(app, deps) {
     }
   }
 
-  /** Put the units of a cancelled order back on sale. */
+  /** Put the units of a cancelled order back on sale: only what was really taken off the listing, and only if it was. */
   async function restock(order) {
     const items = itemsOf(order);
-    for (const item of items) {
+    const single = items.length === 1;
+    for (let i = 0; i < items.length; i += 1) {
+      const item = items[i];
       if (!item.listingId) continue;
-      await store.updateIf(`marketPrices/${item.listingId}`, (cur) => (typeof cur.quantity === "number" ? { quantity: cur.quantity + (Number(item.quantity) || 0) } : null));
+      const applied = single ? order.stockApplied : order[`stockApplied_${i}`];
+      const taken = single ? order.stockTaken : order[`stockTaken_${i}`];
+      const back = taken !== undefined ? Number(taken) : applied ? Number(item.quantity) : 0; // orders from before stockTaken existed
+      if (!(back > 0)) continue;
+      await store.updateIf(`marketPrices/${item.listingId}`, (cur) => (typeof cur.quantity === "number" ? { quantity: cur.quantity + back } : null));
     }
   }
 
@@ -586,7 +592,10 @@ function register(app, deps) {
         from = ["paid", "confirmed", "dispatched", "in_transit", "disputed"];
         why = "support";
       } else if (isBuyer) {
-        from = ["paid"];
+        // A seller who accepts and then goes quiet must not hold the buyer's money for ever.
+        const lastAt = toMs(order.statusHistory && order.statusHistory[order.statusHistory.length - 1] && order.statusHistory[order.statusHistory.length - 1].at, nowMs());
+        const stalled = ["confirmed", "dispatched"].includes(order.status) && nowMs() - lastAt >= LIMITS.stalledHours * HOUR;
+        from = stalled ? ["paid", "confirmed", "dispatched"] : ["paid"];
         why = "buyer";
       } else {
         from = ["paid", "confirmed"];
@@ -678,7 +687,7 @@ function register(app, deps) {
    */
   async function sweep() {
     const now = nowMs();
-    const done = { cancelled: 0, released: 0, escalated: 0 };
+    const done = { cancelled: 0, released: 0, escalated: 0, reminded: 0 };
 
     for (const order of await store.query("orders", [["status", "==", "paid"]], { limit: 200 })) {
       const paidAt = toMs(order.statusHistory && order.statusHistory[0] && order.statusHistory[0].at, toMs(order.createdAt, now));
@@ -691,6 +700,19 @@ function register(app, deps) {
       } catch (error) {
         log.warn(`[delivery] sweep could not cancel ${order.id}: ${error.message}`);
       }
+    }
+
+    // An accepted order the seller has done nothing with: one friendly reminder.
+    for (const order of await store.query("orders", [["status", "==", "confirmed"]], { limit: 200 })) {
+      const f = order.fulfilment || {};
+      const last = order.statusHistory && order.statusHistory[order.statusHistory.length - 1];
+      if (f.reminded || now - toMs(last && last.at, now) < LIMITS.remindHours * HOUR) continue;
+      const needsCarrier = f.method === "platform" && !f.carrierRequestedAt;
+      await patchFulfilment(order.id, { reminded: true });
+      await notify(order.sellerId, needsCarrier
+        ? { key: "notif.delivery.requestReminder", params: { product: itemsLine(order) }, title: "Ask for a carrier", body: `${itemsLine(order)} is waiting for you to ask for a carrier.`, link: "/track-orders" }
+        : { key: "notif.order.readyReminder", params: { product: itemsLine(order) }, title: "Order waiting for you", body: `${itemsLine(order)} is accepted. Mark it ready when it is.`, link: "/track-orders" });
+      done.reminded += 1;
     }
 
     for (const order of await store.query("orders", [["status", "==", "delivered"]], { limit: 200 })) {

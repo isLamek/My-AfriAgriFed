@@ -119,7 +119,10 @@ export function serverActions(order, uid, now = Date.now()) {
   for (const role of rolesFor(order, uid)) {
     if (role === "buyer") {
       if (travelling) actions.add("confirm");
-      if (status === "paid") actions.add("cancel");
+      // until the seller accepts, or when an accepted order has sat still too long (rules.LIMITS.stalledHours)
+      const lastAt = order.statusHistory?.[order.statusHistory.length - 1]?.at;
+      const stalled = (status === "confirmed" || status === "dispatched") && typeof lastAt === "number" && now - lastAt >= 72 * 3600000;
+      if (status === "paid" || stalled) actions.add("cancel");
       const windowOpen = status === "delivered" && typeof order.releaseAt === "number" && order.releaseAt > now && !order.releasedAt;
       if (travelling || windowOpen) actions.add("dispute");
     } else {

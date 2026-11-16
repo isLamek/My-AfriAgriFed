@@ -59,7 +59,9 @@ the seller decides which ones they offer:
    A reported problem freezes the order (`disputed`); support decides in the Admin Dashboard
    (*Problems reported by buyers*): pay the seller, or refund the buyer (the goods go back on sale).
 10. **Cancelling.** The buyer can cancel until the seller accepts. The seller can decline (with a
-    reason the buyer sees) until the order is dispatched. After that only support can cancel.
+    reason the buyer sees) until the order is dispatched. After that only support can cancel, with
+    one exception: if the seller accepted and then did nothing for 72 hours, the buyer may cancel
+    and is refunded. Once an order is on the road nobody can cancel it from the app (support can).
 
 ## Why it is built this way (the problems it answers)
 
@@ -67,6 +69,8 @@ the seller decides which ones they offer:
 |---|---|
 | A buyer says "never arrived" / a driver says "delivered" | The handover code is the proof. Without it the handover is marked unverified and the objection window is longer. |
 | A seller never answers a paid order | Auto-cancel and refund after 24 h; stock restored. |
+| A seller accepts, then goes quiet | One reminder after 6 h; after 72 h the buyer can cancel and be refunded. |
+| An order is cancelled after another buyer took some of the stock | Only the units that were really taken off the listing go back on sale. |
 | Nobody wants a delivery job | Escalated to the seller and the Admin Dashboard after 6 h. |
 | Two carriers grab one job | `updateIf` is atomic: one wins, the other gets `job_taken`. |
 | A fake or unsafe driver | Carriers apply and an admin approves; they can be suspended; a carrier can't enlarge their vehicle class without a new approval (rules). |
@@ -113,6 +117,8 @@ immediately: the handover code, objection window and refunds only record intent.
 | What | Default |
 |---|---|
 | Seller must accept a paid order | 24 h |
+| Reminder to a seller who accepted but did not mark it ready (or ask for a carrier) | 6 h, once |
+| The buyer may cancel an accepted order the seller has not moved | 72 h |
 | A carrier job may wait for a carrier | 6 h, then escalated |
 | Objection window after a code handover / after a handover without the code | 24 h / 72 h |
 | Wrong handover codes before the order locks | 5 |

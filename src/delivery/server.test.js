@@ -553,10 +553,51 @@ describe("cancelling an order", () => {
     expect(store.docs.get("marketPrices/L1").quantity).toBe(100);
   });
 
+  it("puts back only the units that were really taken off the listing", async () => {
+    await start();
+    const first = await post("/api/payments/initiate", "tok-buyer", { kind: "order", items: [{ listingId: "L2", quantity: 8 }], delivery: { method: "collect" } });
+    store.docs.set("marketPrices/L2", { ...store.docs.get("marketPrices/L2"), quantity: 3 }); // another buyer took most of it
+    txs["9"] = { id: 9, status: "successful", tx_ref: first.json.txRef, amount: first.json.amount, currency: "NAD" };
+    const done = await call("GET", "/api/payments/verify/9", { token: "tok-buyer" });
+    expect(order(done.json.orderId).stockTaken).toBe(3);
+    expect(store.docs.get("marketPrices/L2").quantity).toBe(0);
+    await post(`/api/orders/${done.json.orderId}/cancel`, "tok-buyer", {});
+    expect(store.docs.get("marketPrices/L2").quantity).toBe(3); // not 8
+  });
+
+  it("does not put back stock that was never taken", async () => {
+    await start();
+    const { orderId: id } = await buy(collectOrder);
+    store.docs.set(`orders/${id}`, { ...order(id), stockApplied: false, stockTaken: undefined }); // the payment confirmation stopped before counting stock
+    const before = store.docs.get("marketPrices/L1").quantity;
+    await post(`/api/orders/${id}/cancel`, "tok-buyer", {});
+    expect(store.docs.get("marketPrices/L1").quantity).toBe(before);
+  });
+
   it("stops the buyer cancelling once the seller has accepted", async () => {
     await start();
     const { orderId: id } = await buy(collectOrder);
     toStatus(id, "confirmed");
+    expect((await post(`/api/orders/${id}/cancel`, "tok-buyer", {})).json.error).toBe("wrong_status");
+  });
+
+  it("lets the buyer cancel an accepted order the seller has not moved for three days, and not before", async () => {
+    await start();
+    const { orderId: id } = await buy(collectOrder);
+    toStatus(id, "confirmed");
+    now += 71 * HOUR;
+    expect((await post(`/api/orders/${id}/cancel`, "tok-buyer", {})).json.error).toBe("wrong_status");
+    now += 2 * HOUR;
+    expect((await post(`/api/orders/${id}/cancel`, "tok-buyer", { reason: "Never sent" })).json.status).toBe("cancelled");
+    expect(order(id)).toMatchObject({ status: "cancelled", payoutStatus: "refund_requested" });
+    expect(store.docs.get("marketPrices/L1").quantity).toBe(100);
+  });
+
+  it("does not let the buyer cancel once it is on the road, however long it takes", async () => {
+    await start();
+    const { orderId: id } = await buy(sellerOrder);
+    toStatus(id, "in_transit");
+    now += 200 * HOUR;
     expect((await post(`/api/orders/${id}/cancel`, "tok-buyer", {})).json.error).toBe("wrong_status");
   });
 
@@ -701,6 +742,31 @@ describe("the sweep", () => {
     expect((await start.sweep()).released).toBe(0);
   });
 
+  it("reminds the seller once about an accepted order they have not touched, and says what to do", async () => {
+    await start();
+    const a = (await buy(platformOrder, { txId: "11" })).orderId;
+    const b = (await buy(collectOrder, { txId: "12" })).orderId;
+    toStatus(a, "confirmed");
+    toStatus(b, "confirmed");
+    now += 5 * HOUR;
+    expect((await start.sweep()).reminded).toBe(0);
+    now += 2 * HOUR;
+    expect((await start.sweep()).reminded).toBe(2);
+    expect((await start.sweep()).reminded).toBe(0);
+    const keys = store.list("notifications").map((n) => n.key).filter((k) => /Reminder$/.test(k)).sort();
+    expect(keys).toEqual(["notif.delivery.requestReminder", "notif.order.readyReminder"]);
+  });
+
+  it("does not remind about a carrier when one was already asked for", async () => {
+    await start();
+    const { orderId: id } = await buy(platformOrder);
+    toStatus(id, "confirmed");
+    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", { pickupPhone: "0815551234" });
+    now += 8 * HOUR;
+    await start.sweep();
+    expect(store.list("notifications").filter((n) => n.key === "notif.delivery.requestReminder")).toHaveLength(0);
+  });
+
   it("alerts the seller when no carrier takes a job in time, once", async () => {
     await start();
     const { orderId: id } = await buy(platformOrder);
@@ -720,7 +786,7 @@ describe("the sweep", () => {
     expect((await call("POST", "/api/delivery/sweep", { headers: { "x-sweep-secret": "wrong" } })).status).toBe(401);
     const ok = await call("POST", "/api/delivery/sweep", { headers: { "x-sweep-secret": "SWEEP" } });
     expect(ok.status).toBe(200);
-    expect(ok.json).toEqual({ cancelled: 0, released: 0, escalated: 0 });
+    expect(ok.json).toEqual({ cancelled: 0, released: 0, escalated: 0, reminded: 0 });
   });
 
   it("keeps going when the money step fails, and tries it again next time", async () => {
