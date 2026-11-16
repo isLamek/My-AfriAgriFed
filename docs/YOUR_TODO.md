@@ -11,8 +11,11 @@ Never paste a key into a chat, email, screenshot or GitHub.
 
 ## Now (7 October 2026)
 
-- [ ] **Deploy the latest build** from the project folder (Claude can build it but is not
-      allowed to deploy):
+- [ ] **Deploy the latest build.** In a Command Prompt, from the project folder, run
+      `scripts\deploy-live.cmd`: it gets the latest `main`, runs the tests, builds the site with
+      no backend address (your `.env` says `localhost:5000`, which must never go live), checks that,
+      and deploys the site and the database rules together. Or by hand (Claude can build it but is
+      not allowed to deploy):
       `npx firebase-tools deploy --only "hosting,firestore:rules,database" --project afriagrifed-ebc30`
 - [ ] **Put your real Cloudinary cloud name in `.env`.** It still says `your-cloud-name`.
       Cloudinary dashboard, top of the page, "Cloud name":
