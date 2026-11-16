@@ -1308,12 +1308,16 @@ module.exports = {
   "nav.messagesHint": "Private chats with buyers and sellers", // hover text of the Messages item
   "nav.unreadMessages_one": "1 unread message", // screen-reader label of the number on Messages
   "nav.unreadMessages_other": "{count} unread messages",
-  "nav.orderTracker": "Order Tracker", // sidebar item
   "nav.myOrders": "My Orders", // sidebar item
   "nav.profile": "Profile", // sidebar item
-  "nav.workspace": "Workspace", // sidebar section heading
   "nav.insights": "Insights", // sidebar section heading
-  "nav.account": "Account", // sidebar section heading
+  "nav.market": "Market", // sidebar section heading
+  "nav.activity": "My activity", // sidebar section heading
+  "nav.learn": "Learn", // sidebar section heading (Research, Training, Internships)
+  "nav.orders": "Orders", // sidebar item: what you bought and sold, and the delivery
+  "nav.ordersHint": "Track what you bought and sold, and its delivery", // tooltip
+  "nav.myOrdersHint": "Your past purchases", // tooltip, in the account menu
+  "shell.accountMenu": "Account menu", // tooltip and screen-reader label of the menu under your name
   "nav.basket": "Basket", // sidebar item
   "nav.basketHint": "What you chose to buy, by seller", // sidebar tooltip
   "nav.deliverForUs": "Deliver for us", // sidebar item: become a carrier

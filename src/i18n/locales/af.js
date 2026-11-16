@@ -1308,12 +1308,16 @@ module.exports = {
   "nav.messagesHint": "Privaat gesprekke met kopers en verkopers", // en: Private chats with buyers and sellers
   "nav.unreadMessages_one": "1 ongelese boodskap", // en: 1 unread message
   "nav.unreadMessages_other": "{count} ongelese boodskappe", // en: {count} unread messages
-  "nav.orderTracker": "Bestellingsvolger", // en: Order Tracker
   "nav.myOrders": "My bestellings", // en: My Orders
   "nav.profile": "Profiel", // en: Profile
-  "nav.workspace": "Werkspasie", // en: Workspace
   "nav.insights": "Insigte", // en: Insights
-  "nav.account": "Rekening", // en: Account
+  "nav.market": "Mark", // en: Market
+  "nav.activity": "My aktiwiteit", // en: My activity
+  "nav.learn": "Leer", // en: Learn
+  "nav.orders": "Bestellings", // en: Orders
+  "nav.ordersHint": "Volg wat jy gekoop en verkoop het, en die aflewering daarvan", // en: Track what you bought and sold, and its delivery
+  "nav.myOrdersHint": "Jou vorige aankope", // en: Your past purchases
+  "shell.accountMenu": "Rekeningkieslys", // en: Account menu
   "nav.basket": "Mandjie", // en: Basket
   "nav.basketHint": "Wat jy gekies het om te koop, per verkoper", // en: What you chose to buy, by seller
   "nav.deliverForUs": "Lewer vir ons af", // en: Deliver for us

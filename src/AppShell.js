@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronLeft, ChevronRight, Menu, LogOut } from "lucide-react";
+import { Check, ChevronDown, ChevronLeft, ChevronRight, Menu, LogOut } from "lucide-react";
 import seedMark from "./images/seed-mark-reversed.png";
 import farmingImg from "./images/farming.jpg";
 import consumersImg from "./images/consumers.jpg";
@@ -22,10 +22,10 @@ import { getAdminProfile } from "./admin";
 import { ensurePublicProfile, PROFILE_UPDATED_EVENT } from "./publicProfile";
 import "./AppShell.css";
 import "./glass.css";
-import { t, LanguageSwitcher } from "./i18n";
+import { t, useI18n } from "./i18n";
 
 /** The signed-in member's photo and name at the foot of the menu. */
-function MemberChip({ collapsed, onOpen }) {
+function MemberChip({ collapsed, onOpen, expanded }) {
   const [card, setCard] = useState(null);
   useEffect(() => {
     let live = true;
@@ -41,7 +41,14 @@ function MemberChip({ collapsed, onOpen }) {
   if (!user) return null;
   const name = card?.displayName || user.displayName || user.email?.split("@")[0] || t("shell.member");
   return (
-    <button type="button" className="aaf-member-chip" onClick={onOpen} title={collapsed ? t("shell.nameProfile", { name }) : t("shell.yourProfile")}>
+    <button
+      type="button"
+      className="aaf-member-chip"
+      onClick={onOpen}
+      aria-haspopup="menu"
+      aria-expanded={expanded}
+      title={collapsed ? t("shell.nameProfile", { name }) : t("shell.accountMenu")}
+    >
       <Avatar name={name} photoURL={card?.photoURL} size={34} />
       <span className="aaf-sidebar-label aaf-member-text">
         <strong>{name}</strong>
@@ -49,6 +56,105 @@ function MemberChip({ collapsed, onOpen }) {
       </span>
     </button>
   );
+}
+
+/**
+ * The menu that opens from the person's name: their own pages, the language and signing out.
+ * It is placed with position: fixed from the chip's own spot, so the sidebar's scrolling never clips it,
+ * above the chip when the menu is wide and beside it when the menu is folded to icons.
+ */
+function MemberMenu({ collapsed, items, onGo, onLogout }) {
+  const { lang, setLanguage, languages } = useI18n();
+  const [open, setOpen] = useState(false);
+  const [pos, setPos] = useState(null);
+  const wrapRef = useRef(null);
+  const menuRef = useRef(null);
+
+  const toggle = () => {
+    if (!open && wrapRef.current) {
+      const r = wrapRef.current.getBoundingClientRect();
+      setPos(collapsed ? { left: (wrapRef.current.closest(".aaf-sidebar")?.getBoundingClientRect().right ?? r.right) + 8, bottom: Math.max(8, window.innerHeight - r.bottom) } : { left: r.left, width: r.width, bottom: window.innerHeight - r.top + 8 });
+    }
+    setOpen((o) => !o);
+  };
+
+  useEffect(() => {
+    if (!open) return undefined;
+    const onDown = (event) => {
+      if (!wrapRef.current?.contains(event.target) && !menuRef.current?.contains(event.target)) setOpen(false);
+    };
+    const onKey = (event) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    const close = () => setOpen(false);
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("keydown", onKey);
+    window.addEventListener("resize", close);
+    menuRef.current?.querySelector("button")?.focus();
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("keydown", onKey);
+      window.removeEventListener("resize", close);
+    };
+  }, [open]);
+
+  const pick = (item) => {
+    setOpen(false);
+    onGo(item);
+  };
+
+  return (
+    <div className="aaf-member-wrap" ref={wrapRef}>
+      <MemberChip collapsed={collapsed} onOpen={toggle} expanded={open} />
+      {open && pos && (
+        <div className="aaf-member-menu" role="menu" aria-label={t("shell.accountMenu")} ref={menuRef} style={pos}>
+          {items.map((item) => (
+            <button key={item.label} type="button" role="menuitem" className="aaf-menu-item" onClick={() => pick(item)} title={item.hint}>
+              <span className="aaf-sidebar-icon">{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+          {languages.length > 1 && (
+            <div className="aaf-menu-lang" role="group" aria-label={t("language.label")} data-i18n-ignore>
+              <p className="aaf-menu-heading">{t("language.label")}</p>
+              {languages.map((l) => (
+                <button
+                  key={l.code}
+                  type="button"
+                  role="menuitemradio"
+                  aria-checked={l.code === lang}
+                  lang={l.code}
+                  className="aaf-menu-item"
+                  title={l.status === "beta" ? t("language.betaNote") : undefined}
+                  onClick={() => {
+                    setLanguage(l.code);
+                    setOpen(false);
+                  }}
+                >
+                  <span className="aaf-sidebar-icon">{l.code === lang ? <Check size={16} aria-hidden="true" /> : null}</span>
+                  {l.native}
+                </button>
+              ))}
+            </div>
+          )}
+          {onLogout && (
+            <button type="button" role="menuitem" className="aaf-menu-item aaf-menu-logout" onClick={() => { setOpen(false); onLogout(); }}>
+              <span className="aaf-sidebar-icon"><LogOut size={16} aria-hidden="true" /></span>
+              {t("shell.logout")}
+            </button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function readOpenSections() {
+  try {
+    return JSON.parse(localStorage.getItem("aaf_nav_open") || "{}") || {};
+  } catch {
+    return {};
+  }
 }
 
 function readStoredCollapsed() {
@@ -108,6 +214,19 @@ export default function AppShell({
 }) {
   const navigate = useNavigate();
   const unreadMessages = useUnreadMessages();
+  const [openSections, setOpenSections] = useState(readOpenSections);
+  const toggleSection = (id) =>
+    setOpenSections((prev) => {
+      const next = { ...prev, [id]: !prev[id] };
+      try {
+        localStorage.setItem("aaf_nav_open", JSON.stringify(next));
+      } catch {
+        // ignore - private browsing / storage disabled
+      }
+      return next;
+    });
+  const listSections = navSections.filter((s) => !s.menu);
+  const menuItems = navSections.filter((s) => s.menu).flatMap((s) => s.items);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [desktopCollapsed, setDesktopCollapsed] = useState(readStoredCollapsed);
 
@@ -159,9 +278,29 @@ export default function AppShell({
         </div>
 
         <nav className="aaf-sidebar-nav">
-          {navSections.map((section, sIndex) => (
-            <div className="aaf-sidebar-section" key={section.heading || sIndex}>
-              {section.heading && <p className="aaf-sidebar-heading">{section.heading}</p>}
+          {listSections.map((section, sIndex) => {
+            // A folded group opens by itself when the page you are on is inside it, and the folded
+            // icon rail always shows every icon.
+            const foldable = !!section.collapsible && !desktopCollapsed;
+            const hasActive = section.items.some((i) => i.active);
+            const open = !foldable || hasActive || !!openSections[section.id];
+            const listId = `aaf-nav-${section.id || sIndex}`;
+            return (
+            <div className="aaf-sidebar-section" key={section.id || section.heading || sIndex}>
+              {section.heading && foldable && (
+                <button
+                  type="button"
+                  className="aaf-sidebar-heading aaf-sidebar-fold"
+                  aria-expanded={open}
+                  aria-controls={listId}
+                  onClick={() => !hasActive && toggleSection(section.id)}
+                >
+                  {section.heading}
+                  <ChevronDown size={13} className={open ? "open" : ""} aria-hidden="true" />
+                </button>
+              )}
+              {section.heading && !foldable && <p className="aaf-sidebar-heading">{section.heading}</p>}
+              <div id={listId} hidden={!open}>
               {section.items.map((item) => (
                 <button
                   key={item.label}
@@ -180,20 +319,13 @@ export default function AppShell({
                   })()}
                 </button>
               ))}
+              </div>
             </div>
-          ))}
+            );
+          })}
         </nav>
 
-        <LanguageSwitcher tone="dark" compact={desktopCollapsed} className="aaf-sidebar-lang" />
-
-        <MemberChip collapsed={desktopCollapsed} onOpen={() => go({ path: "/profile" })} />
-
-        {onLogout && (
-          <button className="aaf-sidebar-logout" onClick={onLogout} title={desktopCollapsed ? t("shell.logout") : undefined}>
-            <span className="aaf-sidebar-icon"><LogOut size={18} /></span>
-            <span className="aaf-sidebar-label">{t("shell.logout")}</span>
-          </button>
-        )}
+        <MemberMenu collapsed={desktopCollapsed} items={menuItems} onGo={go} onLogout={onLogout} />
       </aside>
         {/* A slim tab on the menu's edge: shows on hover, folds the menu to icons. */}
         <button
