@@ -16,8 +16,9 @@ git checkout main || goto :fail
 git pull origin main || goto :fail
 
 echo.
-echo === 2/6  Installing
-call npm ci || goto :fail
+echo === 2/6  Installing (a few minutes the first time)
+rem (not 'npm ci': that deletes the whole packages folder first and fails if any program is still using it)
+call npm install --no-audit --no-fund --no-save || goto :fail
 
 echo.
 echo === 3/6  Running every test
