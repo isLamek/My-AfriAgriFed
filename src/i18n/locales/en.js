@@ -147,9 +147,114 @@ module.exports = {
   "buyerForm.pleaseSelectAtLeastOneProduct": "Please select at least one product", // validation message · ConsumerQuestionnaire.js
   "buyerForm.completeRegistration": "Complete Registration", // either/or · ConsumerQuestionnaire.js
   "buyerForm.nextSection": "Next Section", // either/or · ConsumerQuestionnaire.js
+  // ---- carrier ----
+  "carrier.eyebrow": "Carriers", // page label
+  "carrier.title": "Deliver for AfriAgriFed", // page title
+  "carrier.subtitle": "Take delivery jobs with your own vehicle and earn for each one.", // page subtitle
+  "carrier.loading": "Loading…",
+  "carrier.apply.title": "Become a carrier", // heading
+  "carrier.apply.intro": "Do you have a car, bakkie or truck? Sellers who can't deliver themselves ask us for a carrier. You choose the jobs you want, deliver them, and earn the carrier's share of the delivery fee.",
+  "carrier.apply.name": "Your name", // label
+  "carrier.apply.phone": "Phone number", // label
+  "carrier.apply.vehicle": "Your vehicle", // label
+  "carrier.apply.description": "Make and colour", // label
+  "carrier.apply.descriptionExample": "White Toyota Hilux", // placeholder
+  "carrier.apply.plate": "Number plate", // label
+  "carrier.apply.capacity.small": "up to 40 kg", // vehicle capacity
+  "carrier.apply.capacity.bakkie": "up to 1 ton", // vehicle capacity
+  "carrier.apply.capacity.truck": "up to 8 tons", // vehicle capacity
+  "carrier.apply.regions": "Where do you work?", // label
+  "carrier.apply.regionsHelp": "Pick your regions to see only jobs that start there. Leave empty to see jobs anywhere.",
+  "carrier.apply.review": "We check every application before you can take jobs. Your phone number is shown only to the seller and buyer of a job you take.",
+  "carrier.apply.send": "Send my application", // button
+  "carrier.apply.sent": "Application sent. We will check it and let you know.", // toast
+  "carrier.apply.refused": "Your application could not be saved. Please check the details and try again.", // toast
+  "carrier.pending.title": "Your application is being checked",
+  "carrier.pending.text": "We are checking your details ({vehicle}). You will get a message when you can start taking jobs.",
+  "carrier.suspended.title": "Your carrier account is paused",
+  "carrier.suspended.text": "You can't take jobs right now. Please contact AfriAgriFed support.",
+  "carrier.earned": "Earned", // label above an amount
+  "carrier.goAvailable": "I'm available", // button
+  "carrier.goUnavailable": "Pause: I'm not available", // button
+  "carrier.unavailableNote": "You are marked as not available, so you can't take new jobs until you switch back.",
+  "carrier.tab.open": "Open jobs", // tab
+  "carrier.tab.mine": "My jobs", // tab
+  "carrier.tab.done": "Done", // tab
+  "carrier.noOpenJobs": "No open jobs for your vehicle and regions right now. You will get a notification when one appears.",
+  "carrier.noActiveJobs": "You have no jobs in progress. Take one from the open jobs.",
+  "carrier.noDoneJobs": "No finished jobs yet.",
+  "carrier.payNote": "Your earnings are paid out by AfriAgriFed. Ask support for the payout schedule.",
+  "carrier.job.take": "Take this job", // button
+  "carrier.job.taken": "It's yours. Open My jobs for the addresses.", // toast
+  "carrier.job.driving": "about {time} driving",
+  "carrier.job.weight": "about {kg} kg",
+  "carrier.job.ready": "Ready for collection {when}",
+  "carrier.job.deliverOn": "deliver on {date}",
+  "carrier.job.onTheRoad": "On the road", // badge
+  "carrier.job.toCollect": "To collect", // badge
+  "carrier.job.collectFrom": "Collect from", // small heading
+  "carrier.job.deliverTo": "Deliver to", // small heading
+  "carrier.job.loadingAddresses": "Loading the addresses…",
+  "carrier.job.collected": "I have collected the goods", // button
+  "carrier.job.pickedUpDone": "Good. The buyer can now follow you on the map.", // toast
+  "carrier.job.collectHelp": "Press this only when the seller has handed the goods to you.",
+  "carrier.job.release": "Give the job back", // button
+  "carrier.job.released": "The job went back to the board.", // toast
+  "carrier.job.sharing": "Sharing your location with the buyer.",
+  "carrier.job.startingShare": "Starting location sharing…",
+  "carrier.job.left": "{distance} to go",
+  "carrier.job.arrived": "I have arrived", // button
+  "carrier.job.arrivedSent": "The buyer has been told you are there.", // toast
+  "carrier.job.deliveredOn": "Delivered {when}",
+  // ---- cart ----
+  "cart.eyebrow": "Your basket", // page label
+  "cart.title": "Basket", // page title
+  "cart.subtitle": "Items you chose, grouped by seller. Each seller is paid for separately.", // page subtitle
+  "cart.loading": "Checking your basket…",
+  "cart.empty": "Your basket is empty.",
+  "cart.browse": "Browse the marketplace", // button
+  "cart.severalSellers": "You have items from more than one seller. Each seller's items are paid for separately, so you can choose how each one reaches you.", // note above the basket
+  "cart.fromSeller": "From {name}", // basket group heading
+  "cart.remove": "Remove {product} from the basket", // screen reader label
+  "cart.clearSeller": "Remove all", // button: empties one seller's group
+  "cart.checkout": "Checkout · {amount}", // button; {amount} is the group total
+  "cart.removedUnavailable_one": "1 item is no longer for sale and was removed from your basket.", // toast
+  "cart.removedUnavailable_other": "{count} items are no longer for sale and were removed from your basket.", // toast
+  "cart.full": "Your basket is full. Pay for something first.", // toast
+  "cart.couldNotAdd": "That item can't be added to the basket right now.", // toast
+  "cart.added": "{product} added to your basket.", // toast
+  "cart.addedUpToStock": "Added as much {product} as the seller has.", // toast
   // ---- chat ----
   "chat.pleaseSignInFirst": "Please sign in first.", // toast.error · chat.js
   "chat.youCanStartConversationAboutThis": "You can't start a conversation about this.", // toast.error · chat.js
+  // ---- checkout ----
+  "checkout.eyebrow": "Almost there", // page label
+  "checkout.title": "Checkout", // page title
+  "checkout.subtitle": "Choose how you want to receive your order, then pay.", // page subtitle
+  "checkout.yourItems": "Your items", // heading
+  "checkout.fromSeller": "From {name}", // line under a heading
+  "checkout.changeItems": "Change items", // link back to the basket
+  "checkout.howToGetIt": "How do you want to get it?", // heading
+  "checkout.checkingOptions": "Checking what is available…",
+  "checkout.noWayToGetIt": "This order can't be delivered or collected right now. Message the seller to arrange it.",
+  "checkout.whereToDeliver": "Where should it go?", // heading
+  "checkout.whenDeliver": "When do you want it delivered?", // heading
+  "checkout.whenCollect": "When will you collect it?", // heading
+  "checkout.day": "Day", // label
+  "checkout.asSoonAsPossible": "As soon as possible", // option
+  "checkout.timeOfDay": "Time of day", // label
+  "checkout.window.anytime": "Any time", // option
+  "checkout.window.morning": "Morning", // option
+  "checkout.window.afternoon": "Afternoon", // option
+  "checkout.noteForSeller": "Note for the seller (optional)", // label
+  "checkout.noteExample": "For example: please pack in two bags", // placeholder
+  "checkout.summary": "Order summary", // heading
+  "checkout.items": "Items", // summary line
+  "checkout.delivery": "Delivery", // summary line
+  "checkout.total": "Total", // summary line
+  "checkout.opening": "Opening payment…", // button while loading
+  "checkout.pay": "Pay {amount}", // button
+  "checkout.codeNote": "After you pay, your order shows a 6-digit handover code. Give it only to the person who hands you your order.", // note
   // ---- cloudinary ----
   "cloudinary.describeImage": "a JPG, PNG, WebP or GIF photo", // in: Please upload {what}
   "cloudinary.describeDocument": "a PDF, Word document, JPG or PNG", // in: Please upload {what}
@@ -233,6 +338,139 @@ module.exports = {
   "data.researchArticles": "Research articles", // figure on the Data page
   "data.trainingPrograms": "Training programs", // figure on the Data page
   "data.activePromotions": "Active promotions", // figure on the Data page
+  // ---- delivery ----
+  "delivery.method.collect": "I'll collect it", // delivery choice
+  "delivery.method.seller": "{name} delivers it", // delivery choice; {name} is the seller
+  "delivery.method.platform": "AfriAgriFed carrier", // delivery choice
+  "delivery.method.collectNote": "Free. You collect it from the seller and show your handover code.",
+  "delivery.method.sellerNote": "{name} brings it in their own vehicle. About {km}, around {time}.",
+  "delivery.method.platformNote": "A carrier from our network ({vehicle}) collects it and brings it to you. About {km}, around {time}.",
+  "delivery.free": "Free", // price of collecting
+  "delivery.km": "{km} km", // distance
+  "delivery.duration.min": "{m} min", // duration
+  "delivery.duration.h": "{h} h", // duration
+  "delivery.duration.hm": "{h} h {m} min", // duration
+  "delivery.reason.notOffered": "The seller does not offer this for this order.",
+  "delivery.reason.tooFar": "Too far for this seller (they deliver up to {max} km).",
+  "delivery.reason.tooHeavy": "Too heavy for one carrier. Message the seller to arrange it.",
+  "delivery.reason.noPickup": "The seller has not marked their place on the map yet.",
+  "delivery.reason.needAddress": "Place your drop-off pin first to see the price.",
+  "delivery.vehicle.small": "car or motorbike", // vehicle kind
+  "delivery.vehicle.bakkie": "bakkie", // vehicle kind
+  "delivery.vehicle.truck": "truck", // vehicle kind
+  "delivery.vehicle.here": "The vehicle", // map pin label
+  "delivery.pickupPoint": "Pick-up point", // map pin label
+  "delivery.dropoffPoint": "Drop-off point", // map pin label
+  "delivery.trackingMap": "Map of the delivery", // map label for screen readers
+  "delivery.address.help": "Tap the map to drop a pin where the order should go. You can drag it to adjust, use your location, or pick the nearest town.",
+  "delivery.address.useMyLocation": "Use my location", // button
+  "delivery.address.locating": "Finding you…", // button while working
+  "delivery.address.orChooseTown": "or", // between two ways of choosing a place
+  "delivery.address.chooseTown": "Nearest town…", // option
+  "delivery.address.mapLabel": "Map for choosing where the order goes", // map label for screen readers
+  "delivery.address.pinSet": "Pin placed. Describe the exact place below so the driver can find you.",
+  "delivery.address.pinMissing": "Place a pin on the map first.",
+  "delivery.address.landmark": "Describe the place", // label
+  "delivery.address.landmarkExample": "Blue gate behind the Engen garage, ask for Mr Amupolo", // placeholder
+  "delivery.address.contactName": "Name of the person receiving it", // label
+  "delivery.address.contactPhone": "Phone number for the driver", // label
+  "delivery.address.phonePrivacy": "Only the seller and the person delivering see this, and only for this order.",
+  "delivery.address.needLandmark": "Describe the place in a few words (a landmark, a gate colour, who to ask for).",
+  "delivery.address.needName": "Add the name of the person receiving the order.",
+  "delivery.address.needPhone": "Add a phone number the driver can call.",
+  "delivery.address.outsideNamibia": "That spot is outside Namibia. Choose a place inside the country.",
+  "delivery.address.noLocation": "This device can't share its location. Tap the map or choose the nearest town.",
+  "delivery.address.locationDenied": "Location was not shared. You can tap the map or choose the nearest town.",
+  "delivery.couldNotReachTheServer": "Could not reach the server. Check your connection and try again.",
+  "delivery.somethingWentWrong": "Something went wrong. Please try again.",
+  "delivery.couldNotStartThePayment": "Could not start the payment. Please try again.",
+  "delivery.justNow": "just now",
+  "delivery.minutesAgo_one": "1 minute ago",
+  "delivery.minutesAgo_other": "{count} minutes ago",
+  "delivery.deliveryFee": "delivery {amount}", // part of the order line
+  "delivery.wanted": "wanted {date}", // part of the order line
+  "delivery.collectFrom": "Collect from {place}",
+  "delivery.carrierLine": "Carrier: {name} ({vehicle})",
+  "delivery.code.label": "Your handover code",
+  "delivery.code.arrived": "The delivery is here. Give this code:",
+  "delivery.code.help": "Give this code to the person who hands you your order, only when you have it in your hands.",
+  "delivery.code.collectHelp": "Show this code to the seller when you collect, only when you have your order.",
+  "delivery.arrivedBuyer": "Your delivery has arrived. Give the driver your handover code.",
+  "delivery.away": "{distance} away, about {time}", // how far the vehicle still is
+  "delivery.almostThere": "Almost there",
+  "delivery.lastSeen": "last seen {ago}",
+  "delivery.updated": "updated {ago}",
+  "delivery.waitingForPosition": "Waiting for the driver's first position…",
+  "delivery.deliveredWithCode": "Handed over on {date} with your code.",
+  "delivery.deliveredNoCode": "Handed over on {date} without a code.",
+  "delivery.window": "You can report a problem until {date}.",
+  "delivery.confirm.done": "Thank you. Delivery confirmed.", // toast
+  "delivery.job.waiting": "Waiting for a carrier to take the job.",
+  "delivery.job.noOneYet": "No carrier has taken the job yet. The support team has been told.",
+  "delivery.job.claimed": "{name} will collect it.",
+  "delivery.job.pickedUp": "{name} has it and is on the way.",
+  "delivery.job.delivered": "Delivered.",
+  "delivery.job.cancelled": "The carrier job was cancelled.",
+  "delivery.request.title": "Ask for a carrier", // heading
+  "delivery.request.help": "A carrier from our network will collect this order and bring it to the buyer. The delivery fee ({fee}) was paid by the buyer.",
+  "delivery.request.ready": "When will it be ready to collect?", // label
+  "delivery.request.in1h": "In 1 hour", // option
+  "delivery.request.in2h": "In 2 hours", // option
+  "delivery.request.in4h": "In 4 hours", // option
+  "delivery.request.tomorrow": "Tomorrow at 08:00", // option
+  "delivery.request.phone": "Phone number for the carrier", // label
+  "delivery.request.note": "How to find you (optional)", // label
+  "delivery.request.noteExample": "Brown gate, ask for Ndapewa", // placeholder
+  "delivery.request.send": "Ask for a carrier", // button
+  "delivery.request.sent": "Done. Carriers near you have been told.", // toast
+  "delivery.handover.title": "Hand over with the buyer's code", // heading
+  "delivery.handover.help": "Ask the buyer for their 6-digit handover code and type it in. That completes the delivery.",
+  "delivery.handover.helpCollect": "The buyer shows you their 6-digit handover code when they collect. Type it in to complete the order.",
+  "delivery.handover.codeLabel": "Handover code", // label for screen readers
+  "delivery.handover.confirm": "Complete delivery", // button
+  "delivery.handover.noCode": "The buyer can't show the code", // link
+  "delivery.handover.useCode": "Use the code instead", // link
+  "delivery.handover.reasonExample": "Why the code could not be used", // placeholder
+  "delivery.handover.reasonLabel": "Reason", // label for screen readers
+  "delivery.handover.confirmNoCode": "Complete without the code", // button
+  "delivery.handover.triesLeft_one": "That code is not right. 1 try left.",
+  "delivery.handover.triesLeft_other": "That code is not right. {count} tries left.",
+  "delivery.handover.done": "Delivery completed.", // toast
+  "delivery.share.title": "Let the buyer follow you", // heading
+  "delivery.share.help": "While you drive, this page shares your position so the buyer sees you on the map. Keep this page open and your screen on.",
+  "delivery.share.start": "Share my location", // button
+  "delivery.share.stop": "Stop sharing", // button
+  "delivery.share.arrived": "I've arrived", // button
+  "delivery.share.arrivedSent": "The buyer has been told you are there.", // toast
+  "delivery.share.sharing": "Sharing your location with the buyer.",
+  "delivery.share.denied": "Location is switched off for this page. Allow it in your browser to be followed on the map.",
+  "delivery.share.unsupported": "This device can't share its location.",
+  "delivery.problem.open": "Report a problem", // button
+  "delivery.problem.title": "Report a problem", // heading
+  "delivery.problem.help": "Support will look into it and no money is paid to the seller until they decide. Please be honest: both sides can add their story.",
+  "delivery.problem.what": "What went wrong?", // label
+  "delivery.problem.details": "Tell us more (a few words is fine)", // label
+  "delivery.problem.send": "Report this problem", // button
+  "delivery.problem.sent": "Reported. The support team will be in touch.", // toast
+  "delivery.problem.reason.notDelivered": "It never arrived", // option
+  "delivery.problem.reason.damaged": "It arrived damaged or spoiled", // option
+  "delivery.problem.reason.wrongItems": "I got the wrong items", // option
+  "delivery.problem.reason.shortQuantity": "Some of it is missing", // option
+  "delivery.problem.reason.quality": "The quality is not what was described", // option
+  "delivery.problem.reason.other": "Something else", // option
+  "delivery.problem.reported": "Problem reported ({reason}) on {date}.",
+  "delivery.cancel.open": "Cancel this order", // button
+  "delivery.cancel.declineOpen": "Decline this order", // button
+  "delivery.cancel.title": "Cancel this order?", // heading
+  "delivery.cancel.declineTitle": "Decline this order?", // heading
+  "delivery.cancel.help": "The seller has not accepted it yet, so you get all your money back.",
+  "delivery.cancel.declineHelp": "The buyer gets all their money back and the goods go back on sale.",
+  "delivery.cancel.reasonOptional": "Reason (optional)", // label
+  "delivery.cancel.reasonRequired": "Reason (the buyer will see it)", // label
+  "delivery.cancel.cancel": "Cancel the order", // button
+  "delivery.cancel.decline": "Decline the order", // button
+  "delivery.cancel.keep": "Keep it", // button
+  "delivery.cancel.done": "The order was cancelled and the refund has been started.", // toast
   // ---- demand ----
   "demand.requestPostedProducersCanNowPledge": "Request posted. Producers can now pledge.", // toast.success · DemandBoard.js
   "demand.markedAsFulfilled": "Marked as fulfilled.", // toast.success · DemandBoard.js
@@ -847,8 +1085,11 @@ module.exports = {
   "listing.onlinePaymentComingSoon": "Online payment coming soon", // either/or · ListingCard.js
   "listing.soldBy": "Sold by {name}", // on a marketplace card
   "listing.quantityOf": "Quantity of {product}", // accessible name of the quantity box
-  "listing.payNow": "Pay now · {amount}", // the green pay button; {amount} is the total price
   "listing.paymentMethods": "Card, mobile money or bank transfer, all handled securely by our payment partner.", // small print under the pay button
+  "listing.buyNow": "Buy now · {amount}", // the green button on a listing; {amount} is the total price
+  "listing.addToBasket": "Add to basket", // button on a listing
+  "listing.deliveryAvailable": "Delivery available", // small line on a listing
+  "listing.collectOnly": "Collect from the seller", // small line on a listing
   // ---- listings ----
   "listings.fillInYourBusinessNameBank": "Fill in your business name, bank and account number.", // toast.error · MyListings.js
   "listings.payoutsAreSetUpYourListings": "Payouts are set up. Your listings can now accept payment.", // toast.success · MyListings.js
@@ -901,6 +1142,19 @@ module.exports = {
   "listings.saving": "Saving...", // either/or · MyListings.js
   "listings.couldNotSetUpPayouts": "Could not set up payouts", // error
   "listings.removeConfirm": "Remove \"{product}\" from the marketplace?", // confirmation question
+  "listings.delivery.title": "How can buyers get this?", // heading on the listing form
+  "listings.delivery.help": "Choose every way you are happy with. Buyers pick one when they pay.",
+  "listings.delivery.collect": "Buyers collect from me (free)", // checkbox
+  "listings.delivery.own": "I deliver myself, in my own vehicle", // checkbox
+  "listings.delivery.baseFee": "Fee for any delivery (N$)", // label
+  "listings.delivery.perKm": "Plus per km (N$)", // label
+  "listings.delivery.maxKm": "Furthest I deliver (km)", // label
+  "listings.delivery.platform": "An AfriAgriFed carrier may deliver it", // checkbox
+  "listings.delivery.platformHelp": "We do not own vehicles: carriers from our network collect the order from you and bring it to the buyer, who pays the delivery fee. You tell us when the order is ready.",
+  "listings.delivery.needPin": "Mark your place on the map above so delivery can be worked out.",
+  "listings.delivery.problem.none": "Choose at least one way for buyers to get this.", // toast
+  "listings.delivery.problem.fees": "Check the delivery fees and distance: they are out of range.", // toast
+  "listings.delivery.problem.pin": "Mark your place on the map to offer delivery.", // toast
   // ---- location ----
   "location.town": "Town", // aria-label · LocationPicker.js
   "location.removeTheLocation": "Remove the location", // aria-label · LocationPicker.js
@@ -1055,6 +1309,10 @@ module.exports = {
   "nav.workspace": "Workspace", // sidebar section heading
   "nav.insights": "Insights", // sidebar section heading
   "nav.account": "Account", // sidebar section heading
+  "nav.basket": "Basket", // sidebar item
+  "nav.basketHint": "What you chose to buy, by seller", // sidebar tooltip
+  "nav.deliverForUs": "Deliver for us", // sidebar item: become a carrier
+  "nav.deliverForUsHint": "Earn by delivering orders with your own vehicle", // sidebar tooltip
   // ---- noMapFallback ----
   "noMapFallback.theMapCanBeDrawnIn": "The map can't be drawn in this browser right now", // h2 · NoMapFallback.js
   "noMapFallback.tryAgain": "Try again", // button · NoMapFallback.js
@@ -1080,7 +1338,7 @@ module.exports = {
   "notif.order.in_transit.title": "Order on its way", // notification title
   "notif.order.in_transit.body": "{product} is in transit to you.", // notification text
   "notif.order.delivered.title": "Delivery confirmed", // notification title
-  "notif.order.delivered.body": "The buyer confirmed they received {product}.", // notification text
+  "notif.order.delivered.body": "{product} was delivered.", // notification text
   "notif.internship.approved.title": "Internship request approved", // notification title
   "notif.internship.approved.body": "{name} approved your request: {item}", // notification text
   "notif.internship.claimed.title": "Internship offer claimed", // notification title
@@ -1097,6 +1355,38 @@ module.exports = {
   "notif.order.paid.body": "{what} was just paid for. Confirm it to start fulfilment.", // notification text; {what} is e.g. 3 x Tomatoes
   "notif.order.oversold.title": "Order needs your attention", // notification title
   "notif.order.oversold.body": "Only {qty} of {what} were left when this order was paid, so it cannot be filled in full. Contact the buyer, or ask for a refund.", // notification text
+  "notif.delivery.jobOpen.title": "New delivery job", // notification title
+  "notif.delivery.jobOpen.body": "{what} to {name}. Open Deliver for us to take it.", // notification text
+  "notif.delivery.carrierAssigned.title": "Carrier assigned", // notification title
+  "notif.delivery.carrierAssigned.body": "{name} is the carrier for {product}.", // notification text
+  "notif.delivery.carrierDropped.title": "Carrier dropped the job", // notification title
+  "notif.delivery.carrierDropped.body": "The carrier for {product} can no longer collect it. We are finding another.", // notification text
+  "notif.delivery.pickedUp.title": "Collected by the carrier", // notification title
+  "notif.delivery.pickedUp.body": "{name} collected {product}.", // notification text
+  "notif.delivery.nearby.title": "Almost there", // notification title
+  "notif.delivery.nearby.body": "Your delivery of {product} is about 1 km away.", // notification text
+  "notif.delivery.arrived.title": "Your delivery has arrived", // notification title
+  "notif.delivery.arrived.body": "Give the handover code to receive {product}.", // notification text
+  "notif.delivery.codeLocked.title": "Handover code locked", // notification title
+  "notif.delivery.codeLocked.body": "Too many wrong codes were tried for {product}. Support will contact you.", // notification text
+  "notif.delivery.noCarrier.title": "No carrier yet", // notification title
+  "notif.delivery.noCarrier.body": "No carrier has taken the delivery of {product} yet. Support has been told.", // notification text
+  "notif.order.cancelledByBuyer.title": "Order cancelled", // notification title
+  "notif.order.cancelledByBuyer.body": "The buyer cancelled {product}.", // notification text
+  "notif.order.cancelledBySeller.title": "Order cancelled", // notification title
+  "notif.order.cancelledBySeller.body": "The seller cancelled {product}: {reason}. Your money is being returned.", // notification text
+  "notif.order.cancelledBySupport.title": "Order cancelled", // notification title
+  "notif.order.cancelledBySupport.body": "Support cancelled {product}. The buyer's money is being returned.", // notification text
+  "notif.order.autoCancelledBuyer.title": "Order cancelled", // notification title
+  "notif.order.autoCancelledBuyer.body": "The seller did not confirm {product} in time, so it was cancelled and your money is being returned.", // notification text
+  "notif.order.autoCancelledSeller.title": "Order cancelled", // notification title
+  "notif.order.autoCancelledSeller.body": "{product} was cancelled because it was not confirmed in time.", // notification text
+  "notif.order.disputed.title": "Problem reported", // notification title
+  "notif.order.disputed.body": "The buyer reported a problem with {product}. Support will look into it.", // notification text
+  "notif.order.resolvedRelease.title": "Problem resolved", // notification title
+  "notif.order.resolvedRelease.body": "Support decided on {product}: the seller is paid.", // notification text
+  "notif.order.resolvedRefund.title": "Problem resolved", // notification title
+  "notif.order.resolvedRefund.body": "Support decided on {product}: the buyer is refunded.", // notification text
   // ---- notifications ----
   "notifications.notifications": "Notifications", // aria-label · NotificationBell.js
   "notifications.noNotificationsYet": "No notifications yet.", // p · NotificationBell.js
@@ -1550,6 +1840,9 @@ module.exports = {
   "payments.pleaseSignInFirst": "Please sign in first.", // error message · payments.js
   "payments.couldNotReachThePaymentService": "Could not reach the payment service. Check your connection and try again.", // error message · payments.js
   "payments.couldNotStart": "Could not start payment.", // error
+  // ---- pinMap ----
+  "pinMap.noMap": "The map can't be shown on this device. Choose the nearest town and describe the place in words.",
+  "pinMap.map": "Map", // map label for screen readers
   // ---- prices ----
   "prices.marketAverages": "Market averages", // p · Prices.js
   "prices.averageProducePrices": "Average Produce Prices", // h1 · Prices.js
@@ -1848,6 +2141,39 @@ module.exports = {
   "server.chat_unavailable": "The assistant is temporarily unavailable.", // assistant error
   "server.chat_empty": "The assistant had nothing to say. Please ask again.", // assistant error
   "server.chat_stopped": "The assistant stopped unexpectedly.", // assistant error
+  "server.bad_request": "That request could not be understood. Please check and try again.", // server error
+  "server.too_many_items": "A basket can hold up to {max} different items.", // server error
+  "server.mixed_sellers": "One payment can only cover one seller. Pay for each seller's items separately.", // server error
+  "server.bad_date": "Choose a date from today up to two weeks ahead.", // server error
+  "server.bad_address": "Please complete the delivery address: place the pin, describe the place, and add a name and phone number.", // server error
+  "server.no_pickup_location": "The seller has not marked their place on the map, so delivery can't be arranged.", // server error
+  "server.delivery_not_offered": "That way of getting the order is not offered by this seller.", // server error
+  "server.delivery_too_far": "That is too far for this delivery option (up to {max} km).", // server error
+  "server.delivery_too_heavy": "This order is too heavy for one carrier. Message the seller to arrange it.", // server error
+  "server.delivery_price_changed": "The delivery fee is now {amount}. Please check it and pay again.", // server error
+  "server.order_not_found": "That order could not be found.", // server error
+  "server.order_not_yours": "That belongs to someone else.", // server error
+  "server.wrong_status": "That can't be done at this stage of the order.", // server error
+  "server.not_platform_delivery": "This order is not set up for an AfriAgriFed carrier.", // server error
+  "server.job_exists": "A carrier has already been requested for this order.", // server error
+  "server.bad_phone": "Add a phone number the carrier can call at pick-up.", // server error
+  "server.bad_ready_time": "Choose a time the goods will be ready, within the next 3 days.", // server error
+  "server.not_a_carrier": "Only approved carriers can take delivery jobs.", // server error
+  "server.carrier_unavailable": "You are marked as not available. Switch to available to take jobs.", // server error
+  "server.own_order": "You can't deliver your own order.", // server error
+  "server.job_not_found": "That delivery job could not be found.", // server error
+  "server.vehicle_too_small": "Your vehicle is too small for this load.", // server error
+  "server.too_many_jobs": "You already have {max} jobs. Finish one first.", // server error
+  "server.job_taken": "Someone else just took this job.", // server error
+  "server.not_travelling": "The order is not on its way right now.", // server error
+  "server.bad_location": "That position does not look right.", // server error
+  "server.code_required": "At a collection the buyer's code is needed. They can also confirm in the app.", // server error
+  "server.reason_required": "Please give a reason.", // server error
+  "server.no_code": "This order has no handover code. Use the buyer's confirmation instead.", // server error
+  "server.code_locked": "Too many wrong codes. Contact support to finish this order.", // server error
+  "server.wrong_code": "That code is not right.", // server error
+  "server.window_closed": "It is too early or too late to report a problem on this order. Message the seller or contact support.", // server error
+  "server.admin_only": "Only support staff can do that.", // server error
   // ---- serverApi ----
   "serverApi.notConfigured": "No backend configured", // technical error shown in brackets on the weather map
   "serverApi.unreachable": "Backend unreachable", // technical error shown in brackets on the weather map

@@ -18,7 +18,8 @@ const { HttpError } = require("./httpError");
 const { priceBasket } = require("./basket");
 const delivery = require("./delivery");
 
-const FLW_BASE_URL = "https://api.flutterwave.com/v3";
+// Only scripts/local-backend.js sets FLW_BASE_URL (to a fake provider on this computer, for testing).
+const FLW_BASE_URL = process.env.FLW_BASE_URL || "https://api.flutterwave.com/v3";
 const CURRENCY = "NAD";
 const PAGE_KEYS = ["data", "statistics"];
 const PAGE_PRICE = 5; // N$ per page (concept note)

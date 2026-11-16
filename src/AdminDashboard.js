@@ -22,6 +22,7 @@ import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
 import appIcon from "./images/seed-mark.png";
 import AdminTestRole from "./AdminTestRole";
+import AdminDelivery from "./AdminDelivery";
 import "./AdminDashboard.css";
 
 const COUNTED_COLLECTIONS = [
@@ -323,6 +324,8 @@ export default function AdminDashboard() {
           )}
         </div>
       </section>
+
+      <AdminDelivery />
 
       <section className="admin-panel">
         <h2>Admin access control</h2>

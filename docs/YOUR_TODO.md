@@ -37,6 +37,36 @@ Never paste a key into a chat, email, screenshot or GitHub.
 
 ---
 
+## Delivery and tracking (branch `delivery`, 16 November 2026): your part
+
+Sellers can now offer collection, their own delivery, or an AfriAgriFed carrier; buyers use a basket
+and checkout; orders are tracked on a live map; the buyer's 6-digit code completes a delivery; buyers
+can report problems. Read **`docs/DELIVERY.md`** (how it works, what is missing). Try it with
+`npm run backend:local` (fake payments, nobody is charged) next to `npm run start:local`.
+
+- [ ] **Talk to your teammate who builds the payment hold (escrow).** The delivery code never moves
+      money; it calls `server/escrowHooks.js` at the right moments. They fill that file in, and merge
+      the few lines I changed in `server/checkout.js` (listed in `docs/DELIVERY.md`). Until then the
+      seller is still paid at once, so the handover code and objection window only record intent.
+- [ ] **Have the flat-split payment line tested in Flutterwave's test mode** (`transaction_charge_type:
+      "flat_subaccount"` in `server/checkout.js`). It is written from their docs, not run against them.
+- [ ] **Find your first carriers.** Ask 3 to 5 transporters (bakkie and truck owners in Oshakati,
+      Ongwediva, Windhoek) to open *Deliver for us* and apply; approve them in the Admin Dashboard after
+      checking their licence and vehicle registration. Without any approved carrier the "AfriAgriFed
+      carrier" option will just wait for someone.
+- [ ] **Check the prices** in `src/delivery/rules.js` (carrier fee N$35 + N$8 per km, minimum N$60,
+      carrier share 85%) with real transporters. They are placeholders.
+- [ ] **Decide how carriers get paid** (bank transfer from the *Done* list each week is fine to start).
+- [ ] **Lawyer:** add the handover code, the 24 h / 72 h objection windows, the 24 h acceptance rule and
+      who is paid the delivery fee to the Terms and the Refund policy.
+- [ ] **Backend timer:** the server runs the timeouts itself every 10 minutes. If your host sleeps when
+      idle (Render free), also create a free cron job at cron-job.org calling `POST /api/delivery/sweep`
+      with the header `x-sweep-secret` and set `SWEEP_SECRET` in your host's settings.
+- [ ] **Deploy the database rules together with the site** (new collections: `orderSecrets`,
+      `deliveryJobs`, `deliveryPrivate`, `orderTracking`, `disputes`, `carriers`).
+
+---
+
 ## Languages (branch `i18n`, 15 November 2026): your part
 
 Afrikaans is built and works on your computer (`npm run start:local`, pick the language at the

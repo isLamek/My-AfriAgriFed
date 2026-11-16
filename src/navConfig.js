@@ -24,8 +24,12 @@ import {
   Truck,
   MessageCircle,
   MapPinned,
+  ShoppingBasket,
+  PackageCheck,
 } from "lucide-react";
 import { t } from "./i18n";
+import { auth } from "./firebaseConfig";
+import { readCart } from "./cart/cart";
 
 const iconProps = { size: 18, strokeWidth: 2 };
 
@@ -68,9 +72,12 @@ export const buildNavSections = ({ userType, isAdmin, activePath, onFeedClick, o
     ],
   });
 
+  const basketCount = readCart(auth.currentUser?.uid).length;
   const accountItems = [
     { label: t("nav.messages"), hint: t("nav.messagesHint"), icon: <MessageCircle {...iconProps} />, path: "/messages" },
+    { label: t("nav.basket"), hint: t("nav.basketHint"), icon: <ShoppingBasket {...iconProps} />, path: "/cart", badge: basketCount || null },
     { label: t("nav.orderTracker"), icon: <Truck {...iconProps} />, path: "/track-orders" },
+    { label: t("nav.deliverForUs"), hint: t("nav.deliverForUsHint"), icon: <PackageCheck {...iconProps} />, path: "/carrier" },
     { label: t("nav.myOrders"), icon: <Receipt {...iconProps} />, path: "/my-orders" },
     { label: t("nav.profile"), icon: <User {...iconProps} />, path: "/profile" },
   ];

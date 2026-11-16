@@ -117,7 +117,7 @@ describe.each(liveCases)("the %s catalog", (code) => {
 
 const IGNORE_FILES = new Set([
   // admin tools and legal text stay in English by decision (see docs/I18N.md)
-  "AdminDashboard.js", "adminBlock.js", "AdminTestRole.js", "Legal.js", "legalContent.js",
+  "AdminDashboard.js", "AdminDelivery.js", "adminBlock.js", "AdminTestRole.js", "Legal.js", "legalContent.js",
   // not screens
   "index.js", "reportWebVitals.js",
 ]);

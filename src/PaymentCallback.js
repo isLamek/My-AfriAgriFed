@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { verifyAndFinalizePayment } from "./payments";
+import { finishPendingCheckout } from "./cart/cart";
 import { t } from "./i18n";
 
 export default function PaymentCallback() {
@@ -26,6 +27,7 @@ export default function PaymentCallback() {
         setRefId(result.refId || null);
         setMessage(result.message || "");
         setStatus(result.success ? "success" : "failed");
+        if (result.success && result.purpose === "order") finishPendingCheckout(); // what was just bought leaves the basket
       })
       .catch(() => setStatus("failed"));
   }, [searchParams]);

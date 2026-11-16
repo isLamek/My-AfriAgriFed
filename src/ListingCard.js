@@ -1,8 +1,9 @@
 import React, { useState } from "react";
-import { MessageSquare, Minus, Plus, ShieldCheck } from "lucide-react";
+import { MessageSquare, Minus, Plus, ShieldCheck, ShoppingBasket, Truck } from "lucide-react";
 import { clampQuantity, formatNad, lineTotal, stockLabel } from "./purchase";
 import { maskContactInfo } from "./contactGuard";
 import { exampleProducePhoto, fallBackToExample } from "./produceImages";
+import { deliveryOf } from "./delivery/rules";
 import { t } from "./i18n";
 
 /**
@@ -13,13 +14,15 @@ import { t } from "./i18n";
  * Paying and talking both happen on AfriAgriFed: there is a "Message seller"
  * button, and no contact details or offline payment instructions anywhere.
  */
-export default function ListingCard({ listing, isOwn, onBuy, onMessage }) {
+export default function ListingCard({ listing, isOwn, onBuy, onAddToCart, onMessage }) {
   const [typed, setTyped] = useState("1");
   const stock = stockLabel(listing);
   const soldOut = stock.state === "sold_out";
   const quantity = clampQuantity(typed, listing);
   const total = lineTotal(listing.price, quantity);
   const payoutsReady = !!listing.sellerSubaccountId;
+  const ways = deliveryOf(listing);
+  const delivers = !!(ways.own || ways.platform);
 
   const step = (delta) => setTyped(String(clampQuantity(quantity + delta, listing)));
 
@@ -41,6 +44,9 @@ export default function ListingCard({ listing, isOwn, onBuy, onMessage }) {
       </p>
 
       {stock.text && <p className={`price-qty ${stock.state}`}>{stock.text}</p>}
+      <p className={`price-delivery ${delivers ? "yes" : ""}`}>
+        <Truck size={13} aria-hidden="true" /> {delivers ? t("listing.deliveryAvailable") : t("listing.collectOnly")}
+      </p>
       {listing.sellerName && <p className="price-seller">{t("listing.soldBy", { name: listing.sellerName })}</p>}
 
       {isOwn ? (
@@ -75,8 +81,13 @@ export default function ListingCard({ listing, isOwn, onBuy, onMessage }) {
           </div>
 
           <button className="pay-now-btn" disabled={!payoutsReady} onClick={() => onBuy(listing, quantity)}>
-            {payoutsReady ? t("listing.payNow", { amount: formatNad(total) }) : t("listing.onlinePaymentComingSoon")}
+            {payoutsReady ? t("listing.buyNow", { amount: formatNad(total) }) : t("listing.onlinePaymentComingSoon")}
           </button>
+          {onAddToCart && (
+            <button type="button" className="price-message-btn" onClick={() => onAddToCart(listing, quantity)}>
+              <ShoppingBasket size={14} aria-hidden="true" /> {t("listing.addToBasket")}
+            </button>
+          )}
 
           <p className="pay-guarantee">
             <ShieldCheck size={14} aria-hidden="true" /> {t("listing.orderProtectedByTheAfriagrifedPayment")}

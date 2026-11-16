@@ -286,10 +286,10 @@ async function main() {
     what: "Mahangu (pearl millet)", pickup: { lat: -17.79, lng: 15.7, label: "Oshakati", region: "Oshana" }, dropoff: { lat: -17.78, lng: 15.77, label: "Near Ongwediva" },
     window: "anytime", readyAt: now - 3600000, carrierId: carrier ? uid.carrier : null, carrierName: carrier ? "Kaleb Haimbili" : "", createdAt: now - 4 * 3600000,
   });
-  set("orders/tx_seed_4", platformOrder(4, "dispatched", { fulfilment: { carrier: { uid: uid.carrier, name: "Kaleb Haimbili", vehicle: { type: "bakkie", description: "White Toyota Hilux", plate: "N 4521 W" } } } }));
+  set("orders/tx_seed_4", platformOrder(4, "dispatched", { fulfilment: { carrierRequestedAt: now - 4 * 3600000, carrier: { uid: uid.carrier, name: "Kaleb Haimbili", vehicle: { type: "bakkie", description: "White Toyota Hilux", plate: "N 4521 W" } } } }));
   set("deliveryJobs/tx_seed_4", jobFor("tx_seed_4", null, true));
   set("deliveryPrivate/tx_seed_4", { sellerId: uid.farmer, buyerId: uid.buyer, carrierId: uid.carrier, pickup: { ...pickup, phone: "+264810001111", note: "Brown gate, ask for Ndapewa" }, dropoff: drop, note: "" });
-  set("orders/tx_seed_5", platformOrder(5, "confirmed"));
+  set("orders/tx_seed_5", platformOrder(5, "confirmed", { fulfilment: { carrierRequestedAt: now - 4 * 3600000 } }));
   set("deliveryJobs/tx_seed_5", jobFor("tx_seed_5", null, false));
   set("deliveryPrivate/tx_seed_5", { sellerId: uid.farmer, buyerId: uid.buyer, carrierId: null, pickup: { ...pickup, phone: "+264810001111", note: "" }, dropoff: drop, note: "" });
   set("orderTracking/tx_seed_4", { orderId: "tx_seed_4", buyerId: uid.buyer, sellerId: uid.farmer, carrierId: uid.carrier, lat: -17.79, lng: 15.72, speedKmh: 55, at: now });

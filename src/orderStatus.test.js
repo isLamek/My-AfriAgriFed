@@ -9,6 +9,11 @@ import {
   rolesFor,
   timeReached,
   needsAttention,
+  actionLabel,
+  methodOf,
+  needsAction,
+  serverActions,
+  stepLabel,
 } from "./orderStatus";
 
 const order = (status, extra = {}) => ({ id: "o1", buyerId: "buyer1", sellerId: "seller1", status, ...extra });
@@ -31,10 +36,11 @@ describe("transitions", () => {
     expect(allowedNext(order("in_transit"), "seller1")).toEqual([]);
   });
 
-  it("only the buyer can confirm delivery", () => {
-    expect(allowedNext(order("in_transit"), "buyer1")).toEqual(["delivered"]);
-    expect(allowedNext(order("dispatched"), "buyer1")).toEqual(["delivered"]);
+  it("confirming delivery is not a move the browser makes: it goes through the server", () => {
+    expect(allowedNext(order("in_transit"), "buyer1")).toEqual([]);
+    expect(allowedNext(order("dispatched"), "buyer1")).toEqual([]);
     expect(canTransition("in_transit", "delivered", "seller")).toBe(false);
+    expect(canTransition("in_transit", "delivered", "buyer")).toBe(false);
   });
 
   it("does not let the buyer confirm delivery before dispatch", () => {

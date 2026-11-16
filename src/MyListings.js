@@ -30,9 +30,11 @@ import LocationPicker from "./LocationPicker";
 import { shrinkPhoto } from "./produceImages";
 import { t, tv, formatDate } from "./i18n";
 import { STATUS_LABELS, normaliseStatus } from "./orderStatus";
+import DeliveryFields from "./delivery/DeliveryFields";
+import { fromListing, lastDelivery, rememberDelivery, toDoc } from "./delivery/deliveryForm";
 
 const API_URL = API_BASE_URL;
-const emptyListing = { product: "", price: "", unit: "kg", quantity: "", location: null };
+const emptyListing = () => ({ product: "", price: "", unit: "kg", quantity: "", location: null, delivery: lastDelivery() });
 
 export default function MyListings() {
   const [subaccountId, setSubaccountId] = useState(undefined); // undefined = loading
@@ -153,7 +155,7 @@ export default function MyListings() {
 
   const startEdit = (listing) => {
     setEditingId(listing.id);
-    setFormData({ product: listing.product, price: listing.price, unit: listing.unit || "kg", quantity: listing.quantity ?? "", location: listing.location || null });
+    setFormData({ product: listing.product, price: listing.price, unit: listing.unit || "kg", quantity: listing.quantity ?? "", location: listing.location || null, delivery: fromListing(listing) });
     setExistingImageUrl(listing.imageUrl || null);
     setImageFile(null);
     setImagePreview(null);
@@ -161,7 +163,7 @@ export default function MyListings() {
 
   const cancelEdit = () => {
     setEditingId(null);
-    setFormData(emptyListing);
+    setFormData(emptyListing());
     setImageFile(null);
     setImagePreview(null);
     setExistingImageUrl(null);
@@ -180,6 +182,14 @@ export default function MyListings() {
       toast.error(t("listings.addProductNameAndPrice"));
       return;
     }
+
+    const checked = toDoc(formData.delivery, { hasPin: !!formData.location });
+    if (checked.problem) {
+      toast.error(t(`listings.delivery.problem.${checked.problem}`));
+      return;
+    }
+    const deliveryDoc = checked.doc;
+    rememberDelivery(formData.delivery);
 
     setSaving(true);
 
@@ -209,6 +219,8 @@ export default function MyListings() {
         sellerSubaccountId: subaccountId || null,
         // optional pin on the Market Map (area only, see marketLocation.js)
         location: formData.location || null,
+        // how buyers can get it: collect, the seller delivers, or an AfriAgriFed carrier
+        delivery: deliveryDoc,
       };
 
       if (editingId) {
@@ -379,6 +391,8 @@ export default function MyListings() {
           <div className="listing-location-field">
             <LocationPicker value={formData.location} onChange={(location) => setFormData((prev) => ({ ...prev, location }))} />
           </div>
+
+          <DeliveryFields value={formData.delivery} onChange={(delivery) => setFormData((prev) => ({ ...prev, delivery }))} hasPin={!!formData.location} />
 
           <div className="listing-form-actions">
             <button className="aaf-btn aaf-btn-primary" disabled={saving}>

@@ -11,16 +11,18 @@ import NotificationBell from "./NotificationBell";
 import useAccountContext from "./useAccountContext";
 import { advanceOrder } from "./orders";
 import {
-  ACTION_LABELS,
   STATUS_LABELS,
+  actionLabel,
   allowedNext,
   buildTimeline,
   isActive,
-  needsAttention,
+  needsAction,
   normaliseStatus,
   waitingOn,
 } from "./orderStatus";
+import OrderDelivery from "./delivery/OrderDelivery";
 import "./OrderTracker.css";
+import "./delivery/delivery.css";
 import { t, tv, formatDate } from "./i18n";
 
 const formatWhen = (ms) =>
@@ -93,6 +95,8 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
 
       {isActive(order) && <p className="ot-wait">{waitingOn(order)}</p>}
 
+      <OrderDelivery order={order} uid={uid} side={side} />
+
       {actions.length > 0 && (
         <div className="ot-actions">
           <input
@@ -105,7 +109,7 @@ export function OrderCard({ order, uid, side, busy, onAdvance, onMessage }) {
           />
           {actions.map((next) => (
             <button key={next} className="ot-btn primary" disabled={busy} onClick={() => act(next)}>
-              {busy ? t("tracker.saving") : tv(ACTION_LABELS[next])}
+              {busy ? t("tracker.saving") : tv(actionLabel(order, next))}
             </button>
           ))}
         </div>
@@ -166,12 +170,12 @@ export default function OrderTracker() {
   useEffect(() => {
     if (autoPicked || buying === null || selling === null) return;
     setAutoPicked(true);
-    if (selling.some((o) => allowedNext(o, uid).length > 0 || needsAttention(o))) setSide("selling");
+    if (selling.some((o) => needsAction(o, uid))) setSide("selling");
     else if (buying.length === 0 && selling.length > 0) setSide("selling");
   }, [autoPicked, buying, selling, uid]);
 
   const list = side === "buying" ? buying : selling;
-  const needsAction = (orders) => (orders || []).filter((o) => allowedNext(o, uid).length > 0 || needsAttention(o)).length;
+  const waitingCount = (orders) => (orders || []).filter((o) => needsAction(o, uid)).length;
 
   const visible = useMemo(() => {
     if (!list) return [];
@@ -209,12 +213,12 @@ export default function OrderTracker() {
         <div className="ot-tabs" role="tablist">
           <button role="tab" aria-selected={side === "buying"} className={side === "buying" ? "on" : ""} onClick={() => setSide("buying")}>
             <ShoppingBag size={16} /> {t("tracker.buying")}
-            {needsAction(buying) > 0 && <span className="ot-count">{needsAction(buying)}</span>}
+            {waitingCount(buying) > 0 && <span className="ot-count">{waitingCount(buying)}</span>}
           </button>
           {showSellingTab && (
             <button role="tab" aria-selected={side === "selling"} className={side === "selling" ? "on" : ""} onClick={() => setSide("selling")}>
               <Store size={16} /> {t("tracker.selling")}
-              {needsAction(selling) > 0 && <span className="ot-count">{needsAction(selling)}</span>}
+              {waitingCount(selling) > 0 && <span className="ot-count">{waitingCount(selling)}</span>}
             </button>
           )}
         </div>

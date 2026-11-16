@@ -147,9 +147,114 @@ module.exports = {
   "buyerForm.pleaseSelectAtLeastOneProduct": "Kies asseblief ten minste een produk", // en: Please select at least one product
   "buyerForm.completeRegistration": "Voltooi registrasie", // en: Complete Registration
   "buyerForm.nextSection": "Volgende afdeling", // en: Next Section
+  // ---- carrier ----
+  "carrier.eyebrow": "Vervoerders", // en: Carriers
+  "carrier.title": "Lewer af vir AfriAgriFed", // en: Deliver for AfriAgriFed
+  "carrier.subtitle": "Neem afleweringswerk met jou eie voertuig aan en verdien vir elkeen.", // en: Take delivery jobs with your own vehicle and earn for each one.
+  "carrier.loading": "Laai tans…", // en: Loading…
+  "carrier.apply.title": "Word 'n vervoerder", // en: Become a carrier
+  "carrier.apply.intro": "Het jy 'n motor, bakkie of vragmotor? Verkopers wat nie self kan aflewer nie, vra ons vir 'n vervoerder. Jy kies die werk wat jy wil hê, lewer dit af, en verdien die vervoerder se deel van die afleweringsfooi.", // en: Do you have a car, bakkie or truck? Sellers who can't deliver themselves ask us for a carrier. You choose the jobs you want, deliver them, and earn the carrier's share of the delivery fee.
+  "carrier.apply.name": "Jou naam", // en: Your name
+  "carrier.apply.phone": "Foonnommer", // en: Phone number
+  "carrier.apply.vehicle": "Jou voertuig", // en: Your vehicle
+  "carrier.apply.description": "Fabrikaat en kleur", // en: Make and colour
+  "carrier.apply.descriptionExample": "Wit Toyota Hilux", // en: White Toyota Hilux
+  "carrier.apply.plate": "Nommerplaat", // en: Number plate
+  "carrier.apply.capacity.small": "tot 40 kg", // en: up to 40 kg
+  "carrier.apply.capacity.bakkie": "tot 1 ton", // en: up to 1 ton
+  "carrier.apply.capacity.truck": "tot 8 ton", // en: up to 8 tons
+  "carrier.apply.regions": "Waar werk jy?", // en: Where do you work?
+  "carrier.apply.regionsHelp": "Kies jou streke om net werk te sien wat daar begin. Los leeg om werk oral te sien.", // en: Pick your regions to see only jobs that start there. Leave empty to see jobs anywhere.
+  "carrier.apply.review": "Ons gaan elke aansoek na voordat jy werk kan aanneem. Jou foonnommer word net aan die verkoper en koper van werk wat jy aanneem, gewys.", // en: We check every application before you can take jobs. Your phone number is shown only to the seller and buyer of a job you take.
+  "carrier.apply.send": "Stuur my aansoek", // en: Send my application
+  "carrier.apply.sent": "Aansoek gestuur. Ons sal dit nagaan en jou laat weet.", // en: Application sent. We will check it and let you know.
+  "carrier.apply.refused": "Jou aansoek kon nie gestoor word nie. Kyk asseblief die besonderhede na en probeer weer.", // en: Your application could not be saved. Please check the details and try again.
+  "carrier.pending.title": "Jou aansoek word nagegaan", // en: Your application is being checked
+  "carrier.pending.text": "Ons gaan jou besonderhede na ({vehicle}). Jy sal 'n boodskap kry wanneer jy werk kan begin aanneem.", // en: We are checking your details ({vehicle}). You will get a message when you can start taking jobs.
+  "carrier.suspended.title": "Jou vervoerderrekening is gestop", // en: Your carrier account is paused
+  "carrier.suspended.text": "Jy kan nou nie werk aanneem nie. Kontak asseblief AfriAgriFed-ondersteuning.", // en: You can't take jobs right now. Please contact AfriAgriFed support.
+  "carrier.earned": "Verdien", // en: Earned
+  "carrier.goAvailable": "Ek is beskikbaar", // en: I'm available
+  "carrier.goUnavailable": "Wag: ek is nie beskikbaar nie", // en: Pause: I'm not available
+  "carrier.unavailableNote": "Jy is as nie beskikbaar gemerk nie, so jy kan nie nuwe werk aanneem voordat jy terugskakel nie.", // en: You are marked as not available, so you can't take new jobs until you switch back.
+  "carrier.tab.open": "Oop werk", // en: Open jobs
+  "carrier.tab.mine": "My werk", // en: My jobs
+  "carrier.tab.done": "Klaar", // en: Done
+  "carrier.noOpenJobs": "Geen oop werk vir jou voertuig en streke nie. Jy sal 'n kennisgewing kry wanneer daar is.", // en: No open jobs for your vehicle and regions right now. You will get a notification when one appears.
+  "carrier.noActiveJobs": "Jy het geen werk aan die gang nie. Neem een uit die oop werk aan.", // en: You have no jobs in progress. Take one from the open jobs.
+  "carrier.noDoneJobs": "Nog geen voltooide werk nie.", // en: No finished jobs yet.
+  "carrier.payNote": "Jou verdienste word deur AfriAgriFed uitbetaal. Vra ondersteuning vir die uitbetalingskedule.", // en: Your earnings are paid out by AfriAgriFed. Ask support for the payout schedule.
+  "carrier.job.take": "Neem hierdie werk aan", // en: Take this job
+  "carrier.job.taken": "Dit is joune. Maak My werk oop vir die adresse.", // en: It's yours. Open My jobs for the addresses.
+  "carrier.job.driving": "ongeveer {time} se ry", // en: about {time} driving
+  "carrier.job.weight": "ongeveer {kg} kg", // en: about {kg} kg
+  "carrier.job.ready": "Gereed vir afhaal {when}", // en: Ready for collection {when}
+  "carrier.job.deliverOn": "lewer af op {date}", // en: deliver on {date}
+  "carrier.job.onTheRoad": "Op pad", // en: On the road
+  "carrier.job.toCollect": "Om af te haal", // en: To collect
+  "carrier.job.collectFrom": "Haal af by", // en: Collect from
+  "carrier.job.deliverTo": "Lewer af by", // en: Deliver to
+  "carrier.job.loadingAddresses": "Laai die adresse…", // en: Loading the addresses…
+  "carrier.job.collected": "Ek het die goedere afgehaal", // en: I have collected the goods
+  "carrier.job.pickedUpDone": "Goed. Die koper kan jou nou op die kaart volg.", // en: Good. The buyer can now follow you on the map.
+  "carrier.job.collectHelp": "Druk dit net wanneer die verkoper die goedere aan jou oorhandig het.", // en: Press this only when the seller has handed the goods to you.
+  "carrier.job.release": "Gee die werk terug", // en: Give the job back
+  "carrier.job.released": "Die werk het terug na die bord gegaan.", // en: The job went back to the board.
+  "carrier.job.sharing": "Deel jou ligging met die koper.", // en: Sharing your location with the buyer.
+  "carrier.job.startingShare": "Begin ligging deel…", // en: Starting location sharing…
+  "carrier.job.left": "{distance} oor", // en: {distance} to go
+  "carrier.job.arrived": "Ek het aangekom", // en: I have arrived
+  "carrier.job.arrivedSent": "Die koper is ingelig dat jy daar is.", // en: The buyer has been told you are there.
+  "carrier.job.deliveredOn": "Afgelewer {when}", // en: Delivered {when}
+  // ---- cart ----
+  "cart.eyebrow": "Jou mandjie", // en: Your basket
+  "cart.title": "Mandjie", // en: Basket
+  "cart.subtitle": "Items wat jy gekies het, per verkoper gegroepeer. Elke verkoper word apart betaal.", // en: Items you chose, grouped by seller. Each seller is paid for separately.
+  "cart.loading": "Kyk tans na jou mandjie…", // en: Checking your basket…
+  "cart.empty": "Jou mandjie is leeg.", // en: Your basket is empty.
+  "cart.browse": "Blaai deur die markplek", // en: Browse the marketplace
+  "cart.severalSellers": "Jy het items van meer as een verkoper. Elke verkoper se items word apart betaal, sodat jy kan kies hoe elkeen jou bereik.", // en: You have items from more than one seller. Each seller's items are paid for separately, so you can choose how each one reaches you.
+  "cart.fromSeller": "Van {name}", // en: From {name}
+  "cart.remove": "Verwyder {product} uit die mandjie", // en: Remove {product} from the basket
+  "cart.clearSeller": "Verwyder alles", // en: Remove all
+  "cart.checkout": "Betaal · {amount}", // en: Checkout · {amount}
+  "cart.removedUnavailable_one": "1 item is nie meer te koop nie en is uit jou mandjie verwyder.", // en: 1 item is no longer for sale and was removed from your basket.
+  "cart.removedUnavailable_other": "{count} items is nie meer te koop nie en is uit jou mandjie verwyder.", // en: {count} items are no longer for sale and were removed from your basket.
+  "cart.full": "Jou mandjie is vol. Betaal eers vir iets.", // en: Your basket is full. Pay for something first.
+  "cart.couldNotAdd": "Daardie item kan nou nie by die mandjie gevoeg word nie.", // en: That item can't be added to the basket right now.
+  "cart.added": "{product} by jou mandjie gevoeg.", // en: {product} added to your basket.
+  "cart.addedUpToStock": "So baie {product} as wat die verkoper het, is bygevoeg.", // en: Added as much {product} as the seller has.
   // ---- chat ----
   "chat.pleaseSignInFirst": "Meld asseblief eers aan.", // en: Please sign in first.
   "chat.youCanStartConversationAboutThis": "Jy kan nie 'n gesprek hieroor begin nie.", // en: You can't start a conversation about this.
+  // ---- checkout ----
+  "checkout.eyebrow": "Amper daar", // en: Almost there
+  "checkout.title": "Betaal", // en: Checkout
+  "checkout.subtitle": "Kies hoe jy jou bestelling wil ontvang, en betaal dan.", // en: Choose how you want to receive your order, then pay.
+  "checkout.yourItems": "Jou items", // en: Your items
+  "checkout.fromSeller": "Van {name}", // en: From {name}
+  "checkout.changeItems": "Verander items", // en: Change items
+  "checkout.howToGetIt": "Hoe wil jy dit kry?", // en: How do you want to get it?
+  "checkout.checkingOptions": "Kyk wat beskikbaar is…", // en: Checking what is available…
+  "checkout.noWayToGetIt": "Hierdie bestelling kan nou nie afgelewer of afgehaal word nie. Stuur die verkoper 'n boodskap om dit te reël.", // en: This order can't be delivered or collected right now. Message the seller to arrange it.
+  "checkout.whereToDeliver": "Waarheen moet dit gaan?", // en: Where should it go?
+  "checkout.whenDeliver": "Wanneer wil jy dit afgelewer hê?", // en: When do you want it delivered?
+  "checkout.whenCollect": "Wanneer sal jy dit afhaal?", // en: When will you collect it?
+  "checkout.day": "Dag", // en: Day
+  "checkout.asSoonAsPossible": "So gou as moontlik", // en: As soon as possible
+  "checkout.timeOfDay": "Tyd van die dag", // en: Time of day
+  "checkout.window.anytime": "Enige tyd", // en: Any time
+  "checkout.window.morning": "Oggend", // en: Morning
+  "checkout.window.afternoon": "Middag", // en: Afternoon
+  "checkout.noteForSeller": "Nota vir die verkoper (opsioneel)", // en: Note for the seller (optional)
+  "checkout.noteExample": "Byvoorbeeld: pak asseblief in twee sakke", // en: For example: please pack in two bags
+  "checkout.summary": "Opsomming van die bestelling", // en: Order summary
+  "checkout.items": "Items", // en: Items
+  "checkout.delivery": "Aflewering", // en: Delivery
+  "checkout.total": "Totaal", // en: Total
+  "checkout.opening": "Maak betaling oop…", // en: Opening payment…
+  "checkout.pay": "Betaal {amount}", // en: Pay {amount}
+  "checkout.codeNote": "Nadat jy betaal het, wys jou bestelling 'n 6-syfer-oorhandigingskode. Gee dit net aan die persoon wat jou bestelling aan jou oorhandig.", // en: After you pay, your order shows a 6-digit handover code. Give it only to the person who hands you your order.
   // ---- cloudinary ----
   "cloudinary.describeImage": "'n JPG-, PNG-, WebP- of GIF-foto", // en: a JPG, PNG, WebP or GIF photo
   "cloudinary.describeDocument": "'n PDF, Word-dokument, JPG of PNG", // en: a PDF, Word document, JPG or PNG
@@ -233,6 +338,139 @@ module.exports = {
   "data.researchArticles": "Navorsingsartikels", // en: Research articles
   "data.trainingPrograms": "Opleidingsprogramme", // en: Training programs
   "data.activePromotions": "Aktiewe promosies", // en: Active promotions
+  // ---- delivery ----
+  "delivery.method.collect": "Ek haal dit self af", // en: I'll collect it
+  "delivery.method.seller": "{name} lewer dit af", // en: {name} delivers it
+  "delivery.method.platform": "AfriAgriFed-vervoerder", // en: AfriAgriFed carrier
+  "delivery.method.collectNote": "Gratis. Jy haal dit by die verkoper af en wys jou oorhandigingskode.", // en: Free. You collect it from the seller and show your handover code.
+  "delivery.method.sellerNote": "{name} bring dit in hul eie voertuig. Ongeveer {km}, omtrent {time}.", // en: {name} brings it in their own vehicle. About {km}, around {time}.
+  "delivery.method.platformNote": "'n Vervoerder uit ons netwerk ({vehicle}) haal dit af en bring dit na jou. Ongeveer {km}, omtrent {time}.", // en: A carrier from our network ({vehicle}) collects it and brings it to you. About {km}, around {time}.
+  "delivery.free": "Gratis", // en: Free
+  "delivery.km": "{km} km", // en: {km} km
+  "delivery.duration.min": "{m} min", // en: {m} min
+  "delivery.duration.h": "{h} u", // en: {h} h
+  "delivery.duration.hm": "{h} u {m} min", // en: {h} h {m} min
+  "delivery.reason.notOffered": "Die verkoper bied dit nie vir hierdie bestelling aan nie.", // en: The seller does not offer this for this order.
+  "delivery.reason.tooFar": "Te ver vir hierdie verkoper (hulle lewer tot {max} km ver).", // en: Too far for this seller (they deliver up to {max} km).
+  "delivery.reason.tooHeavy": "Te swaar vir een vervoerder. Stuur die verkoper 'n boodskap om dit te reël.", // en: Too heavy for one carrier. Message the seller to arrange it.
+  "delivery.reason.noPickup": "Die verkoper het hul plek nog nie op die kaart gemerk nie.", // en: The seller has not marked their place on the map yet.
+  "delivery.reason.needAddress": "Plaas eers jou afleweringsspeld om die prys te sien.", // en: Place your drop-off pin first to see the price.
+  "delivery.vehicle.small": "motor of motorfiets", // en: car or motorbike
+  "delivery.vehicle.bakkie": "bakkie", // en: bakkie
+  "delivery.vehicle.truck": "vragmotor", // en: truck
+  "delivery.vehicle.here": "Die voertuig", // en: The vehicle
+  "delivery.pickupPoint": "Afhaalpunt", // en: Pick-up point
+  "delivery.dropoffPoint": "Afleweringspunt", // en: Drop-off point
+  "delivery.trackingMap": "Kaart van die aflewering", // en: Map of the delivery
+  "delivery.address.help": "Tik op die kaart om 'n speld te plaas waar die bestelling heen moet gaan. Jy kan dit sleep om aan te pas, jou ligging gebruik, of die naaste dorp kies.", // en: Tap the map to drop a pin where the order should go. You can drag it to adjust, use your location, or pick the nearest town.
+  "delivery.address.useMyLocation": "Gebruik my ligging", // en: Use my location
+  "delivery.address.locating": "Soek jou…", // en: Finding you…
+  "delivery.address.orChooseTown": "of", // en: or
+  "delivery.address.chooseTown": "Naaste dorp…", // en: Nearest town…
+  "delivery.address.mapLabel": "Kaart om te kies waarheen die bestelling gaan", // en: Map for choosing where the order goes
+  "delivery.address.pinSet": "Speld geplaas. Beskryf die presiese plek hieronder sodat die bestuurder jou kan vind.", // en: Pin placed. Describe the exact place below so the driver can find you.
+  "delivery.address.pinMissing": "Plaas eers 'n speld op die kaart.", // en: Place a pin on the map first.
+  "delivery.address.landmark": "Beskryf die plek", // en: Describe the place
+  "delivery.address.landmarkExample": "Blou hek agter die Engen-garage, vra vir mnr. Amupolo", // en: Blue gate behind the Engen garage, ask for Mr Amupolo
+  "delivery.address.contactName": "Naam van die persoon wat dit ontvang", // en: Name of the person receiving it
+  "delivery.address.contactPhone": "Foonnommer vir die bestuurder", // en: Phone number for the driver
+  "delivery.address.phonePrivacy": "Net die verkoper en die persoon wat aflewer sien dit, en net vir hierdie bestelling.", // en: Only the seller and the person delivering see this, and only for this order.
+  "delivery.address.needLandmark": "Beskryf die plek in 'n paar woorde ('n landmerk, die kleur van die hek, vir wie om te vra).", // en: Describe the place in a few words (a landmark, a gate colour, who to ask for).
+  "delivery.address.needName": "Voeg die naam by van die persoon wat die bestelling ontvang.", // en: Add the name of the person receiving the order.
+  "delivery.address.needPhone": "Voeg 'n foonnommer by wat die bestuurder kan bel.", // en: Add a phone number the driver can call.
+  "delivery.address.outsideNamibia": "Daardie plek is buite Namibië. Kies 'n plek binne die land.", // en: That spot is outside Namibia. Choose a place inside the country.
+  "delivery.address.noLocation": "Hierdie toestel kan nie sy ligging deel nie. Tik op die kaart of kies die naaste dorp.", // en: This device can't share its location. Tap the map or choose the nearest town.
+  "delivery.address.locationDenied": "Ligging is nie gedeel nie. Jy kan op die kaart tik of die naaste dorp kies.", // en: Location was not shared. You can tap the map or choose the nearest town.
+  "delivery.couldNotReachTheServer": "Kon nie die bediener bereik nie. Kyk jou verbinding na en probeer weer.", // en: Could not reach the server. Check your connection and try again.
+  "delivery.somethingWentWrong": "Iets het verkeerd geloop. Probeer asseblief weer.", // en: Something went wrong. Please try again.
+  "delivery.couldNotStartThePayment": "Kon nie die betaling begin nie. Probeer asseblief weer.", // en: Could not start the payment. Please try again.
+  "delivery.justNow": "sopas", // en: just now
+  "delivery.minutesAgo_one": "1 minuut gelede", // en: 1 minute ago
+  "delivery.minutesAgo_other": "{count} minute gelede", // en: {count} minutes ago
+  "delivery.deliveryFee": "aflewering {amount}", // en: delivery {amount}
+  "delivery.wanted": "verlang {date}", // en: wanted {date}
+  "delivery.collectFrom": "Haal af by {place}", // en: Collect from {place}
+  "delivery.carrierLine": "Vervoerder: {name} ({vehicle})", // en: Carrier: {name} ({vehicle})
+  "delivery.code.label": "Jou oorhandigingskode", // en: Your handover code
+  "delivery.code.arrived": "Die aflewering is hier. Gee hierdie kode:", // en: The delivery is here. Give this code:
+  "delivery.code.help": "Gee hierdie kode aan die persoon wat jou bestelling oorhandig, net wanneer jy dit in jou hande het.", // en: Give this code to the person who hands you your order, only when you have it in your hands.
+  "delivery.code.collectHelp": "Wys hierdie kode aan die verkoper wanneer jy afhaal, net wanneer jy jou bestelling het.", // en: Show this code to the seller when you collect, only when you have your order.
+  "delivery.arrivedBuyer": "Jou aflewering het aangekom. Gee die bestuurder jou oorhandigingskode.", // en: Your delivery has arrived. Give the driver your handover code.
+  "delivery.away": "{distance} weg, ongeveer {time}", // en: {distance} away, about {time}
+  "delivery.almostThere": "Amper daar", // en: Almost there
+  "delivery.lastSeen": "laas gesien {ago}", // en: last seen {ago}
+  "delivery.updated": "opgedateer {ago}", // en: updated {ago}
+  "delivery.waitingForPosition": "Wag vir die bestuurder se eerste posisie…", // en: Waiting for the driver's first position…
+  "delivery.deliveredWithCode": "Oorhandig op {date} met jou kode.", // en: Handed over on {date} with your code.
+  "delivery.deliveredNoCode": "Oorhandig op {date} sonder 'n kode.", // en: Handed over on {date} without a code.
+  "delivery.window": "Jy kan 'n probleem rapporteer tot {date}.", // en: You can report a problem until {date}.
+  "delivery.confirm.done": "Dankie. Aflewering bevestig.", // en: Thank you. Delivery confirmed.
+  "delivery.job.waiting": "Wag dat 'n vervoerder die werk aanvaar.", // en: Waiting for a carrier to take the job.
+  "delivery.job.noOneYet": "Nog geen vervoerder het die werk aanvaar nie. Die ondersteuningspan is ingelig.", // en: No carrier has taken the job yet. The support team has been told.
+  "delivery.job.claimed": "{name} sal dit kom haal.", // en: {name} will collect it.
+  "delivery.job.pickedUp": "{name} het dit en is op pad.", // en: {name} has it and is on the way.
+  "delivery.job.delivered": "Afgelewer.", // en: Delivered.
+  "delivery.job.cancelled": "Die vervoerwerk is gekanselleer.", // en: The carrier job was cancelled.
+  "delivery.request.title": "Vra vir 'n vervoerder", // en: Ask for a carrier
+  "delivery.request.help": "'n Vervoerder uit ons netwerk sal hierdie bestelling kom haal en na die koper bring. Die afleweringsfooi ({fee}) is deur die koper betaal.", // en: A carrier from our network will collect this order and bring it to the buyer. The delivery fee ({fee}) was paid by the buyer.
+  "delivery.request.ready": "Wanneer sal dit gereed wees om afgehaal te word?", // en: When will it be ready to collect?
+  "delivery.request.in1h": "Oor 1 uur", // en: In 1 hour
+  "delivery.request.in2h": "Oor 2 uur", // en: In 2 hours
+  "delivery.request.in4h": "Oor 4 uur", // en: In 4 hours
+  "delivery.request.tomorrow": "Môre om 08:00", // en: Tomorrow at 08:00
+  "delivery.request.phone": "Foonnommer vir die vervoerder", // en: Phone number for the carrier
+  "delivery.request.note": "Hoe om jou te vind (opsioneel)", // en: How to find you (optional)
+  "delivery.request.noteExample": "Bruin hek, vra vir Ndapewa", // en: Brown gate, ask for Ndapewa
+  "delivery.request.send": "Vra vir 'n vervoerder", // en: Ask for a carrier
+  "delivery.request.sent": "Klaar. Vervoerders naby jou is ingelig.", // en: Done. Carriers near you have been told.
+  "delivery.handover.title": "Oorhandig met die koper se kode", // en: Hand over with the buyer's code
+  "delivery.handover.help": "Vra die koper vir hul 6-syfer-oorhandigingskode en tik dit in. Dit voltooi die aflewering.", // en: Ask the buyer for their 6-digit handover code and type it in. That completes the delivery.
+  "delivery.handover.helpCollect": "Die koper wys jou hul 6-syfer-oorhandigingskode wanneer hulle afhaal. Tik dit in om die bestelling te voltooi.", // en: The buyer shows you their 6-digit handover code when they collect. Type it in to complete the order.
+  "delivery.handover.codeLabel": "Oorhandigingskode", // en: Handover code
+  "delivery.handover.confirm": "Voltooi aflewering", // en: Complete delivery
+  "delivery.handover.noCode": "Die koper kan nie die kode wys nie", // en: The buyer can't show the code
+  "delivery.handover.useCode": "Gebruik eerder die kode", // en: Use the code instead
+  "delivery.handover.reasonExample": "Hoekom die kode nie gebruik kon word nie", // en: Why the code could not be used
+  "delivery.handover.reasonLabel": "Rede", // en: Reason
+  "delivery.handover.confirmNoCode": "Voltooi sonder die kode", // en: Complete without the code
+  "delivery.handover.triesLeft_one": "Daardie kode is nie reg nie. 1 poging oor.", // en: That code is not right. 1 try left.
+  "delivery.handover.triesLeft_other": "Daardie kode is nie reg nie. {count} pogings oor.", // en: That code is not right. {count} tries left.
+  "delivery.handover.done": "Aflewering voltooi.", // en: Delivery completed.
+  "delivery.share.title": "Laat die koper jou volg", // en: Let the buyer follow you
+  "delivery.share.help": "Terwyl jy ry, deel hierdie bladsy jou posisie sodat die koper jou op die kaart sien. Hou hierdie bladsy oop en jou skerm aan.", // en: While you drive, this page shares your position so the buyer sees you on the map. Keep this page open and your screen on.
+  "delivery.share.start": "Deel my ligging", // en: Share my location
+  "delivery.share.stop": "Hou op deel", // en: Stop sharing
+  "delivery.share.arrived": "Ek het aangekom", // en: I've arrived
+  "delivery.share.arrivedSent": "Die koper is ingelig dat jy daar is.", // en: The buyer has been told you are there.
+  "delivery.share.sharing": "Deel jou ligging met die koper.", // en: Sharing your location with the buyer.
+  "delivery.share.denied": "Ligging is afgeskakel vir hierdie bladsy. Laat dit toe in jou blaaier om op die kaart gevolg te word.", // en: Location is switched off for this page. Allow it in your browser to be followed on the map.
+  "delivery.share.unsupported": "Hierdie toestel kan nie sy ligging deel nie.", // en: This device can't share its location.
+  "delivery.problem.open": "Rapporteer 'n probleem", // en: Report a problem
+  "delivery.problem.title": "Rapporteer 'n probleem", // en: Report a problem
+  "delivery.problem.help": "Ondersteuning sal dit ondersoek en geen geld word aan die verkoper betaal voordat hulle besluit nie. Wees asseblief eerlik: albei kante kan hul kant van die storie byvoeg.", // en: Support will look into it and no money is paid to the seller until they decide. Please be honest: both sides can add their story.
+  "delivery.problem.what": "Wat het verkeerd geloop?", // en: What went wrong?
+  "delivery.problem.details": "Vertel ons meer ('n paar woorde is genoeg)", // en: Tell us more (a few words is fine)
+  "delivery.problem.send": "Rapporteer hierdie probleem", // en: Report this problem
+  "delivery.problem.sent": "Gerapporteer. Die ondersteuningspan sal met jou in verbinding tree.", // en: Reported. The support team will be in touch.
+  "delivery.problem.reason.notDelivered": "Dit het nooit aangekom nie", // en: It never arrived
+  "delivery.problem.reason.damaged": "Dit het beskadig of bedorwe aangekom", // en: It arrived damaged or spoiled
+  "delivery.problem.reason.wrongItems": "Ek het die verkeerde items gekry", // en: I got the wrong items
+  "delivery.problem.reason.shortQuantity": "Sommige daarvan ontbreek", // en: Some of it is missing
+  "delivery.problem.reason.quality": "Die gehalte is nie wat beskryf is nie", // en: The quality is not what was described
+  "delivery.problem.reason.other": "Iets anders", // en: Something else
+  "delivery.problem.reported": "Probleem gerapporteer ({reason}) op {date}.", // en: Problem reported ({reason}) on {date}.
+  "delivery.cancel.open": "Kanselleer hierdie bestelling", // en: Cancel this order
+  "delivery.cancel.declineOpen": "Weier hierdie bestelling", // en: Decline this order
+  "delivery.cancel.title": "Kanselleer hierdie bestelling?", // en: Cancel this order?
+  "delivery.cancel.declineTitle": "Weier hierdie bestelling?", // en: Decline this order?
+  "delivery.cancel.help": "Die verkoper het dit nog nie aanvaar nie, so jy kry al jou geld terug.", // en: The seller has not accepted it yet, so you get all your money back.
+  "delivery.cancel.declineHelp": "Die koper kry al hul geld terug en die goedere gaan terug te koop.", // en: The buyer gets all their money back and the goods go back on sale.
+  "delivery.cancel.reasonOptional": "Rede (opsioneel)", // en: Reason (optional)
+  "delivery.cancel.reasonRequired": "Rede (die koper sal dit sien)", // en: Reason (the buyer will see it)
+  "delivery.cancel.cancel": "Kanselleer die bestelling", // en: Cancel the order
+  "delivery.cancel.decline": "Weier die bestelling", // en: Decline the order
+  "delivery.cancel.keep": "Hou dit", // en: Keep it
+  "delivery.cancel.done": "Die bestelling is gekanselleer en die terugbetaling is begin.", // en: The order was cancelled and the refund has been started.
   // ---- demand ----
   "demand.requestPostedProducersCanNowPledge": "Aanvraag geplaas. Produsente kan nou beloof om te lewer.", // en: Request posted. Producers can now pledge.
   "demand.markedAsFulfilled": "Gemerk as vervul.", // en: Marked as fulfilled.
@@ -847,8 +1085,11 @@ module.exports = {
   "listing.onlinePaymentComingSoon": "Aanlynbetaling kom binnekort", // en: Online payment coming soon
   "listing.soldBy": "Verkoop deur {name}", // en: Sold by {name}
   "listing.quantityOf": "Hoeveelheid {product}", // en: Quantity of {product}
-  "listing.payNow": "Betaal nou · {amount}", // en: Pay now · {amount}
   "listing.paymentMethods": "Kaart, mobiele geld of banktrekking, alles veilig hanteer deur ons betalingsvennoot.", // en: Card, mobile money or bank transfer, all handled securely by our payment partner.
+  "listing.buyNow": "Koop nou · {amount}", // en: Buy now · {amount}
+  "listing.addToBasket": "Voeg by mandjie", // en: Add to basket
+  "listing.deliveryAvailable": "Aflewering beskikbaar", // en: Delivery available
+  "listing.collectOnly": "Haal by die verkoper af", // en: Collect from the seller
   // ---- listings ----
   "listings.fillInYourBusinessNameBank": "Vul jou besigheidsnaam, bank en rekeningnommer in.", // en: Fill in your business name, bank and account number.
   "listings.payoutsAreSetUpYourListings": "Uitbetalings is opgestel. Jou advertensies kan nou betaling aanvaar.", // en: Payouts are set up. Your listings can now accept payment.
@@ -901,6 +1142,19 @@ module.exports = {
   "listings.saving": "Stoor tans...", // en: Saving...
   "listings.couldNotSetUpPayouts": "Kon nie uitbetalings opstel nie", // en: Could not set up payouts
   "listings.removeConfirm": "Verwyder \"{product}\" van die markplek?", // en: Remove "{product}" from the marketplace?
+  "listings.delivery.title": "Hoe kan kopers dit kry?", // en: How can buyers get this?
+  "listings.delivery.help": "Kies elke manier waarmee jy tevrede is. Kopers kies een wanneer hulle betaal.", // en: Choose every way you are happy with. Buyers pick one when they pay.
+  "listings.delivery.collect": "Kopers haal by my af (gratis)", // en: Buyers collect from me (free)
+  "listings.delivery.own": "Ek lewer self af, in my eie voertuig", // en: I deliver myself, in my own vehicle
+  "listings.delivery.baseFee": "Fooi vir enige aflewering (N$)", // en: Fee for any delivery (N$)
+  "listings.delivery.perKm": "Plus per km (N$)", // en: Plus per km (N$)
+  "listings.delivery.maxKm": "Verste wat ek aflewer (km)", // en: Furthest I deliver (km)
+  "listings.delivery.platform": "'n AfriAgriFed-vervoerder mag dit aflewer", // en: An AfriAgriFed carrier may deliver it
+  "listings.delivery.platformHelp": "Ons besit nie voertuie nie: vervoerders uit ons netwerk haal die bestelling by jou af en bring dit na die koper, wat die afleweringsfooi betaal. Jy laat ons weet wanneer die bestelling gereed is.", // en: We do not own vehicles: carriers from our network collect the order from you and bring it to the buyer, who pays the delivery fee. You tell us when the order is ready.
+  "listings.delivery.needPin": "Merk jou plek op die kaart hierbo sodat aflewering uitgewerk kan word.", // en: Mark your place on the map above so delivery can be worked out.
+  "listings.delivery.problem.none": "Kies ten minste een manier vir kopers om dit te kry.", // en: Choose at least one way for buyers to get this.
+  "listings.delivery.problem.fees": "Kyk die afleweringsfooie en afstand na: dit is buite die perke.", // en: Check the delivery fees and distance: they are out of range.
+  "listings.delivery.problem.pin": "Merk jou plek op die kaart om aflewering aan te bied.", // en: Mark your place on the map to offer delivery.
   // ---- location ----
   "location.town": "Dorp", // en: Town
   "location.removeTheLocation": "Verwyder die ligging", // en: Remove the location
@@ -1055,6 +1309,10 @@ module.exports = {
   "nav.workspace": "Werkspasie", // en: Workspace
   "nav.insights": "Insigte", // en: Insights
   "nav.account": "Rekening", // en: Account
+  "nav.basket": "Mandjie", // en: Basket
+  "nav.basketHint": "Wat jy gekies het om te koop, per verkoper", // en: What you chose to buy, by seller
+  "nav.deliverForUs": "Lewer vir ons af", // en: Deliver for us
+  "nav.deliverForUsHint": "Verdien deur bestellings met jou eie voertuig af te lewer", // en: Earn by delivering orders with your own vehicle
   // ---- noMapFallback ----
   "noMapFallback.theMapCanBeDrawnIn": "Die kaart kan tans nie in hierdie blaaier geteken word nie", // en: The map can't be drawn in this browser right now
   "noMapFallback.tryAgain": "Probeer weer", // en: Try again
@@ -1080,7 +1338,7 @@ module.exports = {
   "notif.order.in_transit.title": "Bestelling is op pad", // en: Order on its way
   "notif.order.in_transit.body": "{product} is op pad na jou.", // en: {product} is in transit to you.
   "notif.order.delivered.title": "Aflewering bevestig", // en: Delivery confirmed
-  "notif.order.delivered.body": "Die koper het bevestig dat hulle {product} ontvang het.", // en: The buyer confirmed they received {product}.
+  "notif.order.delivered.body": "{product} is afgelewer.", // en: {product} was delivered.
   "notif.internship.approved.title": "Internskap-versoek goedgekeur", // en: Internship request approved
   "notif.internship.approved.body": "{name} het jou versoek goedgekeur: {item}", // en: {name} approved your request: {item}
   "notif.internship.claimed.title": "Internskap-aanbod opgeëis", // en: Internship offer claimed
@@ -1097,6 +1355,38 @@ module.exports = {
   "notif.order.paid.body": "{what} is pas betaal. Bevestig dit om met voltooiing te begin.", // en: {what} was just paid for. Confirm it to start fulfilment.
   "notif.order.oversold.title": "Bestelling vereis jou aandag", // en: Order needs your attention
   "notif.order.oversold.body": "Slegs {qty} van {what} was oor toe hierdie bestelling betaal is, so dit kan nie ten volle voltooi word nie. Kontak die koper, of vra vir 'n terugbetaling.", // en: Only {qty} of {what} were left when this order was paid, so it cannot be filled in full. Contact the buyer, or ask for a refund.
+  "notif.delivery.jobOpen.title": "Nuwe afleweringswerk", // en: New delivery job
+  "notif.delivery.jobOpen.body": "{what} na {name}. Maak Lewer vir ons af oop om dit aan te neem.", // en: {what} to {name}. Open Deliver for us to take it.
+  "notif.delivery.carrierAssigned.title": "Vervoerder toegewys", // en: Carrier assigned
+  "notif.delivery.carrierAssigned.body": "{name} is die vervoerder vir {product}.", // en: {name} is the carrier for {product}.
+  "notif.delivery.carrierDropped.title": "Vervoerder het die werk teruggegee", // en: Carrier dropped the job
+  "notif.delivery.carrierDropped.body": "Die vervoerder vir {product} kan dit nie meer kom haal nie. Ons soek 'n ander een.", // en: The carrier for {product} can no longer collect it. We are finding another.
+  "notif.delivery.pickedUp.title": "Deur die vervoerder afgehaal", // en: Collected by the carrier
+  "notif.delivery.pickedUp.body": "{name} het {product} afgehaal.", // en: {name} collected {product}.
+  "notif.delivery.nearby.title": "Amper daar", // en: Almost there
+  "notif.delivery.nearby.body": "Jou aflewering van {product} is omtrent 1 km weg.", // en: Your delivery of {product} is about 1 km away.
+  "notif.delivery.arrived.title": "Jou aflewering het aangekom", // en: Your delivery has arrived
+  "notif.delivery.arrived.body": "Gee die oorhandigingskode om {product} te ontvang.", // en: Give the handover code to receive {product}.
+  "notif.delivery.codeLocked.title": "Oorhandigingskode gesluit", // en: Handover code locked
+  "notif.delivery.codeLocked.body": "Te veel verkeerde kodes is vir {product} probeer. Ondersteuning sal jou kontak.", // en: Too many wrong codes were tried for {product}. Support will contact you.
+  "notif.delivery.noCarrier.title": "Nog geen vervoerder nie", // en: No carrier yet
+  "notif.delivery.noCarrier.body": "Geen vervoerder het die aflewering van {product} nog aangeneem nie. Ondersteuning is ingelig.", // en: No carrier has taken the delivery of {product} yet. Support has been told.
+  "notif.order.cancelledByBuyer.title": "Bestelling gekanselleer", // en: Order cancelled
+  "notif.order.cancelledByBuyer.body": "Die koper het {product} gekanselleer.", // en: The buyer cancelled {product}.
+  "notif.order.cancelledBySeller.title": "Bestelling gekanselleer", // en: Order cancelled
+  "notif.order.cancelledBySeller.body": "Die verkoper het {product} gekanselleer: {reason}. Jou geld word teruggegee.", // en: The seller cancelled {product}: {reason}. Your money is being returned.
+  "notif.order.cancelledBySupport.title": "Bestelling gekanselleer", // en: Order cancelled
+  "notif.order.cancelledBySupport.body": "Ondersteuning het {product} gekanselleer. Die koper se geld word teruggegee.", // en: Support cancelled {product}. The buyer's money is being returned.
+  "notif.order.autoCancelledBuyer.title": "Bestelling gekanselleer", // en: Order cancelled
+  "notif.order.autoCancelledBuyer.body": "Die verkoper het {product} nie betyds bevestig nie, so dit is gekanselleer en jou geld word teruggegee.", // en: The seller did not confirm {product} in time, so it was cancelled and your money is being returned.
+  "notif.order.autoCancelledSeller.title": "Bestelling gekanselleer", // en: Order cancelled
+  "notif.order.autoCancelledSeller.body": "{product} is gekanselleer omdat dit nie betyds bevestig is nie.", // en: {product} was cancelled because it was not confirmed in time.
+  "notif.order.disputed.title": "Probleem gerapporteer", // en: Problem reported
+  "notif.order.disputed.body": "Die koper het 'n probleem met {product} gerapporteer. Ondersteuning sal dit ondersoek.", // en: The buyer reported a problem with {product}. Support will look into it.
+  "notif.order.resolvedRelease.title": "Probleem opgelos", // en: Problem resolved
+  "notif.order.resolvedRelease.body": "Ondersteuning het oor {product} besluit: die verkoper word betaal.", // en: Support decided on {product}: the seller is paid.
+  "notif.order.resolvedRefund.title": "Probleem opgelos", // en: Problem resolved
+  "notif.order.resolvedRefund.body": "Ondersteuning het oor {product} besluit: die koper word terugbetaal.", // en: Support decided on {product}: the buyer is refunded.
   // ---- notifications ----
   "notifications.notifications": "Kennisgewings", // en: Notifications
   "notifications.noNotificationsYet": "Nog geen kennisgewings nie.", // en: No notifications yet.
@@ -1487,6 +1777,10 @@ module.exports = {
   "opt:Wholesaler": "Groothandelaar", // en: Wholesaler
   "opt:Women groups": "Vrouegroepe", // en: Women groups
   "opt:Youth": "Jeug", // en: Youth
+  "opt:Ready for collection": "Gereed vir afhaal", // en: Ready for collection
+  "opt:Ready for the carrier": "Gereed vir die vervoerder", // en: Ready for the carrier
+  "opt:With the carrier": "By die vervoerder", // en: With the carrier
+  "opt:Problem reported": "Probleem gerapporteer", // en: Problem reported
   // ---- orders ----
   "orders.purchaseHistory": "Aankoopgeskiedenis", // en: Purchase history
   "orders.myOrders": "My bestellings", // en: My Orders
@@ -1505,6 +1799,10 @@ module.exports = {
   "orderStatus.waitDispatch": "Wag dat die verkoper versend", // en: Waiting for the seller to dispatch
   "orderStatus.waitStart": "Wag dat die verkoper met aflewering begin, of die koper ontvangs bevestig", // en: Waiting for the seller to start delivery, or the buyer to confirm receipt
   "orderStatus.waitDelivery": "Wag dat die koper aflewering bevestig", // en: Waiting for the buyer to confirm delivery
+  "orderStatus.waitReadyForCarrier": "Wag dat die verkoper die bestelling vir die vervoerder gereed maak", // en: Waiting for the seller to get the order ready for the carrier
+  "orderStatus.waitCollection": "Gereed: wag dat die koper dit kom afhaal", // en: Ready: waiting for the buyer to collect it
+  "orderStatus.waitCarrierPickup": "Wag dat 'n vervoerder die goedere by die verkoper kom haal", // en: Waiting for a carrier to collect the goods from the seller
+  "orderStatus.waitDispute": "'n Probleem is gerapporteer. Die AfriAgriFed-span ondersoek dit.", // en: A problem was reported. The AfriAgriFed team is looking into it.
   // ---- pageAccess ----
   "pageAccess.enterAnEmailSoWeCan": "Voer 'n e-pos in sodat ons jou kwitansie kan stuur.", // en: Enter an email so we can send your receipt.
   "pageAccess.choosePhotoOfYourStudentCard": "Kies eers 'n foto van jou studentekaart.", // en: Choose a photo of your student card first.
@@ -1542,6 +1840,9 @@ module.exports = {
   "payments.pleaseSignInFirst": "Meld asseblief eers aan.", // en: Please sign in first.
   "payments.couldNotReachThePaymentService": "Kon nie die betalingsdiens bereik nie. Kontroleer jou verbinding en probeer weer.", // en: Could not reach the payment service. Check your connection and try again.
   "payments.couldNotStart": "Kon nie betaling begin nie.", // en: Could not start payment.
+  // ---- pinMap ----
+  "pinMap.noMap": "Die kaart kan nie op hierdie toestel gewys word nie. Kies die naaste dorp en beskryf die plek in woorde.", // en: The map can't be shown on this device. Choose the nearest town and describe the place in words.
+  "pinMap.map": "Kaart", // en: Map
   // ---- prices ----
   "prices.marketAverages": "Marktgemiddeldes", // en: Market averages
   "prices.averageProducePrices": "Gemiddelde produkpryse", // en: Average Produce Prices
@@ -1840,6 +2141,39 @@ module.exports = {
   "server.chat_unavailable": "Die assistent is tydelik nie beskikbaar nie.", // en: The assistant is temporarily unavailable.
   "server.chat_empty": "Die assistent het niks gehad om te sê nie. Vra asseblief weer.", // en: The assistant had nothing to say. Please ask again.
   "server.chat_stopped": "Die assistent het onverwags opgehou.", // en: The assistant stopped unexpectedly.
+  "server.bad_request": "Daardie versoek kon nie verstaan word nie. Kyk asseblief na en probeer weer.", // en: That request could not be understood. Please check and try again.
+  "server.too_many_items": "'n Mandjie kan tot {max} verskillende items hou.", // en: A basket can hold up to {max} different items.
+  "server.mixed_sellers": "Een betaling kan net een verkoper dek. Betaal vir elke verkoper se items apart.", // en: One payment can only cover one seller. Pay for each seller's items separately.
+  "server.bad_date": "Kies 'n datum van vandag tot twee weke vooruit.", // en: Choose a date from today up to two weeks ahead.
+  "server.bad_address": "Voltooi asseblief die afleweringsadres: plaas die speld, beskryf die plek, en voeg 'n naam en foonnommer by.", // en: Please complete the delivery address: place the pin, describe the place, and add a name and phone number.
+  "server.no_pickup_location": "Die verkoper het nie hul plek op die kaart gemerk nie, so aflewering kan nie gereël word nie.", // en: The seller has not marked their place on the map, so delivery can't be arranged.
+  "server.delivery_not_offered": "Daardie manier om die bestelling te kry, word nie deur hierdie verkoper aangebied nie.", // en: That way of getting the order is not offered by this seller.
+  "server.delivery_too_far": "Dit is te ver vir hierdie afleweringskeuse (tot {max} km).", // en: That is too far for this delivery option (up to {max} km).
+  "server.delivery_too_heavy": "Hierdie bestelling is te swaar vir een vervoerder. Stuur die verkoper 'n boodskap om dit te reël.", // en: This order is too heavy for one carrier. Message the seller to arrange it.
+  "server.delivery_price_changed": "Die afleweringsfooi is nou {amount}. Kyk dit asseblief na en betaal weer.", // en: The delivery fee is now {amount}. Please check it and pay again.
+  "server.order_not_found": "Daardie bestelling kon nie gevind word nie.", // en: That order could not be found.
+  "server.order_not_yours": "Dit behoort aan iemand anders.", // en: That belongs to someone else.
+  "server.wrong_status": "Dit kan nie in hierdie stadium van die bestelling gedoen word nie.", // en: That can't be done at this stage of the order.
+  "server.not_platform_delivery": "Hierdie bestelling is nie vir 'n AfriAgriFed-vervoerder opgestel nie.", // en: This order is not set up for an AfriAgriFed carrier.
+  "server.job_exists": "'n Vervoerder is reeds vir hierdie bestelling gevra.", // en: A carrier has already been requested for this order.
+  "server.bad_phone": "Voeg 'n foonnommer by wat die vervoerder by die afhaalpunt kan bel.", // en: Add a phone number the carrier can call at pick-up.
+  "server.bad_ready_time": "Kies 'n tyd wanneer die goedere gereed sal wees, binne die volgende 3 dae.", // en: Choose a time the goods will be ready, within the next 3 days.
+  "server.not_a_carrier": "Net goedgekeurde vervoerders kan afleweringswerk aanneem.", // en: Only approved carriers can take delivery jobs.
+  "server.carrier_unavailable": "Jy is as nie beskikbaar gemerk nie. Skakel oor na beskikbaar om werk aan te neem.", // en: You are marked as not available. Switch to available to take jobs.
+  "server.own_order": "Jy kan nie jou eie bestelling aflewer nie.", // en: You can't deliver your own order.
+  "server.job_not_found": "Daardie afleweringswerk kon nie gevind word nie.", // en: That delivery job could not be found.
+  "server.vehicle_too_small": "Jou voertuig is te klein vir hierdie vrag.", // en: Your vehicle is too small for this load.
+  "server.too_many_jobs": "Jy het reeds {max} werke. Voltooi eers een.", // en: You already have {max} jobs. Finish one first.
+  "server.job_taken": "Iemand anders het sopas hierdie werk geneem.", // en: Someone else just took this job.
+  "server.not_travelling": "Die bestelling is nou nie op pad nie.", // en: The order is not on its way right now.
+  "server.bad_location": "Daardie posisie lyk nie reg nie.", // en: That position does not look right.
+  "server.code_required": "By 'n afhaling is die koper se kode nodig. Hulle kan ook in die toepassing bevestig.", // en: At a collection the buyer's code is needed. They can also confirm in the app.
+  "server.reason_required": "Gee asseblief 'n rede.", // en: Please give a reason.
+  "server.no_code": "Hierdie bestelling het geen oorhandigingskode nie. Gebruik eerder die koper se bevestiging.", // en: This order has no handover code. Use the buyer's confirmation instead.
+  "server.code_locked": "Te veel verkeerde kodes. Kontak ondersteuning om hierdie bestelling te voltooi.", // en: Too many wrong codes. Contact support to finish this order.
+  "server.wrong_code": "Daardie kode is nie reg nie.", // en: That code is not right.
+  "server.window_closed": "Dit is te vroeg of te laat om 'n probleem met hierdie bestelling te rapporteer. Stuur die verkoper 'n boodskap of kontak ondersteuning.", // en: It is too early or too late to report a problem on this order. Message the seller or contact support.
+  "server.admin_only": "Net ondersteuningspersoneel kan dit doen.", // en: Only support staff can do that.
   // ---- serverApi ----
   "serverApi.notConfigured": "Geen agterkant opgestel nie", // en: No backend configured
   "serverApi.unreachable": "Agterkant nie bereikbaar nie", // en: Backend unreachable

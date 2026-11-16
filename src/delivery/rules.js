@@ -48,9 +48,14 @@ function roadKm(a, b) {
   return Math.round(haversineKm(a, b) * ROAD_FACTOR * 10) / 10;
 }
 
+/** Minutes of driving for `km` of road (no loading or finding the address). */
+function driveMinutes(km) {
+  return Math.round((km / AVERAGE_SPEED_KMH) * 60);
+}
+
 /** Estimated minutes door to door for a drive of `km`. */
 function etaMinutes(km) {
-  return Math.round((km / AVERAGE_SPEED_KMH) * 60) + HANDLING_MINUTES;
+  return driveMinutes(km) + HANDLING_MINUTES;
 }
 
 // ---- how heavy is an order, and which vehicle does it need ---------------------------------------
@@ -230,6 +235,7 @@ module.exports = {
   haversineKm,
   roadKm,
   etaMinutes,
+  driveMinutes,
   orderWeightKg,
   vehicleFor,
   vehicleFits,

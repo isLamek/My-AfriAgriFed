@@ -35,7 +35,7 @@ import { uploadToCloudinary } from "./cloudinairyUpload";
 import { getAdminProfile } from "./admin";
 import NotificationBell from "./NotificationBell";
 import { logTelemetryEvent, TELEMETRY_EVENTS } from "./telemetry";
-import { startCheckout } from "./payments";
+import { lineFromListing, useCart } from "./cart/cart";
 import toast from "react-hot-toast";
 import { buildNavSections } from "./navConfig";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -87,6 +87,7 @@ function scorePost(post) {
 }
 
 export default function ConsumerDashboard({ role = "consumer" }) {
+  const basket = useCart();
 
   const location = useLocation();
   const navigate = useNavigate();
@@ -549,9 +550,12 @@ export default function ConsumerDashboard({ role = "consumer" }) {
                     key={price.id}
                     listing={price}
                     isOwn={price.sellerId === auth.currentUser?.uid}
-                    onBuy={(listing, quantity) =>
-                      startCheckout({ listingId: listing.id, quantity, product: listing.product, sellerId: listing.sellerId })
-                    }
+                    onBuy={(listing, quantity) => navigate("/checkout", { state: { buyNow: lineFromListing(listing, quantity) } })}
+                    onAddToCart={(listing, quantity) => {
+                      const result = basket.add(listing, quantity);
+                      if (!result.changed) toast.error(result.reason === "full" ? t("cart.full") : t("cart.couldNotAdd"));
+                      else toast.success(result.atLimit ? t("cart.addedUpToStock", { product: listing.product }) : t("cart.added", { product: listing.product }));
+                    }}
                     onMessage={(listing) =>
                       chatWith(navigate, {
                         otherId: listing.sellerId,

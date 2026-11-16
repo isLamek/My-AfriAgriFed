@@ -19,6 +19,9 @@ import Prices from "./Prices";
 import Profile from "./Profile";
 import MyOrders from "./MyOrders";
 import OrderTracker from "./OrderTracker";
+import Cart from "./Cart";
+import Checkout from "./Checkout";
+import Carrier from "./Carrier";
 import Messages from "./Messages";
 import useAccountContext from "./useAccountContext";
 import DemandBoard from "./DemandBoard";
@@ -325,6 +328,9 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/cart" element={<ProtectedRoute><Cart /></ProtectedRoute>} />
+      <Route path="/checkout" element={<ProtectedRoute><Checkout /></ProtectedRoute>} />
+      <Route path="/carrier" element={<ProtectedRoute><Carrier /></ProtectedRoute>} />
 
       <Route
         path="/map"

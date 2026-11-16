@@ -12,7 +12,8 @@
 //   collect   the buyer fetches it: "dispatched" means ready for collection
 // Orders saved before delivery existed have no method and behave like "seller".
 // In every case the buyer can confirm they received it, and whoever hands the
-// goods over can finish the order with the buyer's handover code (server only).
+// goods over can finish the order with the buyer's handover code. Both go
+// through the server (serverActions below), not straight to the database.
 //
 // Cancelling, disputes and refunds go through the server (server/delivery.js),
 // never straight from the browser, because money moves with them.
@@ -69,11 +70,6 @@ const sellerMoves = (order) => ({
   ...(methodOf(order) === "seller" ? { dispatched: ["in_transit"] } : {}),
 });
 
-const BUYER_MOVES = {
-  dispatched: ["delivered"],
-  in_transit: ["delivered"],
-};
-
 // Older orders were saved as plain "paid" with no history; anything we do not
 // recognise is treated the same way rather than crashing the page.
 export function normaliseStatus(status) {
@@ -98,7 +94,7 @@ export function rolesFor(order, uid) {
 }
 
 export function canTransition(from, to, role, order) {
-  const moves = role === "seller" ? sellerMoves(order) : role === "buyer" ? BUYER_MOVES : {};
+  const moves = role === "seller" ? sellerMoves(order) : {}; // a buyer's confirmation goes through the server
   return (moves[normaliseStatus(from)] || []).includes(to);
 }
 
@@ -107,9 +103,41 @@ export function allowedNext(order, uid) {
   const from = normaliseStatus(order?.status);
   const next = new Set();
   for (const role of rolesFor(order, uid)) {
-    for (const to of (role === "seller" ? sellerMoves(order) : BUYER_MOVES)[from] || []) next.add(to);
+    if (role === "seller") for (const to of sellerMoves(order)[from] || []) next.add(to);
   }
   return [...next];
+}
+
+// What this person can do that the server does (it checks again, and moves the money
+// hooks): confirm receipt, cancel or decline, report a problem, ask for a carrier,
+// and finish a handover with the buyer's code.
+export function serverActions(order, uid, now = Date.now()) {
+  const status = normaliseStatus(order?.status);
+  const method = methodOf(order);
+  const actions = new Set();
+  const travelling = status === "dispatched" || status === "in_transit";
+  for (const role of rolesFor(order, uid)) {
+    if (role === "buyer") {
+      if (travelling) actions.add("confirm");
+      if (status === "paid") actions.add("cancel");
+      const windowOpen = status === "delivered" && typeof order.releaseAt === "number" && order.releaseAt > now && !order.releasedAt;
+      if (travelling || windowOpen) actions.add("dispute");
+    } else {
+      if (status === "paid" || status === "confirmed") actions.add("decline");
+      if (method === "platform" && (status === "confirmed" || status === "dispatched") && !order.fulfilment?.carrierRequestedAt) actions.add("requestCarrier");
+      if ((method === "seller" && travelling) || (method === "collect" && status === "dispatched")) actions.add("handover");
+    }
+  }
+  return [...actions];
+}
+
+/** Does this order wait on this person right now? (the number on the tab) */
+export function needsAction(order, uid, now = Date.now()) {
+  if (allowedNext(order, uid).length > 0 || needsAttention(order)) return true;
+  const actions = serverActions(order, uid, now);
+  if (actions.includes("requestCarrier")) return true;
+  // the driver is at the door: the buyer must give the code
+  return rolesFor(order, uid).includes("buyer") && normaliseStatus(order?.status) === "in_transit" && !!order?.fulfilment?.arrivedAt;
 }
 
 // One append-only log entry. `at` is a plain number because Firestore does

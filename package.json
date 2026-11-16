@@ -34,6 +34,7 @@
     "emulators": "node scripts/emulators.js",
     "seed": "node scripts/emulator-seed.js",
     "start:local": "node scripts/start-local.js",
+    "backend:local": "node scripts/local-backend.js",
     "rules-check": "node scripts/rules-check.mjs"
   },
   "eslintConfig": {

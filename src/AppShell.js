@@ -170,6 +170,7 @@ export default function AppShell({
                 >
                   <span className="aaf-sidebar-icon">{item.icon}</span>
                   <span className="aaf-sidebar-label">{item.label}</span>
+                  {item.badge ? <span className="aaf-sidebar-badge" aria-label={String(item.badge)}>{item.badge}</span> : null}
                 </button>
               ))}
             </div>

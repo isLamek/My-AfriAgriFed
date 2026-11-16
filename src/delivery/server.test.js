@@ -548,7 +548,7 @@ describe("cancelling an order", () => {
     expect(store.docs.get("marketPrices/L1").quantity).toBe(100);
     expect(store.docs.get("marketPrices/L2").quantity).toBe(10);
     expect(hookCalls).toEqual([["cancelled", id, "buyer"]]);
-    expect(store.list("notifications").filter((n) => n.key === "notif.order.cancelled").map((n) => n.userId)).toEqual(["seller1"]);
+    expect(store.list("notifications").filter((n) => n.key === "notif.order.cancelledByBuyer").map((n) => n.userId)).toEqual(["seller1"]);
     expect((await post(`/api/orders/${id}/cancel`, "tok-buyer", {})).json.error).toBe("wrong_status"); // not twice, and no second restock
     expect(store.docs.get("marketPrices/L1").quantity).toBe(100);
   });
@@ -667,7 +667,7 @@ describe("the sweep", () => {
     expect((await start.sweep()).cancelled).toBe(1);
     expect(order(id)).toMatchObject({ status: "cancelled", cancelWhy: "seller_timeout", payoutStatus: "refund_requested" });
     expect(store.docs.get("marketPrices/L1").quantity).toBe(100);
-    expect(store.list("notifications").filter((n) => n.key === "notif.order.autoCancelled").map((n) => n.userId).sort()).toEqual(["buyer1", "seller1"]);
+    expect(store.list("notifications").filter((n) => n.key.startsWith("notif.order.autoCancelled")).map((n) => n.userId).sort()).toEqual(["buyer1", "seller1"]);
     expect((await start.sweep()).cancelled).toBe(0);
   });
 

@@ -155,7 +155,7 @@ async function priceBasket(store, user, body, { commissionRate = 0.05, nowMs = D
     };
     // The buyer saw a fee on the checkout page; if it moved since (the seller changed their settings), say so rather than charge a different amount.
     if (delivery.expectedFee !== undefined && Number(delivery.expectedFee) !== quote.fee) {
-      throw new HttpError(409, "delivery_price_changed", `The delivery fee is now N$${quote.fee}. Please check it and pay again.`, { fee: quote.fee });
+      throw new HttpError(409, "delivery_price_changed", `The delivery fee is now N$${quote.fee}. Please check it and pay again.`, { fee: quote.fee, amount: `N$` + quote.fee });
     }
   }
   if (pickup) fulfilment.pickup = pickup;

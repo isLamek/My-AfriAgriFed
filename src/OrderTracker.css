@@ -96,7 +96,8 @@
 .ot-badge.dispatched,
 .ot-badge.in_transit { background: #e6f0fa; color: #2f6fb0; }
 .ot-badge.delivered { background: var(--aaf-success-bg); color: var(--aaf-success); }
-.ot-badge.cancelled { background: var(--aaf-danger-bg); color: var(--aaf-danger); }
+.ot-badge.cancelled,
+.ot-badge.disputed { background: var(--aaf-danger-bg); color: var(--aaf-danger); }
 
 /* Stepper */
 .ot-steps {
@@ -104,7 +105,8 @@
   margin: 18px 0 6px;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr; /* four steps when the buyer collects, five otherwise */
 }
 
 .ot-steps li {

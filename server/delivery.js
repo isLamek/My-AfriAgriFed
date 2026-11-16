@@ -253,7 +253,7 @@ function register(app, deps) {
     wrap(async (req, res) => {
       const orderId = req.params.orderId;
       const order = await loadOrder(orderId);
-      if (order.sellerId !== req.user.uid) throw new HttpError(403, "not_yours", "That order belongs to someone else.");
+      if (order.sellerId !== req.user.uid) throw new HttpError(403, "order_not_yours", "That order belongs to someone else.");
       if (methodOf(order) !== "platform") throw new HttpError(409, "not_platform_delivery", "This order is not set up for an AfriAgriFed carrier.");
       if (!["confirmed", "dispatched"].includes(order.status)) throw new HttpError(409, "wrong_status", "That cannot be done at this stage of the order.");
 
@@ -397,7 +397,7 @@ function register(app, deps) {
     wrap(async (req, res) => {
       const orderId = req.params.orderId;
       const order = await loadOrder(orderId);
-      if ((await roleIn(order, orderId, req.user)) !== "carrier") throw new HttpError(403, "not_yours", "That job belongs to someone else.");
+      if ((await roleIn(order, orderId, req.user)) !== "carrier") throw new HttpError(403, "order_not_yours", "That job belongs to someone else.");
       const name = (order.fulfilment.carrier && order.fulfilment.carrier.name) || "The carrier";
       await move(orderId, ["confirmed", "dispatched"], "in_transit", () => ({ by: req.user.uid, note: `Collected by ${name}`, extra: {} }));
       await store.update(`deliveryJobs/${orderId}`, { status: "picked_up", pickedUpAt: nowMs() });
@@ -418,7 +418,7 @@ function register(app, deps) {
       const order = await loadOrder(orderId);
       const role = await roleIn(order, orderId, req.user);
       const allowed = (role === "carrier" && methodOf(order) === "platform") || (role === "seller" && methodOf(order) === "seller");
-      if (!allowed) throw new HttpError(403, "not_yours", "That job belongs to someone else.");
+      if (!allowed) throw new HttpError(403, "order_not_yours", "That job belongs to someone else.");
       if (order.status !== "in_transit") throw new HttpError(409, "not_travelling", "The order is not on its way right now.");
 
       const lat = Number(req.body && req.body.lat);
@@ -462,7 +462,7 @@ function register(app, deps) {
       const order = await loadOrder(orderId);
       const role = await roleIn(order, orderId, req.user);
       if (!((role === "carrier" && methodOf(order) === "platform") || (role === "seller" && ["seller", "collect"].includes(methodOf(order))))) {
-        throw new HttpError(403, "not_yours", "That job belongs to someone else.");
+        throw new HttpError(403, "order_not_yours", "That job belongs to someone else.");
       }
       if (!["in_transit", "dispatched"].includes(order.status)) throw new HttpError(409, "wrong_status", "That cannot be done at this stage of the order.");
       if (!order.fulfilment.arrivedAt) {
@@ -509,7 +509,7 @@ function register(app, deps) {
       const method = methodOf(order);
       const role = await roleIn(order, orderId, req.user);
       const mayHandOver = (role === "carrier" && method === "platform") || (role === "seller" && (method === "seller" || method === "collect"));
-      if (!mayHandOver) throw new HttpError(403, "not_yours", "That job belongs to someone else.");
+      if (!mayHandOver) throw new HttpError(403, "order_not_yours", "That job belongs to someone else.");
       if (!HANDOVER_FROM[method].includes(order.status)) throw new HttpError(409, "wrong_status", "That cannot be done at this stage of the order.");
 
       const body = req.body || {};
@@ -548,7 +548,7 @@ function register(app, deps) {
     wrap(async (req, res) => {
       const orderId = req.params.orderId;
       const order = await loadOrder(orderId);
-      if (order.buyerId !== req.user.uid) throw new HttpError(403, "not_yours", "That order belongs to someone else.");
+      if (order.buyerId !== req.user.uid) throw new HttpError(403, "order_not_yours", "That order belongs to someone else.");
       await finishDelivery(orderId, order, { by: req.user.uid, verified: true, note: "", from: ["dispatched", "in_transit"] });
       res.json({ ok: true, status: "delivered" });
     })
@@ -576,7 +576,7 @@ function register(app, deps) {
       const admin = await isAdmin(req.user);
       const isBuyer = order.buyerId === req.user.uid;
       const isSeller = order.sellerId === req.user.uid;
-      if (!isBuyer && !isSeller && !admin) throw new HttpError(403, "not_yours", "That order belongs to someone else.");
+      if (!isBuyer && !isSeller && !admin) throw new HttpError(403, "order_not_yours", "That order belongs to someone else.");
 
       // A buyer may change their mind until the seller accepts. A seller may decline before dispatch (and must say why).
       // After that only support can cancel, because goods may already be on the road.
@@ -595,9 +595,16 @@ function register(app, deps) {
       }
       await cancelOrder(orderId, order, { by: req.user.uid, reason, from, why });
 
-      const other = isBuyer ? order.sellerId : order.buyerId;
-      await notify(other, { key: "notif.order.cancelled", params: { product: itemsLine(order), reason: reason || "-" }, title: "Order cancelled", body: `${itemsLine(order)} was cancelled. The buyer's money is being returned.`, link: "/track-orders" });
-      if (admin && !isBuyer && !isSeller) await notify(order.sellerId, { key: "notif.order.cancelled", params: { product: itemsLine(order), reason: reason || "-" }, title: "Order cancelled", body: `${itemsLine(order)} was cancelled by support.`, link: "/track-orders" });
+      const product = itemsLine(order);
+      if (why === "buyer") {
+        await notify(order.sellerId, { key: "notif.order.cancelledByBuyer", params: { product }, title: "Order cancelled", body: `The buyer cancelled ${product}.`, link: "/track-orders" });
+      } else if (why === "seller") {
+        await notify(order.buyerId, { key: "notif.order.cancelledBySeller", params: { product, reason }, title: "Order cancelled", body: `The seller cancelled ${product}: ${reason}. Your money is being returned.`, link: "/track-orders" });
+      } else {
+        for (const uid of [order.buyerId, order.sellerId]) {
+          await notify(uid, { key: "notif.order.cancelledBySupport", params: { product }, title: "Order cancelled", body: `Support cancelled ${product}. The buyer's money is being returned.`, link: "/track-orders" });
+        }
+      }
       res.json({ ok: true, status: "cancelled" });
     })
   );
@@ -611,7 +618,7 @@ function register(app, deps) {
     wrap(async (req, res) => {
       const orderId = req.params.orderId;
       const order = await loadOrder(orderId);
-      if (order.buyerId !== req.user.uid) throw new HttpError(403, "not_yours", "That order belongs to someone else.");
+      if (order.buyerId !== req.user.uid) throw new HttpError(403, "order_not_yours", "That order belongs to someone else.");
       const body = req.body || {};
       if (!DISPUTE_REASONS.includes(body.reason)) throw new HttpError(400, "bad_request", "Choose what went wrong.");
       const text = clip(body.text, 500).trim();
@@ -627,7 +634,7 @@ function register(app, deps) {
       if (!result.applied) throw new HttpError(409, "window_closed", "It is too late to report a problem with this order, or it is too early. Message the seller or contact support.");
       await store.set(`disputes/${orderId}`, { orderId, buyerId: order.buyerId, sellerId: order.sellerId, reason: body.reason, text, status: "open", amount: order.amount, product: clip(order.product, 120), createdAt: now });
       await runHook("onDisputed", result.data, orderId);
-      await notify(order.sellerId, { key: "notif.order.disputed", params: { product: itemsLine(order), reason: body.reason }, title: "Problem reported", body: `The buyer reported a problem with ${itemsLine(order)}. Support will look into it.`, link: "/track-orders" });
+      await notify(order.sellerId, { key: "notif.order.disputed", params: { product: itemsLine(order) }, title: "Problem reported", body: `The buyer reported a problem with ${itemsLine(order)}. Support will look into it.`, link: "/track-orders" });
       res.json({ ok: true, status: "disputed" });
     })
   );
@@ -655,7 +662,7 @@ function register(app, deps) {
       const paid = await runHook("onResolved", done, orderId, outcome);
       if (paid && outcome === "release") await store.update(`orders/${orderId}`, { releasedAt: nowMs() }); // the sweep must not release it a second time
       for (const uid of [order.buyerId, order.sellerId]) {
-        await notify(uid, { key: "notif.order.resolved", params: { product: itemsLine(order), status: outcome }, title: "Problem resolved", body: `Support decided on ${itemsLine(order)}: ${outcome === "refund" ? "the buyer is refunded" : "the seller is paid"}.`, link: "/track-orders" });
+        await notify(uid, { key: outcome === "refund" ? "notif.order.resolvedRefund" : "notif.order.resolvedRelease", params: { product: itemsLine(order) }, title: "Problem resolved", body: `Support decided on ${itemsLine(order)}: ${outcome === "refund" ? "the buyer is refunded" : "the seller is paid"}.`, link: "/track-orders" });
       }
       res.json({ ok: true, status: to });
     })
@@ -679,8 +686,8 @@ function register(app, deps) {
       try {
         await cancelOrder(order.id, order, { by: "system", reason: "The seller did not confirm in time", from: ["paid"], why: "seller_timeout" });
         done.cancelled += 1;
-        await notify(order.buyerId, { key: "notif.order.autoCancelled", params: { product: itemsLine(order) }, title: "Order cancelled", body: `The seller did not confirm ${itemsLine(order)} in time, so it was cancelled and your money is being returned.`, link: "/track-orders" });
-        await notify(order.sellerId, { key: "notif.order.autoCancelled", params: { product: itemsLine(order) }, title: "Order cancelled", body: `${itemsLine(order)} was cancelled because it was not confirmed in time.`, link: "/track-orders" });
+        await notify(order.buyerId, { key: "notif.order.autoCancelledBuyer", params: { product: itemsLine(order) }, title: "Order cancelled", body: `The seller did not confirm ${itemsLine(order)} in time, so it was cancelled and your money is being returned.`, link: "/track-orders" });
+        await notify(order.sellerId, { key: "notif.order.autoCancelledSeller", params: { product: itemsLine(order) }, title: "Order cancelled", body: `${itemsLine(order)} was cancelled because it was not confirmed in time.`, link: "/track-orders" });
       } catch (error) {
         log.warn(`[delivery] sweep could not cancel ${order.id}: ${error.message}`);
       }
