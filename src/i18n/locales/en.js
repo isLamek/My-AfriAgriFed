@@ -373,11 +373,9 @@ module.exports = {
   "delivery.address.landmark": "Describe the place", // label
   "delivery.address.landmarkExample": "Blue gate behind the Engen garage, ask for Mr Amupolo", // placeholder
   "delivery.address.contactName": "Name of the person receiving it", // label
-  "delivery.address.contactPhone": "Phone number for the driver", // label
-  "delivery.address.phonePrivacy": "Only the seller and the person delivering see this, and only for this order.",
   "delivery.address.needLandmark": "Describe the place in a few words (a landmark, a gate colour, who to ask for).",
   "delivery.address.needName": "Add the name of the person receiving the order.",
-  "delivery.address.needPhone": "Add a phone number the driver can call.",
+  "delivery.address.chatInApp": "No phone number needed. The person delivering will message you in the app.",
   "delivery.address.outsideNamibia": "That spot is outside Namibia. Choose a place inside the country.",
   "delivery.address.noLocation": "This device can't share its location. Tap the map or choose the nearest town.",
   "delivery.address.locationDenied": "Location was not shared. You can tap the map or choose the nearest town.",
@@ -418,8 +416,10 @@ module.exports = {
   "delivery.request.in2h": "In 2 hours", // option
   "delivery.request.in4h": "In 4 hours", // option
   "delivery.request.tomorrow": "Tomorrow at 08:00", // option
-  "delivery.request.phone": "Phone number for the carrier", // label
   "delivery.request.note": "How to find you (optional)", // label
+  "delivery.chat.seller": "Message the seller", // button
+  "delivery.chat.buyer": "Message the buyer", // button
+  "delivery.chat.carrier": "Message {name}", // button, name of the carrier
   "delivery.request.noteExample": "Brown gate, ask for Ndapewa", // placeholder
   "delivery.request.send": "Ask for a carrier", // button
   "delivery.request.sent": "Done. Carriers near you have been told.", // toast
@@ -1279,6 +1279,7 @@ module.exports = {
   "messages.conversationWith": "Conversation with {name}", // accessible name of a conversation
   "messages.viewListing": "View listing", // button in a conversation about a listing
   "messages.viewOrder": "View order", // button in a conversation about an order
+  "messages.viewDelivery": "View delivery", // button in a conversation about an order's delivery (with the carrier)
   "messages.viewRequest": "View bulk request", // button in a conversation about a Demand Board request
   "messages.messageName": "Message {name}", // label of the message box (not visible)
   "messages.messageNameEllipsis": "Message {name}...", // placeholder of the message box
@@ -1449,6 +1450,7 @@ module.exports = {
   "opt:Bi-weekly": "Bi-weekly", // list item · ConsumerQuestionnaire.js
   "opt:Boxes": "Boxes", // list item · ConsumerQuestionnaire.js
   "opt:Bulk request": "Bulk request", // what a conversation is about
+  "opt:Delivery": "Delivery", // what a conversation is about
   "opt:Bulk sacks": "Bulk sacks", // list item · ConsumerQuestionnaire.js
   "opt:bunch": "bunch", // unit
   "opt:Business Details": "Business Details", // list item · ConsumerQuestionnaire.js
@@ -2151,7 +2153,8 @@ module.exports = {
   "server.too_many_items": "A basket can hold up to {max} different items.", // server error
   "server.mixed_sellers": "One payment can only cover one seller. Pay for each seller's items separately.", // server error
   "server.bad_date": "Choose a date from today up to two weeks ahead.", // server error
-  "server.bad_address": "Please complete the delivery address: place the pin, describe the place, and add a name and phone number.", // server error
+  "server.bad_address": "Please complete the delivery address: place the pin, describe the place, and add the name of the person receiving it.", // server error
+  "server.contact_in_text": "Phone numbers, e-mails and links can't be shared here. Message each other in the app instead.", // server error
   "server.no_pickup_location": "The seller has not marked their place on the map, so delivery can't be arranged.", // server error
   "server.delivery_not_offered": "That way of getting the order is not offered by this seller.", // server error
   "server.delivery_too_far": "That is too far for this delivery option (up to {max} km).", // server error
@@ -2162,7 +2165,6 @@ module.exports = {
   "server.wrong_status": "That can't be done at this stage of the order.", // server error
   "server.not_platform_delivery": "This order is not set up for an AfriAgriFed carrier.", // server error
   "server.job_exists": "A carrier has already been requested for this order.", // server error
-  "server.bad_phone": "Add a phone number the carrier can call at pick-up.", // server error
   "server.bad_ready_time": "Choose a time the goods will be ready, within the next 3 days.", // server error
   "server.not_a_carrier": "Only approved carriers can take delivery jobs.", // server error
   "server.carrier_unavailable": "You are marked as not available. Switch to available to take jobs.", // server error

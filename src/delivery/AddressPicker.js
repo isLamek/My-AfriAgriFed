@@ -11,7 +11,7 @@ const round5 = (n) => Math.round(n * 1e5) / 1e5;
  * words: many places have no street address, so "blue gate behind the Engen garage" is the real
  * address and the pin gets the driver to the right neighbourhood.
  *
- * value: { pin: { lat, lng } | null, landmark, contactName, contactPhone }
+ * value: { pin: { lat, lng } | null, landmark, contactName }
  */
 export default function AddressPicker({ value, onChange, pickup }) {
   const [focus, setFocus] = useState(null);
@@ -89,17 +89,11 @@ export default function AddressPicker({ value, onChange, pickup }) {
           placeholder={t("delivery.address.landmarkExample")}
         />
       </label>
-      <div className="dl-row">
-        <label className="dl-field">
-          <span>{t("delivery.address.contactName")}</span>
-          <input type="text" maxLength={80} value={value.contactName} onChange={(e) => onChange({ ...value, contactName: e.target.value })} autoComplete="name" />
-        </label>
-        <label className="dl-field">
-          <span>{t("delivery.address.contactPhone")}</span>
-          <input type="tel" inputMode="tel" maxLength={18} value={value.contactPhone} onChange={(e) => onChange({ ...value, contactPhone: e.target.value })} autoComplete="tel" placeholder="+264 81 000 0000" />
-        </label>
-      </div>
-      <p className="dl-hint">{t("delivery.address.phonePrivacy")}</p>
+      <label className="dl-field">
+        <span>{t("delivery.address.contactName")}</span>
+        <input type="text" maxLength={80} value={value.contactName} onChange={(e) => onChange({ ...value, contactName: e.target.value })} autoComplete="name" />
+      </label>
+      <p className="dl-hint">{t("delivery.address.chatInApp")}</p>
     </div>
   );
 }

@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { collection, doc, onSnapshot, query, serverTimestamp, setDoc, updateDoc, where } from "firebase/firestore";
 import toast from "react-hot-toast";
-import { Check, MapPin, Navigation, PackageCheck, Phone, Truck } from "lucide-react";
+import { Check, MapPin, Navigation, PackageCheck, Truck } from "lucide-react";
 import { auth, db } from "./firebaseConfig";
 import AppShell from "./AppShell";
 import NotificationBell from "./NotificationBell";
@@ -10,6 +10,7 @@ import PinMap from "./delivery/LazyPinMap";
 import useLiveDoc from "./delivery/useLiveDoc";
 import useShareLocation from "./delivery/useShareLocation";
 import { HandoverBox, run } from "./delivery/OrderDelivery";
+import ChatButton from "./delivery/ChatButton";
 import { claimJob, markArrived, pickUp, releaseJob } from "./delivery/api";
 import { formatDuration, formatKm, vehicleName } from "./delivery/format";
 import { driveMinutes, vehicleFits } from "./delivery/rules";
@@ -168,12 +169,12 @@ function MyJob({ job }) {
           <div>
             <h4>{t("carrier.job.collectFrom")}</h4>
             <p>{priv.pickup.label}{priv.pickup.note ? ` · ${priv.pickup.note}` : ""}</p>
-            {priv.pickup.phone && <a className="dl-call" href={`tel:${priv.pickup.phone}`}><Phone size={14} aria-hidden="true" /> {priv.pickup.phone}</a>}
+            <ChatButton label={t("delivery.chat.seller")} otherId={job.sellerId} otherName={priv.sellerName} orderId={job.orderId} title={job.what} ownerId={auth.currentUser?.uid} />
           </div>
           <div>
             <h4>{t("carrier.job.deliverTo")}</h4>
             <p>{priv.dropoff.landmark}<br /><small>{priv.dropoff.contactName} · {displayPlace(priv.dropoff.label)}</small></p>
-            <a className="dl-call" href={`tel:${priv.dropoff.contactPhone}`}><Phone size={14} aria-hidden="true" /> {priv.dropoff.contactPhone}</a>
+            <ChatButton label={t("delivery.chat.buyer")} otherId={job.buyerId} otherName={priv.buyerName || priv.dropoff.contactName} orderId={job.orderId} title={job.what} ownerId={auth.currentUser?.uid} />
             {priv.note && <p className="dl-way"><em>“{priv.note}”</em></p>}
           </div>
         </div>

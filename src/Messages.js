@@ -22,12 +22,16 @@ import {
 import "./Messages.css";
 import { t, tv } from "./i18n";
 
-const TOPIC_LABEL = { listing: "Listing", order: "Order", demand: "Bulk request" }; // shown through tv()
+const TOPIC_LABEL = { listing: "Listing", order: "Order", demand: "Bulk request", delivery: "Delivery" }; // shown through tv()
 const TOPIC_LINK = {
   listing: ["/dashboard", { page: "prices" }],
   order: ["/track-orders"],
   demand: ["/demand-board"],
+  delivery: ["/track-orders"], // the carrier goes to /carrier instead (see deliveryLink)
 };
+
+// A delivery chat is opened by the carrier, so its id ends with the buyer's or seller's id, not the carrier's.
+const deliveryLink = (conversation, uid) => (conversation.id.endsWith(`_${uid}`) ? ["/track-orders"] : ["/carrier"]);
 
 function Thread({ conversation, me, onBack }) {
   const navigate = useNavigate();
@@ -70,7 +74,7 @@ function Thread({ conversation, me, onBack }) {
   };
 
   const topic = conversation.topic || {};
-  const link = TOPIC_LINK[topic.kind];
+  const link = topic.kind === "delivery" ? deliveryLink(conversation, me.uid) : TOPIC_LINK[topic.kind];
 
   return (
     <section className="msg-thread aaf-card" aria-label={t("messages.conversationWith", { name: otherName })}>
@@ -90,7 +94,7 @@ function Thread({ conversation, me, onBack }) {
             className="aaf-btn aaf-btn-secondary aaf-btn-sm"
             onClick={() => navigate(link[0], link[1] ? { state: link[1] } : undefined)}
           >
-            {{ listing: t("messages.viewListing"), order: t("messages.viewOrder"), demand: t("messages.viewRequest") }[topic.kind]}
+            {{ listing: t("messages.viewListing"), order: t("messages.viewOrder"), demand: t("messages.viewRequest"), delivery: t("messages.viewDelivery") }[topic.kind]}
           </button>
         )}
       </header>

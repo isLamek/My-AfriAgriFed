@@ -40,11 +40,12 @@ the seller decides which ones they offer:
 5. **Seller accepts** (paid → confirmed) and marks it **ready** (→ dispatched). They have 24 hours
    to accept; after that the order is cancelled, the goods go back on sale and a refund is
    requested (the sweep, below).
-6. **Carrier orders only:** the seller presses *Ask for a carrier* (ready time, a phone number, how to
+6. **Carrier orders only:** the seller presses *Ask for a carrier* (ready time, how to
    find them). A **job** appears on the Deliveries board (`/carrier`) of every approved carrier whose
    vehicle can take the load and whose regions fit. The first to press *Take this job* gets it
    (atomic: two carriers can never both win). Until then the job shows only rough places (about
-   1 km) and no phone numbers; the exact addresses and phones open up for the carrier who took it.
+   1 km); the exact addresses open up for the carrier who took it. Nobody's phone number is asked
+   for or shown. The carrier talks to the buyer and the seller in the app (see *Talking* below).
 7. **On the road.** The carrier (or the seller who delivers themselves) presses *I have collected
    the goods* / *Mark as in transit*; the order's page now shares their live position (the page
    must stay open; it asks the browser to keep the screen on). The buyer sees the vehicle on a map
@@ -63,6 +64,24 @@ the seller decides which ones they offer:
     one exception: if the seller accepted and then did nothing for 72 hours, the buyer may cancel
     and is refunded. Once an order is on the road nobody can cancel it from the app (support can).
 
+## Talking: everything stays in the app
+
+Buyer and seller already have the order chat (`/messages`, kind `order`). Delivery adds a second kind,
+`delivery`, between **the carrier who holds the job and the order's buyer, or the carrier and the
+order's seller**. The *Message the buyer / seller / carrier* buttons (`src/delivery/ChatButton.js`)
+open it from the carrier's job card and from the order card. `firestore.rules` (`deliveryPair`) only
+lets that pair talk, and only while the carrier is the one on the order's private delivery record,
+so nobody can start a chat with a stranger. The same chat filter as everywhere stops phone numbers,
+e-mails, links, messenger names and bank details, in the app and in the rules.
+
+No phone numbers are collected for delivery any more (not for the drop-off, not for the pick-up).
+The free text a buyer or seller writes on an order (where to find the place, a note) goes through
+the same check on the server (`hasContactDetails` in `src/delivery/rules.js`), so a number cannot be
+hidden there. Trade-off to know about: a carrier standing at a gate with no data cannot call. The
+*I have arrived* button notifies the buyer and the chat works as soon as there is any signal. If you
+later decide calls are worth it, the way to keep them in the app is a paid masked-calling service,
+which is not free, so it is not built.
+
 ## Why it is built this way (the problems it answers)
 
 | Problem | What the system does |
@@ -74,9 +93,9 @@ the seller decides which ones they offer:
 | Nobody wants a delivery job | Escalated to the seller and the Admin Dashboard after 6 h. |
 | Two carriers grab one job | `updateIf` is atomic: one wins, the other gets `job_taken`. |
 | A fake or unsafe driver | Carriers apply and an admin approves; they can be suspended; a carrier can't enlarge their vehicle class without a new approval (rules). |
-| Privacy | The job shows only ~1 km-rounded places. Exact addresses and phones go to the buyer, the seller and the carrier who holds the job. The vehicle's route is deleted when the order ends. |
+| Privacy | The job shows only ~1 km-rounded places. Exact addresses go to the buyer, the seller and the carrier who holds the job. No phone numbers are collected. The vehicle's route is deleted when the order ends. |
 | Stock | One order may hold several listings; each is counted once; if another buyer got there first only that line is flagged as short. |
-| No street addresses in Namibia | A pin on the map plus a description in words ("blue gate behind the garage") and a phone number. |
+| No street addresses in Namibia | A pin on the map plus a description in words ("blue gate behind the garage"), and the carrier messages the buyer in the app. |
 | Heavy loads | The load is estimated in kg from the units; it picks car / bakkie / truck; a load too heavy for one carrier asks the buyer to message the seller. |
 | Spoilage | The buyer picks a day and morning/afternoon; the carrier sees it. A problem can be reported for 24 h. |
 | Time zone | All dates are Namibian time (UTC+2, no daylight saving). |

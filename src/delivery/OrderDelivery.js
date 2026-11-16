@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
-import { AlertTriangle, CheckCircle2, KeyRound, MapPin, Navigation, Phone, Truck, User } from "lucide-react";
+import { AlertTriangle, CheckCircle2, KeyRound, MapPin, Navigation, Truck, User } from "lucide-react";
 import PinMap from "./LazyPinMap";
+import ChatButton from "./ChatButton";
+import { auth } from "../firebaseConfig";
 import useLiveDoc from "./useLiveDoc";
 import useShareLocation from "./useShareLocation";
 import { cancelOrder, confirmReceipt, handOver, markArrived, reportProblem, requestCarrier } from "./api";
@@ -60,7 +62,7 @@ function Summary({ order, side }) {
       )}
       {address && side === "selling" && (
         <p className="dl-way">
-          <Phone size={14} aria-hidden="true" /> {address.contactName}, {address.contactPhone}
+          <User size={14} aria-hidden="true" /> {address.contactName}
         </p>
       )}
       {f.note && <p className="dl-way"><em>“{f.note}”</em></p>}
@@ -146,14 +148,13 @@ function CarrierRequest({ order }) {
     ];
   }, []);
   const [pick, setPick] = useState("2h");
-  const [phone, setPhone] = useState("");
   const [note, setNote] = useState("");
   const [busy, setBusy] = useState(false);
 
   const submit = async () => {
     setBusy(true);
     const readyAt = options.find((o) => o.key === pick).at;
-    await run(() => requestCarrier(order.id, { readyAt, pickupPhone: phone, pickupNote: note }), { ok: t("delivery.request.sent") });
+    await run(() => requestCarrier(order.id, { readyAt, pickupNote: note }), { ok: t("delivery.request.sent") });
     setBusy(false);
   };
 
@@ -170,16 +171,12 @@ function CarrierRequest({ order }) {
             ))}
           </select>
         </label>
-        <label className="dl-field">
-          <span>{t("delivery.request.phone")}</span>
-          <input type="tel" inputMode="tel" maxLength={18} value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+264 81 000 0000" />
-        </label>
       </div>
       <label className="dl-field">
         <span>{t("delivery.request.note")}</span>
         <input type="text" maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} placeholder={t("delivery.request.noteExample")} />
       </label>
-      <button type="button" className="ot-btn primary" disabled={busy || phone.replace(/\D/g, "").length < 7} onClick={submit}>
+      <button type="button" className="ot-btn primary" disabled={busy} onClick={submit}>
         {busy ? t("tracker.saving") : t("delivery.request.send")}
       </button>
     </div>
@@ -189,15 +186,24 @@ function CarrierRequest({ order }) {
 function CarrierStatus({ order }) {
   const job = useLiveDoc(`deliveryJobs/${order.id}`);
   if (!job) return null;
+  const mine = auth.currentUser?.uid;
+  const canTalk = job.carrierId && ["claimed", "picked_up"].includes(job.status) && [job.buyerId, job.sellerId].includes(mine);
   return (
-    <p className="dl-way">
-      <Truck size={14} aria-hidden="true" />{" "}
-      {job.status === "open" && (job.escalated ? t("delivery.job.noOneYet") : t("delivery.job.waiting"))}
-      {job.status === "claimed" && t("delivery.job.claimed", { name: job.carrierName })}
-      {job.status === "picked_up" && t("delivery.job.pickedUp", { name: job.carrierName })}
-      {job.status === "delivered" && t("delivery.job.delivered")}
-      {job.status === "cancelled" && t("delivery.job.cancelled")}
-    </p>
+    <>
+      <p className="dl-way">
+        <Truck size={14} aria-hidden="true" />{" "}
+        {job.status === "open" && (job.escalated ? t("delivery.job.noOneYet") : t("delivery.job.waiting"))}
+        {job.status === "claimed" && t("delivery.job.claimed", { name: job.carrierName })}
+        {job.status === "picked_up" && t("delivery.job.pickedUp", { name: job.carrierName })}
+        {job.status === "delivered" && t("delivery.job.delivered")}
+        {job.status === "cancelled" && t("delivery.job.cancelled")}
+      </p>
+      {canTalk && (
+        <div className="ot-actions">
+          <ChatButton label={t("delivery.chat.carrier", { name: job.carrierName })} otherId={job.carrierId} otherName={job.carrierName} orderId={order.id} title={job.what} ownerId={job.carrierId} />
+        </div>
+      )}
+    </>
   );
 }
 
@@ -376,7 +382,7 @@ export default function OrderDelivery({ order, uid, side }) {
         <p className="dl-arrived" role="status"><CheckCircle2 size={16} aria-hidden="true" /> {t("delivery.arrivedBuyer")}</p>
       )}
 
-      {!buying && method === "platform" && ["confirmed", "dispatched", "in_transit"].includes(status) && !actions.includes("requestCarrier") && <CarrierStatus order={order} />}
+      {method === "platform" && ["confirmed", "dispatched", "in_transit"].includes(status) && (buying || !actions.includes("requestCarrier")) && <CarrierStatus order={order} />}
       {!buying && actions.includes("requestCarrier") && <CarrierRequest order={order} />}
 
       {traveling && <LiveTracking order={order} />}

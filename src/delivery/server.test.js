@@ -28,7 +28,7 @@ const USERS = {
 
 const EVERYTHING = { collect: true, platform: true, own: { enabled: true, baseFee: 20, perKm: 5, maxKm: 60 } };
 const OSHAKATI = { lat: -17.788, lng: 15.699, label: "Oshakati", region: "Oshana" };
-const ADDRESS = { lat: -17.785, lng: 15.767, label: "Near Ongwediva", landmark: "Blue gate behind the Engen garage", contactName: "Bea", contactPhone: "+264811234567" };
+const ADDRESS = { lat: -17.785, lng: 15.767, label: "Near Ongwediva", landmark: "Blue gate behind the Engen garage", contactName: "Bea" };
 
 const SEED = () => ({
   "marketPrices/L1": { product: "Mahangu", price: 120, unit: "kg", sellerId: "seller1", sellerName: "Sam Seller", quantity: 100, location: OSHAKATI, delivery: EVERYTHING },
@@ -212,6 +212,10 @@ describe("paying for an order with delivery", () => {
     await start();
     const noLandmark = await post("/api/payments/initiate", "tok-buyer", { kind: "order", ...sellerOrder, delivery: { method: "seller", address: { ...ADDRESS, landmark: "" } } });
     expect(noLandmark.json).toMatchObject({ error: "bad_address", params: { problem: "landmark" } });
+    const phoneInWords = await post("/api/payments/initiate", "tok-buyer", { kind: "order", ...sellerOrder, delivery: { method: "seller", address: { ...ADDRESS, landmark: "Gate 3, call 081 123 4567" } } });
+    expect(phoneInWords.json.error).toBe("contact_in_text");
+    const phoneInNote = await post("/api/payments/initiate", "tok-buyer", { kind: "order", ...sellerOrder, delivery: { method: "seller", address: ADDRESS, note: "whatsapp me" } });
+    expect(phoneInNote.json.error).toBe("contact_in_text");
     const noAddress = await post("/api/payments/initiate", "tok-buyer", { kind: "order", ...sellerOrder, delivery: { method: "seller" } });
     expect(noAddress.json.error).toBe("bad_address");
     const notOffered = await post("/api/payments/initiate", "tok-buyer", { kind: "order", items: [{ listingId: "COLLECT", quantity: 1 }], delivery: { method: "platform", address: ADDRESS } });
@@ -250,7 +254,8 @@ describe("the order that a payment creates", () => {
     expect(o.product).toBe("Mahangu + 1");
     expect(o.itemsTotal).toBe(700);
     expect(o.amount).toBe(700 + o.deliveryFee);
-    expect(o.fulfilment).toMatchObject({ method: "seller", address: { contactPhone: "+264811234567" }, note: "Ring the bell", pickup: { label: "Oshakati" } });
+    expect(JSON.stringify(o)).not.toMatch(/phone/i); // no phone number kept on the order
+    expect(o.fulfilment).toMatchObject({ method: "seller", address: { contactName: "Bea" }, note: "Ring the bell", pickup: { label: "Oshakati" } });
     expect(store.docs.get(`orderSecrets/${orderId}`)).toMatchObject({ buyerId: "buyer1", code: "123456", tries: 0 });
     expect(store.docs.get("marketPrices/L1").quantity).toBe(95);
     expect(store.docs.get("marketPrices/L2").quantity).toBe(8);
@@ -303,12 +308,12 @@ describe("an AfriAgriFed carrier delivers", () => {
     return orderId;
   }
 
-  it("lets only the seller of a platform order ask for a carrier, once, with a phone number", async () => {
+  it("lets only the seller of a platform order ask for a carrier, once", async () => {
     await start();
     const id = await confirmed();
-    const body = { pickupPhone: "081 555 1234", pickupNote: "Brown gate" };
+    const body = { pickupNote: "Brown gate" };
     expect((await post(`/api/delivery/${id}/request-carrier`, "tok-buyer", body)).status).toBe(403);
-    expect((await post(`/api/delivery/${id}/request-carrier`, "tok-seller", { pickupPhone: "1" })).json.error).toBe("bad_phone");
+    expect((await post(`/api/delivery/${id}/request-carrier`, "tok-seller", { pickupNote: "call me on 081 555 1234" })).json.error).toBe("contact_in_text");
     expect((await post(`/api/delivery/${id}/request-carrier`, "tok-seller", { ...body, readyAt: T0 + 100 * HOUR })).json.error).toBe("bad_ready_time");
     const ok = await post(`/api/delivery/${id}/request-carrier`, "tok-seller", body);
     expect(ok.status).toBe(200);
@@ -320,7 +325,11 @@ describe("an AfriAgriFed carrier delivers", () => {
     // before anyone takes the job, the drop-off is only a rough area: no landmark, no phone
     expect(job.dropoff).toEqual({ lat: -17.78, lng: 15.77, label: "Near Ongwediva" });
     expect(JSON.stringify(job)).not.toContain("264811234567");
-    expect(store.docs.get(`deliveryPrivate/${id}`).dropoff.contactPhone).toBe("+264811234567");
+    // the names are kept for the in-app chat; no phone numbers are kept at all
+    const priv = store.docs.get(`deliveryPrivate/${id}`);
+    expect(priv).toMatchObject({ buyerId: "buyer1", sellerId: "seller1", carrierId: null });
+    expect(typeof priv.buyerName).toBe("string");
+    expect(JSON.stringify(priv)).not.toMatch(/\d{9}/);
     // carriers who can take a bakkie load are told; the motorbike and the unapproved are not
     const told = store.list("notifications").filter((n) => n.key === "notif.delivery.jobOpen").map((n) => n.userId).sort();
     expect(told).toEqual(["carrier1", "carrier2"]);
@@ -330,14 +339,14 @@ describe("an AfriAgriFed carrier delivers", () => {
     await start();
     const sellerDelivers = (await buy(sellerOrder, { txId: "2" })).orderId;
     toStatus(sellerDelivers, "confirmed");
-    expect((await post(`/api/delivery/${sellerDelivers}/request-carrier`, "tok-seller", { pickupPhone: "0815551234" })).json.error).toBe("not_platform_delivery");
+    expect((await post(`/api/delivery/${sellerDelivers}/request-carrier`, "tok-seller", {})).json.error).toBe("not_platform_delivery");
     const unpaidYet = (await buy(platformOrder, { txId: "3" })).orderId; // still "paid": not accepted
-    expect((await post(`/api/delivery/${unpaidYet}/request-carrier`, "tok-seller", { pickupPhone: "0815551234" })).json.error).toBe("wrong_status");
+    expect((await post(`/api/delivery/${unpaidYet}/request-carrier`, "tok-seller", {})).json.error).toBe("wrong_status");
   });
 
   async function openJob() {
     const id = await confirmed();
-    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", { pickupPhone: "0815551234" });
+    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", {});
     return id;
   }
 
@@ -614,7 +623,7 @@ describe("cancelling an order", () => {
     await start();
     const { orderId: id } = await buy(platformOrder);
     toStatus(id, "confirmed");
-    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", { pickupPhone: "0815551234" });
+    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", {});
     await post(`/api/orders/${id}/cancel`, "tok-seller", { reason: "Crop failed" });
     expect(store.docs.get(`deliveryJobs/${id}`).status).toBe("cancelled");
     expect((await post(`/api/delivery/jobs/${id}/claim`, "tok-carrier")).json.error).toBe("job_taken");
@@ -761,7 +770,7 @@ describe("the sweep", () => {
     await start();
     const { orderId: id } = await buy(platformOrder);
     toStatus(id, "confirmed");
-    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", { pickupPhone: "0815551234" });
+    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", {});
     now += 8 * HOUR;
     await start.sweep();
     expect(store.list("notifications").filter((n) => n.key === "notif.delivery.requestReminder")).toHaveLength(0);
@@ -771,7 +780,7 @@ describe("the sweep", () => {
     await start();
     const { orderId: id } = await buy(platformOrder);
     toStatus(id, "confirmed");
-    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", { pickupPhone: "0815551234" });
+    await post(`/api/delivery/${id}/request-carrier`, "tok-seller", {});
     now += 5 * HOUR;
     expect((await start.sweep()).escalated).toBe(0);
     now += 2 * HOUR;

@@ -1,5 +1,6 @@
 // Private conversations between two people about one thing: a listing, an
-// order or a bulk request. Firestore rules (conversations/{id}) check that the
+// order, a bulk request or an order's delivery (the carrier and the buyer, or the
+// carrier and the seller). Firestore rules (conversations/{id}) check that the
 // other person really is that listing's seller, that order's buyer/seller, or
 // that request's buyer, so nobody can cold-message strangers.
 //
@@ -25,7 +26,7 @@ import { checkForContactInfo } from "./contactGuard";
 import { t } from "./i18n";
 
 export const MAX_MESSAGE = 1000;
-export const TOPIC_KINDS = ["listing", "order", "demand"];
+export const TOPIC_KINDS = ["listing", "order", "demand", "delivery"];
 
 /**
  * The thread id. An order already pairs two people, so it is just the order.

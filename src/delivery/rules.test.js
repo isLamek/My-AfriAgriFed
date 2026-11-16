@@ -84,12 +84,13 @@ describe("a seller's delivery settings", () => {
 });
 
 describe("the drop-off address", () => {
-  const good = { lat: -17.79, lng: 15.7, label: "Near Oshakati", landmark: "Blue gate behind the Engen garage", contactName: "Bea", contactPhone: "+264 81 123 4567" };
+  const good = { lat: -17.79, lng: 15.7, label: "Near Oshakati", landmark: "Blue gate behind the Engen garage", contactName: "Bea", contactPhone: "+264 81 123 4567" }; // a phone sent by an older app is ignored
 
-  it("accepts a pin with a description and a phone, and tidies them", () => {
+  it("accepts a pin with a description, keeps no phone number, and tidies it", () => {
     const r = rules.cleanAddress(good);
     expect(r.ok).toBe(true);
-    expect(r.address.contactPhone).toBe("+264811234567");
+    expect(r.address.contactPhone).toBeUndefined();
+    expect(JSON.stringify(r.address)).not.toContain("264");
     expect(r.address.landmark).toBe("Blue gate behind the Engen garage");
   });
 
@@ -97,9 +98,19 @@ describe("the drop-off address", () => {
     expect(rules.cleanAddress({ ...good, lat: 10 }).problem).toBe("pin");
     expect(rules.cleanAddress({ ...good, lat: "x" }).problem).toBe("pin");
     expect(rules.cleanAddress({ ...good, landmark: "  " }).problem).toBe("landmark");
-    expect(rules.cleanAddress({ ...good, contactPhone: "12" }).problem).toBe("phone");
+    expect(rules.cleanAddress({ ...good, contactPhone: "" }).ok).toBe(true); // no phone is asked for any more
     expect(rules.cleanAddress({ ...good, contactName: "" }).problem).toBe("name");
     expect(rules.cleanAddress(null).problem).toBe("pin");
+  });
+
+  it("refuses a way to talk or pay outside the app hidden in the words", () => {
+    for (const landmark of ["Gate 3, call 081 123 4567", "mail bea at gmail dot com", "whatsapp me please", "zero eight one one two three four", "see www.example.com"]) {
+      expect(rules.cleanAddress({ ...good, landmark }).problem).toBe("contact");
+    }
+    expect(rules.cleanAddress({ ...good, contactName: "Bea 0811234567" }).problem).toBe("contact");
+    expect(rules.cleanAddress({ ...good, landmark: "Erf 4521, house 12, 2026-10-07 10:00" }).ok).toBe(true);
+    expect(rules.hasContactDetails("")).toBe(false);
+    expect(rules.hasContactDetails(undefined)).toBe(false);
   });
 
   it("blurs a pin to about a kilometre for people who have not taken the job yet", () => {

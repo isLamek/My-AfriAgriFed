@@ -239,7 +239,7 @@ async function main() {
 
   // ---- orders in different states, for trying the whole delivery flow ----------------------------------
   // Handover code for every seeded order (the buyer sees it on the order card): 123456
-  const drop = { lat: -17.785, lng: 15.767, label: "Near Ongwediva", landmark: "Blue gate behind the Engen garage, Ongwediva", contactName: "Bea Buyer", contactPhone: "+264811234567" };
+  const drop = { lat: -17.785, lng: 15.767, label: "Near Ongwediva", landmark: "Blue gate behind the Engen garage, Ongwediva", contactName: "Bea Buyer" };
   const pickup = { lat: -17.788, lng: 15.699, label: "Oshakati", region: "Oshana" };
   const mahangu = { listingId: "lst_mahangu", product: "Mahangu (pearl millet)", quantity: 10, unit: "kg", unitPrice: 18 };
 
@@ -248,7 +248,7 @@ async function main() {
     buyerId: uid.buyer, buyerName: "Bea Buyer", sellerId: uid.farmer, sellerName: "Ndapewa Shikongo",
     product: "Mahangu (pearl millet)", listingId: "lst_mahangu", quantity: 50, unit: "kg", unitPrice: 18,
     items: [{ ...mahangu, quantity: 50 }], itemsTotal: 900, deliveryFee: 68,
-    fulfilment: { method: "platform", deliveryFee: 68, km: 11.2, etaMinutes: 43, vehicle: "bakkie", pickup, address: drop, window: "morning", note: "Please phone at the gate" },
+    fulfilment: { method: "platform", deliveryFee: 68, km: 11.2, etaMinutes: 43, vehicle: "bakkie", pickup, address: drop, window: "morning", note: "Please message me from the gate" },
     stockApplied: true, oversold: false, amount: 968, currency: "NAD", transactionId: "seed2", txRef: "aaf-seed-2", status: "confirmed",
     statusHistory: [
       { status: "paid", by: uid.buyer, at: now - 5 * 3600000, note: "Payment received" },
@@ -288,10 +288,10 @@ async function main() {
   });
   set("orders/tx_seed_4", platformOrder(4, "dispatched", { fulfilment: { carrierRequestedAt: now - 4 * 3600000, carrier: { uid: uid.carrier, name: "Kaleb Haimbili", vehicle: { type: "bakkie", description: "White Toyota Hilux", plate: "N 4521 W" } } } }));
   set("deliveryJobs/tx_seed_4", jobFor("tx_seed_4", null, true));
-  set("deliveryPrivate/tx_seed_4", { sellerId: uid.farmer, buyerId: uid.buyer, carrierId: uid.carrier, pickup: { ...pickup, phone: "+264810001111", note: "Brown gate, ask for Ndapewa" }, dropoff: drop, note: "" });
+  set("deliveryPrivate/tx_seed_4", { sellerId: uid.farmer, buyerId: uid.buyer, buyerName: "Bea Buyer", sellerName: "Ndapewa Shikongo", carrierId: uid.carrier, pickup: { ...pickup, note: "Brown gate, ask for Ndapewa" }, dropoff: drop, note: "" });
   set("orders/tx_seed_5", platformOrder(5, "confirmed", { fulfilment: { carrierRequestedAt: now - 4 * 3600000 } }));
   set("deliveryJobs/tx_seed_5", jobFor("tx_seed_5", null, false));
-  set("deliveryPrivate/tx_seed_5", { sellerId: uid.farmer, buyerId: uid.buyer, carrierId: null, pickup: { ...pickup, phone: "+264810001111", note: "" }, dropoff: drop, note: "" });
+  set("deliveryPrivate/tx_seed_5", { sellerId: uid.farmer, buyerId: uid.buyer, buyerName: "Bea Buyer", sellerName: "Ndapewa Shikongo", carrierId: null, pickup: { ...pickup, note: "" }, dropoff: drop, note: "" });
   set("orderTracking/tx_seed_4", { orderId: "tx_seed_4", buyerId: uid.buyer, sellerId: uid.farmer, carrierId: uid.carrier, lat: -17.79, lng: 15.72, speedKmh: 55, at: now });
   for (const id of ["tx_seed_1", "tx_seed_2", "tx_seed_3", "tx_seed_4", "tx_seed_5"]) set(`orderSecrets/${id}`, { buyerId: uid.buyer, code: "123456", tries: 0, createdAt: now });
 

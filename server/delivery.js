@@ -267,8 +267,7 @@ function register(app, deps) {
       if (existing && existing.status !== "cancelled") throw new HttpError(409, "job_exists", "A carrier has already been requested for this order.");
 
       const body = req.body || {};
-      const phone = rules.cleanPhone(body.pickupPhone);
-      if (!phone) throw new HttpError(400, "bad_phone", "Add a phone number the carrier can call at pick-up.");
+      if (rules.hasContactDetails(body.pickupNote)) throw new HttpError(400, "contact_in_text", "Phone numbers, e-mails and links can't be shared here. Message each other in the app instead.");
       const now = nowMs();
       const readyAt = body.readyAt === undefined ? now + 2 * HOUR : Number(body.readyAt);
       if (!Number.isFinite(readyAt) || readyAt < now - HOUR || readyAt > now + 72 * HOUR) {
@@ -304,8 +303,12 @@ function register(app, deps) {
       await store.set(`deliveryPrivate/${orderId}`, {
         sellerId: order.sellerId,
         buyerId: order.buyerId,
+        // Names for the in-app chat. Nobody's phone number is kept or shown: the carrier, the buyer
+        // and the seller talk in the app (a "delivery" conversation, see firestore.rules).
+        buyerName: clip(order.buyerName, 80),
+        sellerName: clip(order.sellerName, 80),
         carrierId: null,
-        pickup: { ...pickup, phone, note: clip(body.pickupNote, 200) },
+        pickup: { ...pickup, note: clip(body.pickupNote, 200) },
         dropoff: f.address,
         note: clip(f.note, 200),
       });

@@ -269,6 +269,29 @@ await expectDenied("a carrier reads the buyer's handover code", readable("orderS
 await expectOk("a carrier reads their own application", readable(`carriers/${carrierD.uid}`));
 await expectDenied("a carrier reads another carrier's application", readable(`carriers/${pendingCarrier.id}`));
 
+// ---- talking about a delivery: the carrier, and the buyer or seller of that order, only ----
+console.log("\nDelivery chat: carrier with buyer or seller");
+const deliveryChat = (id, uid, otherUid, order) => () =>
+  setDoc(doc(db, "conversations", id), {
+    participants: [uid, otherUid].sort(),
+    names: { [uid]: "A", [otherUid]: "B" },
+    topic: { kind: "delivery", id: order, title: "Mahangu" },
+    createdAt: serverTimestamp(),
+  });
+const run = Date.now();
+await expectOk("the carrier of an order opens a chat with its buyer", deliveryChat(`delivery_tx_seed_4_${buyerD.uid}_${run}`, carrierD.uid, buyerD.uid, "tx_seed_4"));
+await expectOk("the carrier of an order opens a chat with its seller", deliveryChat(`delivery_tx_seed_4_${sellerD.uid}_${run}`, carrierD.uid, sellerD.uid, "tx_seed_4"));
+await expectDenied("a carrier opens a chat about a job they have not taken", deliveryChat(`delivery_tx_seed_5_${buyerD.uid}_${run}`, carrierD.uid, buyerD.uid, "tx_seed_5"));
+await expectDenied("a carrier opens a delivery chat with a stranger", deliveryChat(`delivery_tx_seed_4_x_${run}`, carrierD.uid, pendingCarrier.id, "tx_seed_4"));
+await as("buyer@aaf.test");
+await expectOk("the buyer opens a chat with the carrier of their order", deliveryChat(`delivery_tx_seed_4_${buyerD.uid}_b${run}`, buyerD.uid, carrierD.uid, "tx_seed_4"));
+await expectDenied("the buyer opens a delivery chat when nobody has taken the job", deliveryChat(`delivery_tx_seed_5_${buyerD.uid}_b${run}`, buyerD.uid, carrierD.uid, "tx_seed_5"));
+await expectDenied("the buyer and the seller use a delivery chat to bypass the order chat", deliveryChat(`delivery_tx_seed_4_s${run}`, buyerD.uid, sellerD.uid, "tx_seed_4"));
+await expectOk("the carrier chat takes a normal message", () => addDoc(collection(db, "conversations", `delivery_tx_seed_4_${buyerD.uid}_${run}`, "messages"), { senderId: buyerD.uid, text: "I am at the blue gate", createdAt: serverTimestamp() }));
+await expectDenied("the carrier chat refuses a phone number", () => addDoc(collection(db, "conversations", `delivery_tx_seed_4_${buyerD.uid}_${run}`, "messages"), { senderId: buyerD.uid, text: "call 081 123 4567", createdAt: serverTimestamp() }));
+await as("carrier2@aaf.test");
+await expectDenied("someone else reads a delivery chat", () => getDocs(collection(db, "conversations", `delivery_tx_seed_4_${buyerD.uid}_${run}`, "messages")));
+
 const adminD = await as("admin@aaf.test");
 await expectOk("the admin sees carriers waiting for approval", async () => { if (!pendingCarrier) throw new Error("none"); });
 if (pendingCarrier) {

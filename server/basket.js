@@ -100,7 +100,7 @@ async function quoteBasket(store, user, body) {
   let dropoff = null;
   let addressProblem = null;
   if (body.address) {
-    const cleaned = rules.cleanAddress({ contactName: "x", landmark: "xxx", contactPhone: "0000000", ...body.address }); // a quote only needs the pin
+    const cleaned = rules.cleanAddress({ contactName: "x", landmark: "xxx", ...body.address }); // a quote only needs the pin
     if (cleaned.ok) dropoff = { lat: cleaned.address.lat, lng: cleaned.address.lng };
     else addressProblem = cleaned.problem;
   }
@@ -133,6 +133,7 @@ async function priceBasket(store, user, body, { commissionRate = 0.05, nowMs = D
   let address = null;
   if (method !== "collect") {
     const cleaned = rules.cleanAddress(delivery.address);
+    if (!cleaned.ok && cleaned.problem === "contact") throw new HttpError(400, "contact_in_text", "Phone numbers, e-mails and links can't be shared here. Message each other in the app instead.");
     if (!cleaned.ok) throw new HttpError(400, "bad_address", "Please complete the delivery address.", { problem: cleaned.problem });
     address = cleaned.address;
   }
@@ -166,6 +167,7 @@ async function priceBasket(store, user, body, { commissionRate = 0.05, nowMs = D
     fulfilment.window = delivery.window;
   }
   const note = String(delivery.note || "").trim().slice(0, 200);
+  if (rules.hasContactDetails(note)) throw new HttpError(400, "contact_in_text", "Phone numbers, e-mails and links can't be shared here. Message each other in the app instead.");
   if (note) fulfilment.note = note;
 
   const deliveryFee = fulfilment.deliveryFee;

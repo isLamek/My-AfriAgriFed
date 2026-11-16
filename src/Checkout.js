@@ -53,7 +53,6 @@ export default function Checkout() {
     pin: last.pin || null,
     landmark: last.landmark || "",
     contactName: last.contactName || user?.displayName || "",
-    contactPhone: last.contactPhone || "",
   });
   const [method, setMethod] = useState("collect");
   const [date, setDate] = useState("");
@@ -107,7 +106,6 @@ export default function Checkout() {
     if (!address.pin) return t("delivery.address.pinMissing");
     if (address.landmark.trim().length < 3) return t("delivery.address.needLandmark");
     if (!address.contactName.trim()) return t("delivery.address.needName");
-    if (address.contactPhone.replace(/\D/g, "").length < 7) return t("delivery.address.needPhone");
     return "";
   };
 
@@ -128,11 +126,10 @@ export default function Checkout() {
           label: town ? `Near ${town.name}` : "Namibia", // stored in English, shown in the reader's language
           landmark: address.landmark.trim(),
           contactName: address.contactName.trim(),
-          contactPhone: address.contactPhone.trim(),
         };
         delivery.expectedFee = fee;
         try {
-          localStorage.setItem(LAST_ADDRESS, JSON.stringify({ pin: address.pin, landmark: address.landmark, contactName: address.contactName, contactPhone: address.contactPhone }));
+          localStorage.setItem(LAST_ADDRESS, JSON.stringify({ pin: address.pin, landmark: address.landmark, contactName: address.contactName }));
         } catch {
           // fine: the next order just asks again
         }

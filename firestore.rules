@@ -514,6 +514,15 @@ service cloud.firestore {
     // or bulk request, and the other person must be that thing's counterpart:
     // the listing's seller, the order's other party, or the request's buyer.
     // So nobody can open a thread with a stranger.
+    // One of the two is the order's carrier, the other its buyer or seller.
+    function deliveryPair(orderId, a, b) {
+      let job = get(/databases/$(database)/documents/deliveryPrivate/$(orderId)).data;
+      let order = get(/databases/$(database)/documents/orders/$(orderId)).data;
+      let people = [order.buyerId, order.sellerId];
+      let carrier = job.get('carrierId', '');
+      return carrier is string && carrier != '' && ((a == carrier && b in people) || (b == carrier && a in people));
+    }
+
     function conversationTopicOk(d) {
       let kind = d.topic.kind;
       let other = d.participants[0] == request.auth.uid ? d.participants[1] : d.participants[0];
@@ -524,6 +533,11 @@ service cloud.firestore {
                                   get(/databases/$(database)/documents/orders/$(d.topic.id)).data.sellerId]
           && other in [get(/databases/$(database)/documents/orders/$(d.topic.id)).data.buyerId,
                        get(/databases/$(database)/documents/orders/$(d.topic.id)).data.sellerId])
+        // The carrier who took an order's delivery job and that order's buyer or seller, and
+        // only them, so the carrier never needs their phone numbers. The carrier is the
+        // one written on the job's private record (server/delivery.js).
+        || (kind == 'delivery'
+          && deliveryPair(d.topic.id, request.auth.uid, other))
         // A producer messaging the buyer who posted a request, or that buyer
         // replying to a producer (who must be a producer account).
         || (kind == 'demand'
@@ -539,7 +553,7 @@ service cloud.firestore {
         && request.auth.uid in d.participants
         && d.names is map && d.names.size() <= 2
         && d.topic is map && d.topic.keys().hasOnly(['kind', 'id', 'title'])
-        && d.topic.kind in ['listing', 'order', 'demand']
+        && d.topic.kind in ['listing', 'order', 'demand', 'delivery']
         && d.topic.id is string && d.topic.id.size() > 0 && d.topic.id.size() <= 40
         && d.topic.title is string && d.topic.title.size() <= 120
         && d.createdAt == request.time

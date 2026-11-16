@@ -154,7 +154,24 @@ function cleanPhone(raw) {
   return only.length >= 7 && only.length <= 15 ? digits.slice(0, 18) : "";
 }
 
-/** The buyer's drop-off details, cleaned. Returns { ok, address } or { ok: false, problem }. */
+// Free text on an order (where to find the place, a note for the carrier) must not carry a way to
+// talk or pay outside the app. This is the same idea as src/contactGuard.js and the chat rules in
+// firestore.rules, written here so the server can apply it too.
+const CONTACT_PATTERNS = [
+  /(?:\+|\b00)?\(?\d(?:[\s().\-/]{0,2}\d){8,}(?![\d:])/, // a phone number
+  /[A-Za-z0-9._%+-]+\s*(?:@|\(at\)|\[at\]|\sat\s)\s*[A-Za-z0-9-]+(?:\s*(?:\.|\(dot\)|\[dot\]|\sdot\s)\s*[A-Za-z0-9-]+)+/i, // an e-mail
+  /\b(?:https?:\/\/|www\.)\S+/i, // a link
+  /\b(?:wa\.me|whatsapp|whats\s?app|watsapp|telegram|t\.me|signal\s+me|imo|facebook\.com|fb\.me|instagram|insta)\b/i, // a messenger
+  /\b(?:(?:zero|oh|one|two|three|four|five|six|seven|eight|nine|nul|een|twee|drie|vier|vyf|ses|sewe|agt|nege)[\s,.-]*){7,}/i, // a number spelt out
+];
+
+/** Does this text carry a phone number, e-mail, link or messenger name? */
+function hasContactDetails(text) {
+  const s = String(text || "");
+  return CONTACT_PATTERNS.some((p) => p.test(s));
+}
+
+/** The buyer's drop-off details, cleaned. No phone number: everyone talks in the app. Returns { ok, address } or { ok: false, problem }. */
 function cleanAddress(input) {
   const a = input || {};
   const lat = Number(a.lat);
@@ -162,12 +179,12 @@ function cleanAddress(input) {
   if (!Number.isFinite(lat) || !Number.isFinite(lng) || !inNamibia(lat, lng)) return { ok: false, problem: "pin" };
   const landmark = String(a.landmark || "").trim().slice(0, 200);
   if (landmark.length < 3) return { ok: false, problem: "landmark" };
-  const phone = cleanPhone(a.contactPhone);
-  if (!phone) return { ok: false, problem: "phone" };
+  if (hasContactDetails(landmark)) return { ok: false, problem: "contact" };
   const contactName = String(a.contactName || "").trim().slice(0, 80);
   if (!contactName) return { ok: false, problem: "name" };
+  if (hasContactDetails(contactName)) return { ok: false, problem: "contact" };
   const label = String(a.label || "").trim().slice(0, 60) || "Namibia";
-  return { ok: true, address: { lat: Math.round(lat * 1e5) / 1e5, lng: Math.round(lng * 1e5) / 1e5, label, landmark, contactName, contactPhone: phone } };
+  return { ok: true, address: { lat: Math.round(lat * 1e5) / 1e5, lng: Math.round(lng * 1e5) / 1e5, label, landmark, contactName } };
 }
 
 /** A pin rounded to about 1 km: enough for a carrier to judge the job, not enough to find the house. */
@@ -248,6 +265,7 @@ module.exports = {
   deliveryOf,
   cleanAddress,
   cleanPhone,
+  hasContactDetails,
   roughPlace,
   inNamibia,
   newHandoverCode,

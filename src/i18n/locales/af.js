@@ -373,11 +373,9 @@ module.exports = {
   "delivery.address.landmark": "Beskryf die plek", // en: Describe the place
   "delivery.address.landmarkExample": "Blou hek agter die Engen-garage, vra vir mnr. Amupolo", // en: Blue gate behind the Engen garage, ask for Mr Amupolo
   "delivery.address.contactName": "Naam van die persoon wat dit ontvang", // en: Name of the person receiving it
-  "delivery.address.contactPhone": "Foonnommer vir die bestuurder", // en: Phone number for the driver
-  "delivery.address.phonePrivacy": "Net die verkoper en die persoon wat aflewer sien dit, en net vir hierdie bestelling.", // en: Only the seller and the person delivering see this, and only for this order.
   "delivery.address.needLandmark": "Beskryf die plek in 'n paar woorde ('n landmerk, die kleur van die hek, vir wie om te vra).", // en: Describe the place in a few words (a landmark, a gate colour, who to ask for).
   "delivery.address.needName": "Voeg die naam by van die persoon wat die bestelling ontvang.", // en: Add the name of the person receiving the order.
-  "delivery.address.needPhone": "Voeg 'n foonnommer by wat die bestuurder kan bel.", // en: Add a phone number the driver can call.
+  "delivery.address.chatInApp": "Geen foonnommer nodig nie. Die persoon wat aflewer sal jou in die toepassing boodskap.", // en: No phone number needed. The person delivering will message you in the app.
   "delivery.address.outsideNamibia": "Daardie plek is buite Namibië. Kies 'n plek binne die land.", // en: That spot is outside Namibia. Choose a place inside the country.
   "delivery.address.noLocation": "Hierdie toestel kan nie sy ligging deel nie. Tik op die kaart of kies die naaste dorp.", // en: This device can't share its location. Tap the map or choose the nearest town.
   "delivery.address.locationDenied": "Ligging is nie gedeel nie. Jy kan op die kaart tik of die naaste dorp kies.", // en: Location was not shared. You can tap the map or choose the nearest town.
@@ -418,8 +416,10 @@ module.exports = {
   "delivery.request.in2h": "Oor 2 uur", // en: In 2 hours
   "delivery.request.in4h": "Oor 4 uur", // en: In 4 hours
   "delivery.request.tomorrow": "Môre om 08:00", // en: Tomorrow at 08:00
-  "delivery.request.phone": "Foonnommer vir die vervoerder", // en: Phone number for the carrier
   "delivery.request.note": "Hoe om jou te vind (opsioneel)", // en: How to find you (optional)
+  "delivery.chat.seller": "Boodskap aan die verkoper", // en: Message the seller
+  "delivery.chat.buyer": "Boodskap aan die koper", // en: Message the buyer
+  "delivery.chat.carrier": "Boodskap aan {name}", // en: Message {name}
   "delivery.request.noteExample": "Bruin hek, vra vir Ndapewa", // en: Brown gate, ask for Ndapewa
   "delivery.request.send": "Vra vir 'n vervoerder", // en: Ask for a carrier
   "delivery.request.sent": "Klaar. Vervoerders naby jou is ingelig.", // en: Done. Carriers near you have been told.
@@ -1279,6 +1279,7 @@ module.exports = {
   "messages.conversationWith": "Gesprek met {name}", // en: Conversation with {name}
   "messages.viewListing": "Bekyk advertensie", // en: View listing
   "messages.viewOrder": "Bekyk bestelling", // en: View order
+  "messages.viewDelivery": "Bekyk aflewering", // en: View delivery
   "messages.viewRequest": "Bekyk grootmaat-aanvraag", // en: View bulk request
   "messages.messageName": "Boodskap aan {name}", // en: Message {name}
   "messages.messageNameEllipsis": "Boodskap aan {name}...", // en: Message {name}...
@@ -1448,6 +1449,7 @@ module.exports = {
   "opt:Better pricing": "Beter pryse", // en: Better pricing
   "opt:Bi-weekly": "Tweeweekliks", // en: Bi-weekly
   "opt:Boxes": "Bokse", // en: Boxes
+  "opt:Delivery": "Aflewering", // en: Delivery
   "opt:Bulk request": "Grootmaat-aanvraag", // en: Bulk request
   "opt:Bulk sacks": "Grootmaat-sakke", // en: Bulk sacks
   "opt:bunch": "bos", // en: bunch
@@ -2151,7 +2153,8 @@ module.exports = {
   "server.too_many_items": "'n Mandjie kan tot {max} verskillende items hou.", // en: A basket can hold up to {max} different items.
   "server.mixed_sellers": "Een betaling kan net een verkoper dek. Betaal vir elke verkoper se items apart.", // en: One payment can only cover one seller. Pay for each seller's items separately.
   "server.bad_date": "Kies 'n datum van vandag tot twee weke vooruit.", // en: Choose a date from today up to two weeks ahead.
-  "server.bad_address": "Voltooi asseblief die afleweringsadres: plaas die speld, beskryf die plek, en voeg 'n naam en foonnommer by.", // en: Please complete the delivery address: place the pin, describe the place, and add a name and phone number.
+  "server.bad_address": "Voltooi asseblief die afleweringsadres: plaas die speld, beskryf die plek, en voeg die naam van die ontvanger by.", // en: Please complete the delivery address: place the pin, describe the place, and add the name of the person receiving it.
+  "server.contact_in_text": "Foonnommers, e-posadresse en skakels kan nie hier gedeel word nie. Stuur eerder boodskappe in die toepassing.", // en: Phone numbers, e-mails and links can't be shared here. Message each other in the app instead.
   "server.no_pickup_location": "Die verkoper het nie hul plek op die kaart gemerk nie, so aflewering kan nie gereël word nie.", // en: The seller has not marked their place on the map, so delivery can't be arranged.
   "server.delivery_not_offered": "Daardie manier om die bestelling te kry, word nie deur hierdie verkoper aangebied nie.", // en: That way of getting the order is not offered by this seller.
   "server.delivery_too_far": "Dit is te ver vir hierdie afleweringskeuse (tot {max} km).", // en: That is too far for this delivery option (up to {max} km).
@@ -2162,7 +2165,6 @@ module.exports = {
   "server.wrong_status": "Dit kan nie in hierdie stadium van die bestelling gedoen word nie.", // en: That can't be done at this stage of the order.
   "server.not_platform_delivery": "Hierdie bestelling is nie vir 'n AfriAgriFed-vervoerder opgestel nie.", // en: This order is not set up for an AfriAgriFed carrier.
   "server.job_exists": "'n Vervoerder is reeds vir hierdie bestelling gevra.", // en: A carrier has already been requested for this order.
-  "server.bad_phone": "Voeg 'n foonnommer by wat die vervoerder by die afhaalpunt kan bel.", // en: Add a phone number the carrier can call at pick-up.
   "server.bad_ready_time": "Kies 'n tyd wanneer die goedere gereed sal wees, binne die volgende 3 dae.", // en: Choose a time the goods will be ready, within the next 3 days.
   "server.not_a_carrier": "Net goedgekeurde vervoerders kan afleweringswerk aanneem.", // en: Only approved carriers can take delivery jobs.
   "server.carrier_unavailable": "Jy is as nie beskikbaar gemerk nie. Skakel oor na beskikbaar om werk aan te neem.", // en: You are marked as not available. Switch to available to take jobs.
